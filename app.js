@@ -109,58 +109,162 @@ const tools=[
 {slug:"binary-calculator",name:"Binary Calculator",desc:"Work with binary values.",cat:"tools"},
 {slug:"octal-decimal-converter",name:"Octal Decimal Converter",desc:"Convert octal and decimal.",cat:"tools"}];
 
+
 function card(t){return '<a class="tool-card" href="/tools/'+t.slug+'.html"><h3>'+t.name+'</h3><p>'+t.desc+'</p><span class="tool-tag">'+t.cat.toUpperCase()+' TOOL →</span></a>'}
 function renderHome(list=tools){const el=document.getElementById('tool-grid');if(el)el.innerHTML=list.map(card).join('')}
-function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function setResult(v){const out=document.getElementById('result');if(!out)return;if(v instanceof Node){out.replaceChildren(v)}else out.innerHTML=String(v??'')}
+function inputEl(){return document.getElementById('input')}
+function getText(){return inputEl()?.value||''}
+function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function addDownload(blob,name){const b=document.createElement('button');b.className='btn';b.textContent='Download';b.onclick=()=>downloadBlob(blob,name);document.getElementById('result').appendChild(document.createTextNode(' '));document.getElementById('result').appendChild(b)}
+function makeFileInput(multiple=false,accept=''){const input=document.createElement('input');input.type='file';input.multiple=multiple;if(accept)input.accept=accept;input.id='fileInput';const box=document.getElementById('tool');const old=document.getElementById('input');if(old)old.replaceWith(input);return input}
+function loadScript(src){return new Promise((resolve,reject)=>{if(document.querySelector('script[data-lib="'+src+'"]'))return resolve();const s=document.createElement('script');s.src=src;s.dataset.lib=src;s.onload=resolve;s.onerror=reject;document.head.appendChild(s)})}
+async function pdfLib(){await loadScript('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js');return window.PDFLib}
+async function pdfJs(){await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs');if(!window.pdfjsLib)throw new Error('PDF text library unavailable');return window.pdfjsLib}
+function csvParse(text){const rows=[];let row=[],cell='',q=false;for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(c==='"'&&q&&n==='"'){cell+='"';i++;continue}if(c==='"'){q=!q;continue}if(c===','&&!q){row.push(cell);cell='';continue}if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&n==='\n')i++;row.push(cell);cell='';if(row.some(x=>x!=='')||rows.length)rows.push(row);row=[];continue}cell+=c}row.push(cell);if(row.some(x=>x!==''))rows.push(row);return rows}
+function csvEscape(v){v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function jsonToRows(obj){if(!Array.isArray(obj))obj=[obj];const keys=[...new Set(obj.flatMap(o=>Object.keys(o||{})))];return [keys,...obj.map(o=>keys.map(k=>o?.[k]??''))]}
+function simpleFormat(code,indent='  '){return code.replace(/>\s*</g,'>\n<').split('\n').map((x,i)=>indent.repeat(Math.max(0,(x.match(/<[^/!?][^>]*>/g)||[]).length-(x.match(/<\/[^>]+>/g)||[]).length))).join('\n')}
+function textToHtml(md){return esc(md).split(/\n{2,}/).map(p=>'<p>'+p.replace(/\n/g,'<br>')+'</p>').join('\n')}
+function safeJson(v){try{return JSON.parse(v)}catch(e){throw new Error('Invalid JSON: '+e.message)}}
+function parseNums(s){return s.split(/[\s,;]+/).filter(Boolean).map(Number).filter(Number.isFinite)}
+function randomPassword(len=20){const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*_-+=';const a=new Uint32Array(len);crypto.getRandomValues(a);return [...a].map(n=>chars[n%chars.length]).join('')}
 function setupTool(slug){
- const box=document.getElementById('tool'); if(!box)return;
- const out=document.getElementById('result'); const input=document.getElementById('input'); const action=document.getElementById('action');
- const set=v=>out.innerHTML=v;
- const t={};
- if(slug==='word-counter'||slug==='character-counter'){input.placeholder='Paste or type your text here...';action.textContent='Count';action.onclick=()=>{const v=input.value;const words=v.trim()?v.trim().split(/\s+/).length:0;const chars=v.length;const no=v.replace(/\s/g,'').length;const sentences=v.trim()?v.split(/[.!?]+/).filter(Boolean).length:0;set('Words: '+words+'\nCharacters: '+chars+'\nCharacters without spaces: '+no+'\nSentences: '+sentences)}}
- else if(slug==='case-converter'){action.textContent='Convert';action.onclick=()=>{const v=input.value;set('UPPERCASE:\n'+v.toUpperCase()+'\n\nLOWERCASE:\n'+v.toLowerCase()+'\n\nTitle Case:\n'+v.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()))}}
- else if(slug==='remove-duplicate-lines'){action.textContent='Clean';action.onclick=()=>set([...new Set(input.value.split(/\r?\n/))].join('\n'))}
- else if(slug==='json-formatter'||slug==='json-minifier'){action.textContent=slug==='json-formatter'?'Format JSON':'Minify JSON';action.onclick=()=>{try{const o=JSON.parse(input.value);set(JSON.stringify(o,null,slug==='json-formatter'?2:0))}catch(e){set('Invalid JSON: '+e.message)}}}
- else if(slug==='base64-encoder'){action.textContent='Encode';action.onclick=()=>set(btoa(unescape(encodeURIComponent(input.value))))}
- else if(slug==='base64-decoder'){action.textContent='Decode';action.onclick=()=>{try{set(decodeURIComponent(escape(atob(input.value))))}catch(e){set('Invalid Base64 input.')}}}
- else if(slug==='url-encoder'){action.textContent='Encode';action.onclick=()=>set(encodeURIComponent(input.value))}
- else if(slug==='url-decoder'){action.textContent='Decode';action.onclick=()=>{try{set(decodeURIComponent(input.value))}catch(e){set('Invalid encoded URL.')}}}
- else if(slug==='uuid-generator'){input.classList.add('hidden');action.textContent='Generate UUID';action.onclick=()=>set(crypto.randomUUID())}
- else if(slug==='password-generator'){input.classList.add('hidden');action.textContent='Generate Password';action.onclick=()=>{const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*';let s='';for(let i=0;i<20;i++)s+=chars[Math.floor(Math.random()*chars.length)];set(s)}}
- else if(slug==='lorem-ipsum-generator'){input.classList.add('hidden');action.textContent='Generate Text';action.onclick=()=>set('Lorem ipsum dolor sit amet, consectetur adipiscing elit. '.repeat(12).trim())}
- else if(slug==='percentage-calculator'){input.placeholder='Example: 15% of 200';action.textContent='Calculate';action.onclick=()=>{const m=input.value.match(/([\d.,]+)\s*%\s*(?:of|de)\s*([\d.,]+)/i);if(!m)return set('Use a format like: 15% of 200');set((parseFloat(m[1].replace(',','.'))/100*parseFloat(m[2].replace(',','.'))).toString())}}
- else if(slug==='age-calculator'){input.type='date';action.textContent='Calculate Age';action.onclick=()=>{const d=new Date(input.value+'T00:00:00');if(isNaN(d))return set('Choose a valid date.');const n=new Date();let age=n.getFullYear()-d.getFullYear();const before=n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate());if(before)age--;set('Age: '+age+' years')}} 
- else if(slug==='unix-timestamp'){input.placeholder='Example: 1790000000';action.textContent='Convert';action.onclick=()=>{const n=Number(input.value);if(!Number.isFinite(n))return set('Enter a valid timestamp.');set(new Date(n*1000).toString())}}
- else if(slug==='color-converter'){input.placeholder='Example: #635BFF';action.textContent='Convert';action.onclick=()=>{let h=input.value.trim().replace('#','');if(h.length===3)h=h.split('').map(x=>x+x).join('');if(!/^[0-9a-f]{6}$/i.test(h))return set('Enter a valid 6-digit HEX color.');set('RGB: rgb('+parseInt(h.slice(0,2),16)+', '+parseInt(h.slice(2,4),16)+', '+parseInt(h.slice(4),16)+')')}} 
- else if(slug==='text-to-slug'){action.textContent='Create Slug';action.onclick=()=>set(input.value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''))}
- else if(slug==='hash-generator'){action.textContent='Generate SHA-256';action.onclick=async()=>{const data=new TextEncoder().encode(input.value);const hash=await crypto.subtle.digest('SHA-256',data);set([...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,'0')).join(''))}}
- else if(slug==='number-base-converter'){action.textContent='Convert';action.onclick=()=>{const n=input.value.trim();const b=prompt('Input base (2-36):','10');if(!b)return;const x=parseInt(n,Number(b));if(isNaN(x))return set('Invalid number.');set('Binary: '+x.toString(2)+'\nDecimal: '+x+'\nHexadecimal: '+x.toString(16).toUpperCase())}}
- else if(slug==='image-info'||slug==='image-to-data-url'){input.type='file';action.textContent=slug==='image-info'?'Inspect Image':'Convert to Data URL';action.onclick=()=>{const f=input.files[0];if(!f)return set('Choose an image first.');if(slug==='image-info'){const im=new Image();im.onload=()=>set('File: '+f.name+'\nType: '+f.type+'\nSize: '+(f.size/1024).toFixed(1)+' KB\nDimensions: '+im.width+' × '+im.height);im.src=URL.createObjectURL(f)}else{const r=new FileReader();r.onload=()=>set(r.result);r.readAsDataURL(f)}}}
- else if(slug==='qr-code-generator'){input.placeholder='Enter text or URL';action.textContent='Generate QR Code';action.onclick=()=>{const v=encodeURIComponent(input.value);set('<img alt="QR code" style="max-width:280px" src="https://api.qrserver.com/v1/create-qr-code/?size=280x280&data='+v+'">')}}
- else if(slug==='pdf-tools'){input.classList.add('hidden');action.textContent='Coming next';action.onclick=()=>set('PDF processing tools are being added to the GlobalTools library.')}
+ const box=document.getElementById('tool');if(!box)return;
+ let input=document.getElementById('input'), action=document.getElementById('action'), out=document.getElementById('result');
+ if(!input){input=document.createElement('textarea');input.id='input';box.prepend(input)}
+ if(!action){action=document.createElement('button');action.id='action';action.className='btn';action.textContent='Run Tool';box.appendChild(action)}
+ if(!out){out=document.createElement('div');out.id='result';out.className='result';box.appendChild(out)}
+ const run=async fn=>{try{setResult(await fn())}catch(e){setResult('<b>Error:</b> '+esc(e.message||e))}};
+ const textTools={
+ 'word-counter':()=>{const v=getText(),words=v.trim()?v.trim().split(/\s+/).length:0,chars=v.length,no=v.replace(/\s/g,'').length,sent=v.trim()?v.split(/[.!?]+/).filter(x=>x.trim()).length:0,para=v.trim()?v.split(/\n\s*\n/).filter(x=>x.trim()).length:0;return 'Words: '+words+'<br>Characters: '+chars+'<br>Characters without spaces: '+no+'<br>Sentences: '+sent+'<br>Paragraphs: '+para},
+ 'character-counter':()=>{const v=getText();return 'Characters: '+v.length+'<br>Without spaces: '+v.replace(/\s/g,'').length},
+ 'case-converter':()=>{const v=getText();return '<b>UPPERCASE</b><br>'+esc(v.toUpperCase())+'<br><br><b>lowercase</b><br>'+esc(v.toLowerCase())+'<br><br><b>Title Case</b><br>'+esc(v.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()))+'<br><br><b>Sentence case</b><br>'+esc(v.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g,c=>c.toUpperCase()))},
+ 'remove-duplicate-lines':()=>[...new Set(getText().split(/\r?\n/))].join('\n'),
+ 'reverse-text':()=>getText().split('').reverse().join(''),
+ 'sort-lines':()=>getText().split(/\r?\n/).sort((a,b)=>a.localeCompare(b)).join('\n'),
+ 'remove-extra-spaces':()=>getText().replace(/[ \t]+/g,' ').replace(/\n\s*\n+/g,'\n').trim(),
+ 'count-lines':()=>String(getText()?getText().split(/\r?\n/).length:0),
+ 'text-statistics':()=>{const v=getText(),words=v.trim()?v.trim().split(/\s+/).length:0;return 'Words: '+words+'<br>Characters: '+v.length+'<br>Lines: '+(v?v.split(/\r?\n/).length:0)+'<br>Letters: '+(v.match(/[A-Za-zÀ-ÿ]/g)||[]).length+'<br>Digits: '+(v.match(/\d/g)||[]).length},
+ 'reading-time-calculator':()=>{const w=getText().trim()?getText().trim().split(/\s+/).length:0;return w+' words<br>Estimated reading time: '+Math.max(1,Math.ceil(w/200))+' minute(s)'},
+ 'text-to-slug':()=>getText().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''),
+ 'slug-generator':()=>getText().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''),
+ 'html-escape':()=>esc(getText()),
+ 'html-unescape':()=>{const d=document.createElement('textarea');d.innerHTML=getText();return esc(d.value)},
+ 'html-to-text':()=>{const d=document.createElement('div');d.innerHTML=getText();return esc(d.textContent||'')},
+ 'text-to-html':()=>esc(getText()).split(/\n{2,}/).map(p=>'<p>'+p.replace(/\n/g,'<br>')+'</p>').join('\n')
+ };
+ const dev={
+ 'json-formatter':()=>JSON.stringify(safeJson(getText()),null,2),
+ 'json-minifier':()=>JSON.stringify(safeJson(getText())),
+ 'csv-to-json':()=>{const r=csvParse(getText());if(!r.length)return '[]';const h=r[0];return JSON.stringify(r.slice(1).map(x=>Object.fromEntries(h.map((k,i)=>[k,x[i]??'']))),null,2)},
+ 'json-to-csv':()=>{const r=jsonToRows(safeJson(getText()));return r.map(x=>x.map(csvEscape).join(',')).join('\n')},
+ 'csv-viewer':()=>{const r=csvParse(getText());return '<table class="data-table"><tbody>'+r.map(row=>'<tr>'+row.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table>'},
+ 'json-to-typescript':()=>{const o=safeJson(getText()),rows=jsonToRows(o),keys=rows[0];return 'interface Root {\\n'+keys.map(k=>'  '+k+': '+(typeof (Array.isArray(o)?o[0]?.[k]:o?.[k])==='number'?'number':typeof (Array.isArray(o)?o[0]?.[k]:o?.[k])==='boolean'?'boolean':'string')+';').join('\\n')+'\\n}'},
+ 'json-to-python':()=>{const o=safeJson(getText());return 'data = '+JSON.stringify(o,null,2).replace(/true/g,'True').replace(/false/g,'False').replace(/null/g,'None')},
+ 'json-to-java':()=>{const o=safeJson(getText());return 'Map<String, Object> data = new ObjectMapper().readValue(json, new TypeReference<Map<String,Object>>(){});\\n// Keys: '+Object.keys(Array.isArray(o)?o[0]||{}:o).join(', ')},
+ 'base64-encoder':()=>btoa(unescape(encodeURIComponent(getText()))),
+ 'base64-decoder':()=>decodeURIComponent(escape(atob(getText().trim()))),
+ 'url-encoder':()=>encodeURIComponent(getText()),
+ 'url-decoder':()=>decodeURIComponent(getText()),
+ 'url-parser':()=>{const u=new URL(getText());return Object.entries({href:u.href,protocol:u.protocol,host:u.host,path:u.pathname,query:u.search,hash:u.hash}).map(([k,v])=>k+': '+v).join('\n')},
+ 'url-query-parser':()=>{const u=new URL(getText());return [...u.searchParams.entries()].map(([k,v])=>k+' = '+v).join('\n')||'No query parameters.'},
+ 'email-validator':()=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(getText().trim())?'Valid email format.':'Invalid email format.',
+ 'ip-address-info':()=>{const v=getText().trim();const ipv4=/^(?:\d{1,3}\.){3}\d{1,3}$/.test(v);const ipv6=v.includes(':');return (ipv4?'IPv4-like address':ipv6?'IPv6-like address':'Invalid/unknown IP format')},
+ 'jwt-decoder':()=>{const p=getText().split('.');if(p.length<2)throw new Error('Enter a JWT.');const dec=s=>JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g,'+').replace(/_/g,'/')))));return 'Header:\\n'+JSON.stringify(dec(p[0]),null,2)+'\\n\\nPayload:\\n'+JSON.stringify(dec(p[1]),null,2)},
+ 'regex-tester':()=>{const [pattern,flags,...rest]=getText().split(/\n/),sample=rest.join('\n');if(!pattern)throw new Error('First line: regex pattern. Second line: flags. Remaining lines: sample text.');const re=new RegExp(pattern,flags||'');return JSON.stringify([...sample.matchAll(new RegExp(re.source,re.flags.includes('g')?re.flags:re.flags+'g'))].map(m=>m[0]),null,2)},
+ 'html-formatter':()=>simpleFormat(getText()),
+ 'xml-formatter':()=>simpleFormat(getText()),
+ 'css-formatter':()=>getText().replace(/\s*{\s*/g,' {\\n  ').replace(/;\s*/g,';\\n  ').replace(/\s*}\s*/g,'\\n}\\n').trim(),
+ 'javascript-formatter':()=>getText().replace(/\s*{\s*/g,' {\\n  ').replace(/;\s*/g,';\\n').replace(/\s*}\s*/g,'\\n}\\n').trim(),
+ 'sql-formatter':()=>getText().replace(/\s+(FROM|WHERE|GROUP BY|ORDER BY|HAVING|LIMIT|LEFT JOIN|RIGHT JOIN|INNER JOIN|JOIN)\s+/gi,'\n$1 ').replace(/\s+(AND|OR)\s+/gi,'\n  $1 ').trim(),
+ 'yaml-formatter':()=>getText().split(/\r?\n/).map(x=>x.trimEnd()).join('\n'),
+ 'markdown-to-html':()=>textToHtml(getText()),
+ 'html-formatter':()=>simpleFormat(getText()),
+ 'hex-to-rgb':()=>{let h=getText().trim().replace('#','');if(h.length===3)h=h.split('').map(x=>x+x).join('');if(!/^[0-9a-f]{6}$/i.test(h))throw new Error('Invalid HEX');return 'rgb('+parseInt(h.slice(0,2),16)+', '+parseInt(h.slice(2,4),16)+', '+parseInt(h.slice(4),16)+')'},
+ 'rgb-to-hex':()=>{const n=parseNums(getText());if(n.length<3||n.slice(0,3).some(x=>x<0||x>255))throw new Error('Enter R G B values, e.g. 99 91 255');return '#'+n.slice(0,3).map(x=>Math.round(x).toString(16).padStart(2,'0')).join('').toUpperCase()},
+ 'binary-to-text':()=>getText().trim().split(/\s+/).map(x=>String.fromCharCode(parseInt(x,2))).join(''),
+ 'text-to-binary':()=>[...getText()].map(c=>c.charCodeAt(0).toString(2).padStart(8,'0')).join(' '),
+ 'number-base-converter':()=>{const [n,b]=getText().trim().split(/\s+/);const x=parseInt(n,Number(b||10));if(!Number.isFinite(x))throw new Error('Use: number [base], e.g. FF 16');return 'Binary: '+x.toString(2)+'\\nDecimal: '+x+'\\nHex: '+x.toString(16).toUpperCase()},
+ 'binary-calculator':()=>{const [a,op,b]=getText().trim().split(/\s+/);const x=parseInt(a,2),y=parseInt(b,2);if(!Number.isFinite(x)||!Number.isFinite(y))throw new Error('Use: 1010 + 0011');const z=op==='-'?x-y:op==='*'?x*y:op==='/'?x/y:x+y;return 'Decimal: '+z+'\\nBinary: '+Math.trunc(z).toString(2)},
+ 'octal-decimal-converter':()=>{const n=getText().trim();return 'Octal: '+parseInt(n,10).toString(8)+'\\nDecimal: '+parseInt(n,8)},
+ 'ascii-table':()=>Array.from({length:128},(_,i)=>i+' = '+(i<32?'Control':String.fromCharCode(i))).join('\n'),
+ 'url-shortener-helper':()=>getText().trim(),
+ 'meta-tag-generator':()=>{const [title='',description='',url='']=getText().split(/\n/);return '<title>'+esc(title)+'</title>\\n<meta name="description" content="'+esc(description)+'">\\n<link rel="canonical" href="'+esc(url)+'">'},
+ 'utm-builder':()=>{const [url,source,medium,campaign,term,content]=getText().split(/\n/);const u=new URL(url);[['utm_source',source],['utm_medium',medium],['utm_campaign',campaign],['utm_term',term],['utm_content',content]].forEach(([k,v])=>v&&u.searchParams.set(k,v));return u.href}
+ };
+ const calc={
+ 'percentage-calculator':()=>{const m=getText().match(/([\d.,]+)\s*%\s*(?:of|de)\s*([\d.,]+)/i);if(!m)throw new Error('Use: 15% of 200');return (parseFloat(m[1].replace(',','.'))/100*parseFloat(m[2].replace(',','.')))},
+ 'discount-calculator':()=>{const [price,pct]=parseNums(getText());return 'Discount: '+(price*pct/100).toFixed(2)+'\\nFinal price: '+(price*(1-pct/100)).toFixed(2)},
+ 'tip-calculator':()=>{const [bill,pct=10,people=1]=parseNums(getText());const tip=bill*pct/100;return 'Tip: '+tip.toFixed(2)+'\\nTotal: '+(bill+tip).toFixed(2)+'\\nPer person: '+((bill+tip)/people).toFixed(2)},
+ 'ratio-calculator':()=>{const [a,b,c]=parseNums(getText());if(c===undefined)return 'Simplified ratio: '+a/gcd(a,b)+':'+b/gcd(a,b);return 'Fourth value: '+(b*c/a)},
+ 'average-calculator':()=>{const n=parseNums(getText());return n.reduce((a,b)=>a+b,0)/n.length},
+ 'square-root-calculator':()=>Math.sqrt(Number(getText())),
+ 'power-calculator':()=>{const [a,b]=parseNums(getText());return Math.pow(a,b)},
+ 'fraction-calculator':()=>{const [a,b,op,c,d]=getText().trim().split(/\s+/);const A=Number(a)/Number(b),B=Number(c)/Number(d);const z=op==='-'?A-B:op==='*'?A*B:op==='/'?A/B:A+B;return z},
+ 'days-between-dates':()=>{const [a,b]=getText().trim().split(/\s+/);return Math.round(Math.abs(new Date(b)-new Date(a))/86400000)+' days'},
+ 'date-add-subtract':()=>{const [d,n]=getText().trim().split(/\s+/);const x=new Date(d);x.setDate(x.getDate()+Number(n));return x.toISOString().slice(0,10)},
+ 'leap-year-checker':()=>{const y=Number(getText());return ((y%4===0&&y%100!==0)||y%400===0)?y+' is a leap year.':y+' is not a leap year.'},
+ 'week-number':()=>{const d=new Date(getText());if(isNaN(d))throw new Error('Enter a valid date.');const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));t.setUTCDate(t.getUTCDate()+4-(t.getUTCDay()||7));const y=new Date(Date.UTC(t.getUTCFullYear(),0,1));return 'ISO week: '+Math.ceil((((t-y)/86400000)+1)/7)},
+ 'time-duration':()=>{const [a,b]=getText().trim().split(/\s+/).map(x=>new Date('1970-01-01T'+x));return Math.abs(b-a)/60000+' minutes'},
+ 'age-calculator':()=>{const d=new Date(getText()),n=new Date();let age=n.getFullYear()-d.getFullYear();if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))age--;return 'Age: '+age+' years'},
+ 'timestamp-to-date':()=>new Date(Number(getText())*1000).toString(),
+ 'unix-timestamp':()=>new Date(Number(getText())*1000).toString(),
+ 'date-to-timestamp':()=>Math.floor(new Date(getText()).getTime()/1000),
+ 'timezone-converter':()=>{const [date,from,to]=getText().trim().split(/\s+/);return new Intl.DateTimeFormat('en-US',{timeZone:to||'UTC',dateStyle:'full',timeStyle:'long'}).format(new Date(date))},
+ 'random-number-generator':()=>{const [min=1,max=100]=parseNums(getText());return String(Math.floor(Math.random()*(max-min+1))+min)},
+ 'random-choice-picker':()=>{const a=getText().split(/\r?\n/).filter(Boolean);return a[Math.floor(Math.random()*a.length)]||''},
+ 'dice-roller':()=>{const [sides=6,count=1]=parseNums(getText());return Array.from({length:count},()=>Math.floor(Math.random()*sides)+1).join(', ')},
+ 'color-palette-generator':()=>Array.from({length:5},()=>'#'+crypto.getRandomValues(new Uint8Array(3)).reduce((s,n)=>s+n.toString(16).padStart(2,'0'),'')).join('\n')
+ };
+ function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b)[a,b]=[b,a%b];return a||1}
+ const fileHandlers=['image-info','image-to-data-url','image-to-base64','image-color-picker','image-cropper','image-resizer','image-compressor','jpg-to-png','png-to-jpg','webp-to-jpg','jpg-to-webp','png-to-webp','webp-to-png','image-dimensions','svg-to-data-url','base64-to-file','pdf-page-counter','pdf-metadata','pdf-to-text','merge-pdf','split-pdf','rotate-pdf','compress-pdf'];
+ if(fileHandlers.includes(slug)){
+   const accept=slug.startsWith('pdf')||slug.includes('pdf')?'application/pdf':slug.includes('svg')?'.svg,image/svg+xml':'image/*';
+   const fi=makeFileInput(['merge-pdf'].includes(slug),accept);
+   action.textContent=slug==='merge-pdf'?'Merge PDFs':slug==='split-pdf'?'Split PDF':slug==='rotate-pdf'?'Rotate PDF':slug==='pdf-to-text'?'Extract Text':slug==='pdf-page-counter'?'Count Pages':'Process File';
+   action.onclick=()=>run(async()=>{
+     const files=[...fi.files];if(!files.length)throw new Error('Choose a file first.');
+     if(slug==='merge-pdf'||slug==='split-pdf'||slug==='rotate-pdf'||slug==='compress-pdf'||slug==='pdf-page-counter'||slug==='pdf-metadata'){const {PDFDocument}=await pdfLib();const bytes=await files[0].arrayBuffer();const doc=await PDFDocument.load(bytes);if(slug==='pdf-page-counter')return 'Pages: '+doc.getPageCount();if(slug==='pdf-metadata')return 'Pages: '+doc.getPageCount()+'\\nTitle: '+(doc.getTitle()||'')+'\\nAuthor: '+(doc.getAuthor()||'');if(slug==='merge-pdf'){const out=await PDFDocument.create();for(const f of files){const src=await PDFDocument.load(await f.arrayBuffer());const pages=await out.copyPages(src,src.getPageIndices());pages.forEach(p=>out.addPage(p))}const blob=new Blob([await out.save()],{type:'application/pdf'});setResult('Merged '+files.length+' PDF file(s).');addDownload(blob,'merged.pdf');return}if(slug==='split-pdf'){const out=await PDFDocument.create();const p=out.addPage(doc.getPage(0));p.setSize(doc.getPage(0).getWidth(),doc.getPage(0).getHeight());const blob=new Blob([await out.save()],{type:'application/pdf'});setResult('Created a PDF containing page 1.');addDownload(blob,'split-page-1.pdf');return}if(slug==='rotate-pdf'){doc.getPages().forEach(p=>p.setRotation({angle:90,type:0}));const blob=new Blob([await doc.save()],{type:'application/pdf'});setResult('Rotated all pages by 90°.');addDownload(blob,'rotated.pdf');return}if(slug==='compress-pdf'){const blob=new Blob([await doc.save({useObjectStreams:true})],{type:'application/pdf'});setResult('Re-saved PDF with object streams. File size may vary.');addDownload(blob,'compressed.pdf');return}}
+     const f=files[0];
+     if(slug==='base64-to-file'){const data=getText().trim();const m=data.match(/^data:([^;]+);base64,(.+)$/);if(!m)throw new Error('Paste a complete data URL in the text field.');const bin=atob(m[2]);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);const blob=new Blob([u],{type:m[1]});setResult('File decoded.');addDownload(blob,'decoded-file');return}
+     if(slug==='image-info'||slug==='image-dimensions'){const im=new Image();im.src=URL.createObjectURL(f);await im.decode();return 'File: '+esc(f.name)+'<br>Type: '+esc(f.type)+'<br>Size: '+(f.size/1024).toFixed(1)+' KB<br>Dimensions: '+im.width+' × '+im.height}
+     if(slug==='image-to-data-url'||slug==='image-to-base64'){const data=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(f)});return '<textarea style="min-height:220px">'+esc(data)+'</textarea>'}
+     if(slug==='svg-to-data-url'){const txt=await f.text();return '<textarea style="min-height:180px">'+esc('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(txt))+'</textarea>'}
+     const im=new Image();im.src=URL.createObjectURL(f);await im.decode();const canvas=document.createElement('canvas');canvas.width=im.width;canvas.height=im.height;const ctx=canvas.getContext('2d');ctx.drawImage(im,0,0);
+     if(slug==='image-color-picker'){const d=ctx.getImageData(0,0,1,1).data;return 'Top-left pixel: rgb('+d[0]+', '+d[1]+', '+d[2]+')'}
+     if(slug==='image-cropper'){const w=Math.floor(im.width*.8),h=Math.floor(im.height*.8),x=Math.floor((im.width-w)/2),y=Math.floor((im.height-h)/2);const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,x,y,w,h,0,0,w,h);const blob=await new Promise(r=>c.toBlob(r,f.type||'image/png'));setResult('Cropped center 80% of the image.');addDownload(blob,'cropped.png');return}
+     const [rw,rh]=parseNums(document.getElementById('resizeWidth')?.value+' '+document.getElementById('resizeHeight')?.value);
+     if(slug==='image-resizer'||slug==='image-compressor'||slug.includes('to-')){let w=im.width,h=im.height;if(slug==='image-resizer'&&rw){h=rh||Math.round(im.height*rw/im.width);w=rw}if(slug==='image-compressor'){w=Math.round(w*.8);h=Math.round(h*.8)}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);const type=slug.includes('jpg')?'image/jpeg':slug.includes('webp')?'image/webp':'image/png';const blob=await new Promise(r=>c.toBlob(r,type,.85));setResult('Output: '+w+' × '+h);addDownload(blob,'converted.'+(type==='image/jpeg'?'jpg':type.split('/')[1]));return}
+   });
+   if(slug==='image-resizer'){const controls=document.createElement('div');controls.innerHTML='<label>Width</label><input id="resizeWidth" type="number" placeholder="800"><label>Height (optional)</label><input id="resizeHeight" type="number" placeholder="Auto">';box.insertBefore(controls,action)}
+   return;
+ }
+ let handler=textTools[slug]||dev[slug]||calc[slug];
+ if(slug==='uuid-generator'){handler=()=>crypto.randomUUID()}
+ if(slug==='password-generator'){handler=()=>randomPassword(20)}
+ if(slug==='random-password-batch'){handler=()=>Array.from({length:10},()=>randomPassword(20)).join('\n')}
+ if(slug==='password-strength-checker'){handler=()=>{const v=getText(),score=(v.length>=12)+(v.length>=16)+(/[a-z]/.test(v))+( /[A-Z]/.test(v))+( /\d/.test(v))+( /[^A-Za-z0-9]/.test(v));return 'Score: '+score+'/6<br>Length: '+v.length+'<br>'+ (score>=5?'Strong characteristics':'Add length, numbers, upper/lowercase and symbols.')}}
+ if(slug==='hash-generator')handler=async()=>{const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(getText()));return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}
+ if(slug==='lorem-ipsum-generator')handler=()=>('Lorem ipsum dolor sit amet, consectetur adipiscing elit. '.repeat(12)).trim()
+ if(slug==='qr-code-generator')handler=()=>{const v=encodeURIComponent(getText().trim());return '<img alt="QR code" style="max-width:280px" src="https://api.qrserver.com/v1/create-qr-code/?size=280x280&data='+v+'"><br><small>QR image is generated by an external QR service.</small>'}
+ if(slug==='pdf-tools')handler=()=> 'Use the dedicated PDF tools in the library for page counting, merging, splitting and rotation.'
+ if(!handler)handler=()=>getText()
+ input.placeholder='Enter or paste your data...';
+ if(['uuid-generator','password-generator','random-password-batch','lorem-ipsum-generator','qr-code-generator','dice-roller','random-number-generator','random-choice-picker','color-palette-generator','ascii-table'].includes(slug))input.placeholder=slug==='random-choice-picker'?'One option per line':slug==='dice-roller'?'Enter: sides count (e.g. 6 2)':'Enter data or parameters...';
+ action.textContent='Run Tool';action.onclick=()=>run(handler);
 }
 const path=location.pathname;
 if(path==='/'||path==='/index.html'){renderHome();const s=document.getElementById('search');if(s)s.oninput=()=>renderHome(tools.filter(t=>(t.name+' '+t.desc+' '+t.cat).toLowerCase().includes(s.value.toLowerCase())))}
 else {const m=path.match(/\/tools\/([^/]+)\.html/);if(m)setupTool(m[1])}
 
-
 const translations={
   en:{navTools:"Tools",navCategories:"Categories",navPrivacy:"Privacy",badge:"⚡ Free • Fast • Browser-based",title:"Simple tools for everyday problems.",subtitle:"Convert, compress, format, generate and calculate — instantly in your browser.",search:"Search for a tool...",catTitle:"Browse categories",catSub:"Useful tools, organized by task.",popular:"Popular tools",popularSub:"Everything is free to start.",pdf:"Work with PDF files",image:"Resize, convert and inspect",text:"Clean and analyze text",developer:"Format and encode data",generators:"Create useful data",converters:"Convert common formats",fast:"Designed for instant results.",private:"Many tools process data locally.",global:"Built for users everywhere.",free:"No account required for core tools.",footer:"Free online tools for everyone."},
   pt:{navTools:"Ferramentas",navCategories:"Categorias",navPrivacy:"Privacidade",badge:"⚡ Grátis • Rápido • No navegador",title:"Ferramentas simples para problemas do dia a dia.",subtitle:"Converta, comprima, formate, gere e calcule — instantaneamente no seu navegador.",search:"Pesquisar uma ferramenta...",catTitle:"Navegue por categorias",catSub:"Ferramentas úteis organizadas por tarefa.",popular:"Ferramentas populares",popularSub:"Tudo grátis para começar.",pdf:"Trabalhe com arquivos PDF",image:"Redimensione, converta e analise",text:"Limpe e analise textos",developer:"Formate e codifique dados",generators:"Crie dados úteis",converters:"Converta formatos comuns",fast:"Resultados instantâneos.",private:"Muitas ferramentas processam dados localmente.",global:"Feito para usuários de todo o mundo.",free:"Sem cadastro para as ferramentas principais.",footer:"Ferramentas online gratuitas para todos."},
-  es:{navTools:"Herramientas",navCategories:"Categorías",navPrivacy:"Privacidad",badge:"⚡ Gratis • Rápido • En el navegador",title:"Herramientas simples para problemas cotidianos.",subtitle:"Convierte, comprime, formatea, genera y calcula — al instante en tu navegador.",search:"Buscar una herramienta...",catTitle:"Explorar categorías",catSub:"Herramientas útiles organizadas por tarea.",popular:"Herramientas populares",popularSub:"Todo es gratis para empezar.",pdf:"Trabaja con archivos PDF",image:"Redimensiona, convierte y analiza",text:"Limpia y analiza textos",developer:"Formatea y codifica datos",generators:"Crea datos útiles",converters:"Convierte formatos comunes",fast:"Resultados instantáneos.",private:"Muchas herramientas procesan datos localmente.",global:"Creado para usuarios de todo el mundo.",free:"Sin cuenta para las herramientas principales.",footer:"Herramientas online gratuitas para todos."},
+  es:{navTools:"Herramientas",navCategories:"Categorías",navPrivacy:"Privacidad",badge:"⚡ Gratis • Rápido • En el navegador",title:"Herramientas simples para problemas cotidianos.",subtitle:"Convierte, comprime, formatea, genera y calcula — al instante en tu navegador.",search:"Buscar una herramienta...",catTitle:"Explorar categorías",catSub:"Herramientas útiles organizadas por tarea.",popular:"Herramientas populares",popularSub:"Todo es gratis para empezar.",pdf:"Trabaja con archivos PDF",image:"Redimensiona, convierte y analiza",text:"Limpia y analiza textos",developer:"Formatea y codifica datos",generators:"Crea datos útiles",converters:"Convierte formatos comunes",fast:"Resultados instantáneos.",private:"Muchas herramientas procesan los datos localmente.",global:"Creado para usuarios de todo el mundo.",free:"Sin cuenta para las herramientas principales.",footer:"Herramientas online gratuitas para todos."},
   fr:{navTools:"Outils",navCategories:"Catégories",navPrivacy:"Confidentialité",badge:"⚡ Gratuit • Rapide • Dans le navigateur",title:"Des outils simples pour les problèmes du quotidien.",subtitle:"Convertissez, compressez, formatez, générez et calculez — instantanément dans votre navigateur.",search:"Rechercher un outil...",catTitle:"Parcourir les catégories",catSub:"Des outils utiles organisés par tâche.",popular:"Outils populaires",popularSub:"Tout est gratuit pour commencer.",pdf:"Travailler avec des fichiers PDF",image:"Redimensionner, convertir et analyser",text:"Nettoyer et analyser du texte",developer:"Formater et encoder des données",generators:"Créer des données utiles",converters:"Convertir des formats courants",fast:"Conçu pour des résultats instantanés.",private:"De nombreux outils traitent les données localement.",global:"Conçu pour les utilisateurs du monde entier.",free:"Aucun compte requis pour les outils principaux.",footer:"Outils en ligne gratuits pour tous."}
 };
-function applyLanguage(lang){
- const t=translations[lang]||translations.en;
- document.documentElement.lang=lang==="pt"?"pt-BR":lang;
- document.querySelectorAll("[data-i18n]").forEach(el=>{const key=el.dataset.i18n;if(t[key])el.textContent=t[key]});
- const s=document.getElementById("search");if(s)s.placeholder=t.search;
- localStorage.setItem("globaltools-language",lang);
-}
-function setupLanguage(){
- const select=document.getElementById("languageSelect");if(!select)return;
- const saved=localStorage.getItem("globaltools-language")||"en";
- select.value=saved;applyLanguage(saved);
- select.addEventListener("change",()=>applyLanguage(select.value));
-}
+function applyLanguage(lang){const t=translations[lang]||translations.en;document.documentElement.lang=lang==="pt"?"pt-BR":lang;document.querySelectorAll("[data-i18n]").forEach(el=>{const key=el.dataset.i18n;if(t[key])el.textContent=t[key]});const s=document.getElementById("search");if(s)s.placeholder=t.search;localStorage.setItem("globaltools-language",lang)}
+function setupLanguage(){const select=document.getElementById("languageSelect");if(!select)return;const saved=localStorage.getItem("globaltools-language")||"en";select.value=saved;applyLanguage(saved);select.addEventListener("change",()=>applyLanguage(select.value))}
 setupLanguage();
