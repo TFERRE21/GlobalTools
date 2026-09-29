@@ -149,6 +149,7 @@ async function pdfLib(){await loadScript('https://cdn.jsdelivr.net/npm/pdf-lib@1
 async function pdfJs(){await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');if(!window.pdfjsLib)throw new Error('PDF text library unavailable');return window.pdfjsLib}
 async function mammothLib(){await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js');if(!window.mammoth)throw new Error('Word conversion library unavailable');return window.mammoth}
 async function xlsxLib(){await loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');if(!window.XLSX)throw new Error('Excel conversion library unavailable');return window.XLSX}
+async function tesseractLib(){await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');if(!window.Tesseract)throw new Error('OCR library unavailable');return window.Tesseract}
 
 function csvParse(text){const rows=[];let row=[],cell='',q=false;for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(c==='"'&&q&&n==='"'){cell+='"';i++;continue}if(c==='"'){q=!q;continue}if(c===','&&!q){row.push(cell);cell='';continue}if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&n==='\n')i++;row.push(cell);cell='';if(row.some(x=>x!=='')||rows.length)rows.push(row);row=[];continue}cell+=c}row.push(cell);if(row.some(x=>x!==''))rows.push(row);return rows}
 function csvEscape(v){v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
@@ -295,15 +296,38 @@ function setupTool(slug){
          loadingTask.onProgress=p=>{if(p.total)showProgress(8+(p.loaded/p.total)*12,'Carregando PDF...')};
          const pdf=await loadingTask.promise;let text='';
          const total=pdf.numPages;
+         let ocrWorker=null,usedOcr=false;
          for(let i=1;i<=total;i++){
            const page=await pdf.getPage(i),tc=await page.getTextContent();
-           text+=(i>1?'\n\n':'')+tc.items.map(x=>x.str).join(' ');
-           showProgress(20+(i/total)*70,'Extraindo página '+i+' de '+total+'...');
+           let pageText=tc.items.map(x=>x.str).join(' ').trim();
+           if(!pageText){
+             if(!ocrWorker){
+               showProgress(18,'Preparando OCR em português...');
+               const Tesseract=await tesseractLib();
+               ocrWorker=await Tesseract.createWorker('por',1,{logger:m=>{
+                 if(m&&typeof m.progress==='number')showProgress(18+((i-1)/total)*72+m.progress*(72/total),'OCR página '+i+' de '+total+'...');
+               }});
+             }
+             const viewport=page.getViewport({scale:2});
+             const canvas=document.createElement('canvas');
+             canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+             await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
+             const ret=await ocrWorker.recognize(canvas);
+             pageText=(ret.data.text||'').trim();
+             usedOcr=true;
+           }
+           text+=(i>1?'\n\n':'')+pageText;
+           showProgress(20+(i/total)*70,(usedOcr?'Processando página ':'Extraindo página ')+i+' de '+total+'...');
          }
-         showProgress(95,'Gerando documento Word...');
+         if(ocrWorker)await ocrWorker.terminate();
+         if(!text.trim())throw new Error('Não foi possível extrair texto deste PDF, mesmo usando OCR.');
+         showProgress(95,usedOcr?'Gerando Word a partir do OCR...':'Gerando documento Word...');
          if(!window.JSZip)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
          const escXml=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
-         const paragraphs=text.split(/\n\s*\n/).filter(p=>p.trim()).map(p=>'<w:p><w:r><w:t xml:space="preserve">'+escXml(p.trim())+'</w:t></w:r></w:p>').join('');
+         const paragraphs=text.split(/\n\s*\n/).filter(p=>p.trim()).map(p=>{
+           const runs=escXml(p.trim()).split(/\n/).map((line,idx)=>(idx?'<w:br/>':'')+'<w:r><w:t xml:space="preserve">'+line+'</w:t></w:r>').join('');
+           return '<w:p>'+runs+'</w:p>';
+         }).join('');
          const docx=new window.JSZip();
          docx.file('[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>');
          docx.folder('_rels').file('.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
