@@ -1,49 +1,70 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>GlobalTools — Free Online Tools</title>
-  <meta name="description" content="Free online tools for PDF, images, text, developers, generators and everyday tasks. Fast, simple and private.">
+  <title>GlobalTools — Ferramentas PDF online grátis</title>
+  <meta name="description" content="Ferramentas online gratuitas para PDF, documentos, imagens e arquivos. Junte, divida, comprima, converta e organize seus arquivos diretamente no navegador.">
   <meta name="robots" content="index,follow">
   <link rel="canonical" href="/">
-  <link rel="stylesheet" href="/styles.css">
-  <script defer src="/app.js?v=20260929-4"></script>
+  <link rel="stylesheet" href="/styles.css?v=20260929-6">
+  <script defer src="/app.js?v=20260929-6"></script>
 </head>
-<body>
-<header class="site-header">
-  <a class="brand" href="/">Global<span>Tools</span></a>
-  <nav><a href="#tools" data-i18n="navTools">Tools</a><a href="#categories" data-i18n="navCategories">Categories</a><a href="/privacy.html" data-i18n="navPrivacy">Privacy</a><label class="language-switcher" aria-label="Language"><span>🌐</span><select id="languageSelect"><option value="en">English</option><option value="pt">Português</option><option value="es">Español</option><option value="fr">Français</option></select></label></nav>
+<body class="home-page">
+<header class="site-header ilike-header">
+  <a class="brand" href="/"><span class="brand-mark">G</span>Global<span>Tools</span></a>
+  <nav class="main-nav">
+    <a href="#tools" data-i18n="navTools">Ferramentas</a>
+    <a href="#categories" data-i18n="navCategories">Categorias</a>
+    <a href="/privacy.html" data-i18n="navPrivacy">Privacidade</a>
+    <label class="language-switcher" aria-label="Language"><span>🌐</span><select id="languageSelect"><option value="en">English</option><option value="pt">Português</option><option value="es">Español</option><option value="fr">Français</option></select></label>
+  </nav>
 </header>
+
 <main>
-  <section class="hero">
-    <div class="hero-badge" data-i18n="badge">⚡ Free • Fast • Browser-based</div>
-    <h1 data-i18n="title">Simple tools for everyday problems.</h1>
-    <p data-i18n="subtitle">Convert, compress, format, generate and calculate — instantly in your browser.</p>
-    <div class="search"><span>⌕</span><input id="search" placeholder="Search for a tool..." autocomplete="off"></div>
-  </section>
-  <section id="categories" class="section">
-    <div class="section-head"><h2 data-i18n="catTitle">Browse categories</h2><p data-i18n="catSub">Useful tools, organized by task.</p></div>
-    <div class="category-grid">
-      <a href="#pdf" class="category"><b>📄 PDF</b><span data-i18n="pdf">Work with PDF files</span></a>
-      <a href="#image" class="category"><b>🖼️ Image</b><span data-i18n="image">Resize, convert and inspect</span></a>
-      <a href="#text" class="category"><b>✍️ Text</b><span data-i18n="text">Clean and analyze text</span></a>
-      <a href="#developer" class="category"><b>💻 Developer</b><span data-i18n="developer">Format and encode data</span></a>
-      <a href="#generators" class="category"><b>⚙️ Generators</b><span data-i18n="generators">Create useful data</span></a>
-      <a href="#converters" class="category"><b>🔄 Converters</b><span data-i18n="converters">Convert common formats</span></a>
+  <section class="ilike-hero">
+    <div class="hero-inner">
+      <div class="hero-logo">G</div>
+      <h1 data-i18n="title">Ferramentas online para todos</h1>
+      <p data-i18n="subtitle">Junte, divida, comprima, converta e organize seus arquivos de forma rápida e simples.</p>
+      <div class="hero-search"><span>⌕</span><input id="search" placeholder="Pesquisar uma ferramenta..." autocomplete="off"></div>
     </div>
   </section>
-  <section id="tools" class="section">
-    <div class="section-head"><h2 data-i18n="popular">Popular tools</h2><p data-i18n="popularSub">Everything is free to start.</p></div>
+
+  <section id="categories" class="section category-section">
+    <div class="section-head centered"><h2 data-i18n="catTitle">Todas as ferramentas</h2><p data-i18n="catSub">Escolha uma categoria para encontrar exatamente o que precisa.</p></div>
+    <div class="category-tabs" id="categoryTabs">
+      <button class="category-tab active" data-cat="all">Todas</button>
+      <button class="category-tab" data-cat="pdf">Organizar PDF</button>
+      <button class="category-tab" data-cat="documents">Converter documentos</button>
+      <button class="category-tab" data-cat="image">Imagens</button>
+      <button class="category-tab" data-cat="text">Texto</button>
+      <button class="category-tab" data-cat="developer">Desenvolvedor</button>
+      <button class="category-tab" data-cat="generators">Geradores</button>
+      <button class="category-tab" data-cat="converters">Conversores</button>
+    </div>
+  </section>
+
+  <section id="tools" class="section tools-section">
+    <div class="section-head"><h2 data-i18n="popular">Ferramentas populares</h2><p data-i18n="popularSub">Tudo pronto para usar, direto no navegador.</p></div>
     <div id="tool-grid" class="tool-grid"></div>
   </section>
-  <section class="trust">
-    <div><b>⚡ Fast</b><span data-i18n="fast">Designed for instant results.</span></div>
-    <div><b>🔒 Private</b><span data-i18n="private">Many tools process data locally.</span></div>
-    <div><b>🌎 Global</b><span data-i18n="global">Built for users everywhere.</span></div>
-    <div><b>🆓 Free</b><span data-i18n="free">No account required for core tools.</span></div>
+
+  <section class="feature-strip">
+    <div><span class="feature-icon">⚡</span><div><b>Rápido</b><small>Processamento direto no navegador.</small></div></div>
+    <div><span class="feature-icon">🔒</span><div><b>Privado</b><small>Seus arquivos ficam com você sempre que possível.</small></div></div>
+    <div><span class="feature-icon">🆓</span><div><b>Grátis</b><small>Sem cadastro para as ferramentas principais.</small></div></div>
+  </section>
+
+  <section class="about-section">
+    <h2>Ferramentas simples para trabalhar com seus arquivos</h2>
+    <p>O GlobalTools reúne ferramentas para PDF, documentos, imagens, texto e desenvolvimento em um único lugar. Escolha uma ferramenta, carregue seu arquivo e faça o download do resultado.</p>
   </section>
 </main>
-<footer><div class="brand">Global<span>Tools</span></div><p data-i18n="footer">Free online tools for everyone.</p><div><a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a></div></footer>
+
+<footer class="site-footer">
+  <div><div class="brand"><span class="brand-mark">G</span>Global<span>Tools</span></div><p>Ferramentas online gratuitas para todos.</p></div>
+  <div class="footer-links"><a href="/privacy.html">Privacidade</a><a href="/terms.html">Termos</a></div>
+</footer>
 </body>
 </html>
