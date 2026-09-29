@@ -142,3 +142,25 @@ function setupTool(slug){
 const path=location.pathname;
 if(path==='/'||path==='/index.html'){renderHome();const s=document.getElementById('search');if(s)s.oninput=()=>renderHome(tools.filter(t=>(t.name+' '+t.desc+' '+t.cat).toLowerCase().includes(s.value.toLowerCase())))}
 else {const m=path.match(/\/tools\/([^/]+)\.html/);if(m)setupTool(m[1])}
+
+
+const translations={
+  en:{navTools:"Tools",navCategories:"Categories",navPrivacy:"Privacy",badge:"⚡ Free • Fast • Browser-based",title:"Simple tools for everyday problems.",subtitle:"Convert, compress, format, generate and calculate — instantly in your browser.",search:"Search for a tool...",catTitle:"Browse categories",catSub:"Useful tools, organized by task.",popular:"Popular tools",popularSub:"Everything is free to start.",pdf:"Work with PDF files",image:"Resize, convert and inspect",text:"Clean and analyze text",developer:"Format and encode data",generators:"Create useful data",converters:"Convert common formats",fast:"Designed for instant results.",private:"Many tools process data locally.",global:"Built for users everywhere.",free:"No account required for core tools.",footer:"Free online tools for everyone."},
+  pt:{navTools:"Ferramentas",navCategories:"Categorias",navPrivacy:"Privacidade",badge:"⚡ Grátis • Rápido • No navegador",title:"Ferramentas simples para problemas do dia a dia.",subtitle:"Converta, comprima, formate, gere e calcule — instantaneamente no seu navegador.",search:"Pesquisar uma ferramenta...",catTitle:"Navegue por categorias",catSub:"Ferramentas úteis organizadas por tarefa.",popular:"Ferramentas populares",popularSub:"Tudo grátis para começar.",pdf:"Trabalhe com arquivos PDF",image:"Redimensione, converta e analise",text:"Limpe e analise textos",developer:"Formate e codifique dados",generators:"Crie dados úteis",converters:"Converta formatos comuns",fast:"Resultados instantâneos.",private:"Muitas ferramentas processam dados localmente.",global:"Feito para usuários de todo o mundo.",free:"Sem cadastro para as ferramentas principais.",footer:"Ferramentas online gratuitas para todos."},
+  es:{navTools:"Herramientas",navCategories:"Categorías",navPrivacy:"Privacidad",badge:"⚡ Gratis • Rápido • En el navegador",title:"Herramientas simples para problemas cotidianos.",subtitle:"Convierte, comprime, formatea, genera y calcula — al instante en tu navegador.",search:"Buscar una herramienta...",catTitle:"Explorar categorías",catSub:"Herramientas útiles organizadas por tarea.",popular:"Herramientas populares",popularSub:"Todo es gratis para empezar.",pdf:"Trabaja con archivos PDF",image:"Redimensiona, convierte y analiza",text:"Limpia y analiza textos",developer:"Formatea y codifica datos",generators:"Crea datos útiles",converters:"Convierte formatos comunes",fast:"Resultados instantáneos.",private:"Muchas herramientas procesan datos localmente.",global:"Creado para usuarios de todo el mundo.",free:"Sin cuenta para las herramientas principales.",footer:"Herramientas online gratuitas para todos."},
+  fr:{navTools:"Outils",navCategories:"Catégories",navPrivacy:"Confidentialité",badge:"⚡ Gratuit • Rapide • Dans le navigateur",title:"Des outils simples pour les problèmes du quotidien.",subtitle:"Convertissez, compressez, formatez, générez et calculez — instantanément dans votre navigateur.",search:"Rechercher un outil...",catTitle:"Parcourir les catégories",catSub:"Des outils utiles organisés par tâche.",popular:"Outils populaires",popularSub:"Tout est gratuit pour commencer.",pdf:"Travailler avec des fichiers PDF",image:"Redimensionner, convertir et analyser",text:"Nettoyer et analyser du texte",developer:"Formater et encoder des données",generators:"Créer des données utiles",converters:"Convertir des formats courants",fast:"Conçu pour des résultats instantanés.",private:"De nombreux outils traitent les données localement.",global:"Conçu pour les utilisateurs du monde entier.",free:"Aucun compte requis pour les outils principaux.",footer:"Outils en ligne gratuits pour tous."}
+};
+function applyLanguage(lang){
+ const t=translations[lang]||translations.en;
+ document.documentElement.lang=lang==="pt"?"pt-BR":lang;
+ document.querySelectorAll("[data-i18n]").forEach(el=>{const key=el.dataset.i18n;if(t[key])el.textContent=t[key]});
+ const s=document.getElementById("search");if(s)s.placeholder=t.search;
+ localStorage.setItem("globaltools-language",lang);
+}
+function setupLanguage(){
+ const select=document.getElementById("languageSelect");if(!select)return;
+ const saved=localStorage.getItem("globaltools-language")||"en";
+ select.value=saved;applyLanguage(saved);
+ select.addEventListener("change",()=>applyLanguage(select.value));
+}
+setupLanguage();
