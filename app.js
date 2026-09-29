@@ -478,7 +478,7 @@ function applyLanguage(lang){
  const input=document.getElementById("input");if(input)input.placeholder=lang==="pt"?"Digite ou cole seus dados...":lang==="es"?"Introduce o pega tus datos...":lang==="fr"?"Saisissez ou collez vos données...":"Enter or paste your data...";
  const action=document.getElementById("action");if(action&&!document.getElementById("fileInput"))action.textContent=tt.runTool||"Run Tool";
  applyToolLocale(lang);
- localStorage.setItem("globaltools-language",lang)
+ localStorage.setItem("globaltools-language-v2",lang)
 }
-function setupLanguage(){const select=document.getElementById("languageSelect");if(!select)return;const saved=localStorage.getItem("globaltools-language")||"en";select.value=saved;applyLanguage(saved);select.addEventListener("change",()=>applyLanguage(select.value))}
+function setupLanguage(){const select=document.getElementById("languageSelect");if(!select)return;const saved=localStorage.getItem("globaltools-language-v2")||"en";select.value=saved;applyLanguage(saved);select.addEventListener("change",()=>applyLanguage(select.value))}
 setupLanguage();
