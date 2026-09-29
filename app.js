@@ -180,7 +180,7 @@ function exportPdf(){
 }
 function addExportButtons(){
  const box=document.getElementById('tool'); if(!box||document.getElementById('export-actions'))return;
- const actions=document.createElement('div'); actions.id='export-actions'; actions.className='export-actions'; actions.style.display='none';
+ const actions=document.createElement('div'); actions.id='export-actions'; actions.className='export-actions'; actions.hidden=true;
  actions.innerHTML='<button type="button" class="btn secondary" id="exportPdf">Download PDF</button><button type="button" class="btn secondary" id="exportWord">Download Word</button>';
  box.appendChild(actions);
  document.getElementById('exportPdf').onclick=exportPdf;
@@ -287,10 +287,24 @@ function setupTool(slug){
      if(['word-to-pdf','pdf-to-word','word-to-text','word-to-html'].includes(slug)){
        const f=files[0];
        if(slug==='pdf-to-word'){
-         const pdfjs=await pdfJs(),pdf=await pdfjs.getDocument({data:new Uint8Array(await f.arrayBuffer())}).promise;let text='';
-         for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i),tc=await page.getTextContent();text+=(i>1?'\\n\\n':'')+tc.items.map(x=>x.str).join(' ')}
-         const html='<!doctype html><html><head><meta charset="utf-8"></head><body><h1>Converted PDF</h1><p>'+esc(text).replace(/\\n/g,'</p><p>')+'</p></body></html>';
-         const blob=new Blob([html],{type:'application/msword'});setResult('Word document created.');addDownload(blob,'converted.doc');return;
+         showProgress(2,'Lendo o PDF...');
+         const pdfjs=await pdfJs();
+         showProgress(8,'Carregando PDF...');
+         const loadingTask=pdfjs.getDocument({data:new Uint8Array(await f.arrayBuffer())});
+         loadingTask.onProgress=p=>{if(p.total)showProgress(8+(p.loaded/p.total)*12,'Carregando PDF...')};
+         const pdf=await loadingTask.promise;let text='';
+         const total=pdf.numPages;
+         for(let i=1;i<=total;i++){
+           const page=await pdf.getPage(i),tc=await page.getTextContent();
+           text+=(i>1?'\\n\\n':'')+tc.items.map(x=>x.str).join(' ');
+           showProgress(20+(i/total)*70,'Extraindo página '+i+' de '+total+'...');
+         }
+         showProgress(95,'Gerando documento Word...');
+         const html='<!doctype html><html><head><meta charset="utf-8"><title>Converted PDF</title></head><body><h1>Converted PDF</h1><p>'+esc(text).replace(/\\n/g,'</p><p>')+'</p></body></html>';
+         const blob=new Blob([html],{type:'application/msword'});
+         showProgress(100,'Conversão concluída!');
+         setResult('Documento Word criado com sucesso.');
+         addDownload(blob,'converted.doc');return;
        }
        const m=await mammothLib(),r=await m.convertToHtml({arrayBuffer:await f.arrayBuffer()});
        if(slug==='word-to-text')return esc(r.value.replace(/<[^>]+>/g,' ').replace(/\\s+/g,' ').trim());
