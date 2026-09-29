@@ -405,10 +405,27 @@ if(slug==='compress-file'){
  const isPdf=type==='application/pdf'||name.endsWith('.pdf')||(head[0]===37&&head[1]===80&&head[2]===68&&head[3]===70);
  if(isPdf){
    const {PDFDocument}=await pdfLib();
-   const doc=await PDFDocument.load(await f.arrayBuffer(),{ignoreEncryption:true});
-   const blob=new Blob([await doc.save({useObjectStreams:true,addDefaultPage:false})],{type:'application/pdf'});
-   setResult('PDF processado e otimizado com sucesso.');
-   addDownload(blob,'arquivo-comprimido.pdf');return
+   try{
+     const doc=await PDFDocument.load(await f.arrayBuffer(),{ignoreEncryption:true});
+     const blob=new Blob([await doc.save({useObjectStreams:true,addDefaultPage:false})],{type:'application/pdf'});
+     setResult('PDF processado e otimizado com sucesso.');
+     addDownload(blob,'arquivo-comprimido.pdf');return
+   }catch(e){
+     const pdfjs=await pdfJs();
+     const pdf=await pdfjs.getDocument({data:await f.arrayBuffer()}).promise;
+     const out=await PDFDocument.create();
+     for(let n=1;n<=pdf.numPages;n++){
+       const page=await pdf.getPage(n),vp=page.getViewport({scale:1.25}),canvas=document.createElement('canvas');
+       canvas.width=Math.ceil(vp.width);canvas.height=Math.ceil(vp.height);
+       await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+       const imgBlob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',.72));
+       const img=await out.embedJpg(await imgBlob.arrayBuffer());
+       const p=out.addPage([vp.width,vp.height]);p.drawImage(img,{x:0,y:0,width:vp.width,height:vp.height})
+     }
+     const blob=new Blob([await out.save()],{type:'application/pdf'});
+     setResult('PDF comprimido com reconstrução das páginas.');
+     addDownload(blob,'arquivo-comprimido.pdf');return
+   }
  }
  const isImage=type.startsWith('image/')||/\.(jpg|jpeg|png|webp)$/i.test(name);
  if(isImage){
