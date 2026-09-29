@@ -1,0 +1,12 @@
+{
+  "name": "globaltools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GlobalTools - free online tools",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
