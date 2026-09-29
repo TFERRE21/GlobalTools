@@ -418,8 +418,18 @@ if(slug==='compress-file'){
        const page=await pdf.getPage(n),vp=page.getViewport({scale:1.25}),canvas=document.createElement('canvas');
        canvas.width=Math.ceil(vp.width);canvas.height=Math.ceil(vp.height);
        await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
-       const imgBlob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',.72));
-       const img=await out.embedJpg(await imgBlob.arrayBuffer());
+       const imgBlob=await new Promise((resolve,reject)=>{
+         canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Não foi possível gerar a imagem da página.')),'image/jpeg',.72);
+       });
+       let img;
+       try{
+         img=await out.embedJpg(new Uint8Array(await imgBlob.arrayBuffer()));
+       }catch(jpgError){
+         const pngBlob=await new Promise((resolve,reject)=>{
+           canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Não foi possível gerar o PNG da página.')),'image/png');
+         });
+         img=await out.embedPng(new Uint8Array(await pngBlob.arrayBuffer()));
+       }
        const p=out.addPage([vp.width,vp.height]);p.drawImage(img,{x:0,y:0,width:vp.width,height:vp.height})
      }
      const blob=new Blob([await out.save()],{type:'application/pdf'});
