@@ -129,8 +129,34 @@ const tools=[
 {slug:"octal-decimal-converter",name:"Octal Decimal Converter",desc:"Convert octal and decimal.",cat:"tools"}];
 
 
-function card(t){return '<a class="tool-card" href="/tools/'+t.slug+'.html"><h3>'+t.name+'</h3><p>'+t.desc+'</p><span class="tool-tag">'+t.cat.toUpperCase()+' TOOL →</span></a>'}
+function toolGroup(t){
+ const s=t.slug.toLowerCase();
+ if(t.cat==='pdf'||s.includes('pdf'))return 'pdf';
+ if(t.cat==='documents'||/word|excel|csv|office|document/.test(s))return 'documents';
+ if(t.cat==='image'||/image|jpg|png|webp|svg/.test(s))return 'image';
+ if(/password|hash|jwt|base64|encrypt|decrypt|security|validator|validate/.test(s))return 'security';
+ if(/age|date|timestamp|time|timezone|days-between|leap-year|week-number/.test(s))return 'date-time';
+ if(/percentage|discount|tip|ratio|average|fraction|square-root|power|salary|currency|hours|calculator/.test(s))return 'calculators';
+ if(/cidr|ip-address|network|dns|port/.test(s))return 'network';
+ if(/meta-tag|utm|slug|url-shortener|robots|sitemap|seo/.test(s))return 'web-seo';
+ if(t.cat==='generators'||/generator/.test(s))return 'generators';
+ if(t.cat==='converters'||/converter|to-json|to-csv|to-text|to-html|to-pdf|to-word|to-jpg|to-png|to-webp/.test(s))return 'converters';
+ if(t.cat==='developer'||/json|xml|yaml|sql|regex|html|css|javascript|typescript|python|java|markdown|gitignore|cron|code|binary|ascii/.test(s))return 'developer';
+ if(t.cat==='text'||/text|character|line|case|space|sort|duplicate|reading/.test(s))return 'text';
+ return t.cat||'tools';
+}
+function card(t){const g=toolGroup(t);return '<a class="tool-card" data-group="'+g+'" href="/tools/'+t.slug+'.html"><h3>'+t.name+'</h3><p>'+t.desc+'</p><span class="tool-tag">'+g.toUpperCase()+' →</span></a>'}
 function renderHome(list=tools){const el=document.getElementById('tool-grid');if(el)el.innerHTML=list.map(card).join('')}
+function setupCategoryTabs(){
+ document.querySelectorAll('.category-tab').forEach(tab=>tab.addEventListener('click',()=>{
+   document.querySelectorAll('.category-tab').forEach(x=>x.classList.remove('active'));
+   tab.classList.add('active');
+   const cat=tab.dataset.cat;
+   const search=document.getElementById('search');if(search)search.value='';
+   renderHome(cat==='all'?tools:tools.filter(t=>toolGroup(t)===cat));
+   document.getElementById('tools')?.scrollIntoView({behavior:'smooth',block:'start'});
+ }));
+}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
 function setResult(v){const out=document.getElementById('result');if(!out)return;if(v instanceof Node){out.replaceChildren(v)}else out.innerHTML=String(v??'')}
 function inputEl(){return document.getElementById('input')}
@@ -418,7 +444,15 @@ function setupTool(slug){
  addExportButtons();
 }
 const path=location.pathname;
-if(path==='/'||path==='/index.html'){renderHome();setupCategoryTabs();const s=document.getElementById('search');if(s)s.oninput=()=>renderHome(tools.filter(t=>(t.name+' '+t.desc+' '+t.cat).toLowerCase().includes(s.value.toLowerCase())))}
+if(path==='/'||path==='/index.html'){
+ renderHome();setupCategoryTabs();
+ const s=document.getElementById('search');
+ if(s)s.oninput=()=>{
+   const q=s.value.toLowerCase().trim();
+   document.querySelectorAll('.category-tab').forEach(x=>x.classList.toggle('active',x.dataset.cat==='all'));
+   renderHome(q?tools.filter(t=>(t.name+' '+t.desc+' '+t.cat+' '+toolGroup(t)).toLowerCase().includes(q)):tools);
+ };
+}
 else {const m=path.match(/\/tools\/([^/]+)\.html/);if(m)setupTool(m[1]);addExportButtons()}
 
 const translations={
