@@ -365,7 +365,7 @@ function setupTool(slug){
  addExportButtons();
 }
 const path=location.pathname;
-if(path==='/'||path==='/index.html'){renderHome();const s=document.getElementById('search');if(s)s.oninput=()=>renderHome(tools.filter(t=>(t.name+' '+t.desc+' '+t.cat).toLowerCase().includes(s.value.toLowerCase())))}
+if(path==='/'||path==='/index.html'){renderHome();setupCategoryTabs();const s=document.getElementById('search');if(s)s.oninput=()=>renderHome(tools.filter(t=>(t.name+' '+t.desc+' '+t.cat).toLowerCase().includes(s.value.toLowerCase())))}
 else {const m=path.match(/\/tools\/([^/]+)\.html/);if(m)setupTool(m[1]);addExportButtons()}
 
 const translations={
