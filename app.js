@@ -20,6 +20,25 @@ const tools=[
 {slug:"image-info",name:"Image Information",desc:"Inspect image dimensions and file size.",cat:"image"},
 {slug:"image-to-data-url",name:"Image to Data URL",desc:"Convert an image into a Data URL.",cat:"image"},
 {slug:"pdf-tools",name:"PDF Tools",desc:"PDF utilities and browser-based document helpers.",cat:"pdf"},
+{slug:"compress-pdf",name:"Compress PDF",desc:"Reduce PDF file size in your browser.",cat:"pdf"},
+{slug:"jpg-to-pdf",name:"JPG to PDF",desc:"Convert JPG, PNG and images to PDF.",cat:"pdf"},
+{slug:"pdf-to-jpg",name:"PDF to JPG",desc:"Convert PDF pages into JPG images.",cat:"pdf"},
+{slug:"pdf-to-png",name:"PDF to PNG",desc:"Convert PDF pages into PNG images.",cat:"pdf"},
+{slug:"delete-pdf-pages",name:"Delete PDF Pages",desc:"Remove selected pages from a PDF.",cat:"pdf"},
+{slug:"extract-pdf-pages",name:"Extract PDF Pages",desc:"Extract selected pages into a new PDF.",cat:"pdf"},
+{slug:"crop-pdf",name:"Crop PDF",desc:"Crop PDF pages to a standard printable area.",cat:"pdf"},
+{slug:"watermark-pdf",name:"Watermark PDF",desc:"Add a text watermark to every PDF page.",cat:"pdf"},
+{slug:"number-pdf-pages",name:"Number PDF Pages",desc:"Add page numbers to a PDF.",cat:"pdf"},
+{slug:"organize-pdf",name:"Organize PDF",desc:"Reorder PDF pages with a simple page sequence.",cat:"pdf"},
+{slug:"word-to-pdf",name:"Word to PDF",desc:"Convert DOCX documents to printable PDF.",cat:"documents"},
+{slug:"pdf-to-word",name:"PDF to Word",desc:"Convert PDF text into an editable Word document.",cat:"documents"},
+{slug:"word-to-text",name:"Word to TXT",desc:"Extract text from DOCX documents.",cat:"documents"},
+{slug:"word-to-html",name:"Word to HTML",desc:"Convert DOCX documents to HTML.",cat:"documents"},
+{slug:"excel-to-csv",name:"Excel to CSV",desc:"Convert Excel spreadsheets to CSV.",cat:"documents"},
+{slug:"excel-to-json",name:"Excel to JSON",desc:"Convert Excel spreadsheets to JSON.",cat:"documents"},
+{slug:"csv-to-excel",name:"CSV to Excel",desc:"Convert CSV files into Excel workbooks.",cat:"documents"},
+{slug:"excel-to-pdf",name:"Excel to PDF",desc:"Convert spreadsheet data to a printable PDF.",cat:"documents"},
+{slug:"html-to-pdf",name:"HTML to PDF",desc:"Print HTML content as a PDF.",cat:"documents"},
 {slug:"text-to-slug",name:"Text to Slug",desc:"Create clean URL slugs from text.",cat:"text"},
 {slug:"hash-generator",name:"SHA-256 Hash Generator",desc:"Generate SHA-256 hashes from text.",cat:"developer"},
 {slug:"number-base-converter",name:"Number Base Converter",desc:"Convert numbers between binary, decimal, hexadecimal and more.",cat:"developer"},
@@ -122,6 +141,9 @@ function makeFileInput(multiple=false,accept=''){const input=document.createElem
 function loadScript(src){return new Promise((resolve,reject)=>{if(document.querySelector('script[data-lib="'+src+'"]'))return resolve();const s=document.createElement('script');s.src=src;s.dataset.lib=src;s.onload=resolve;s.onerror=reject;document.head.appendChild(s)})}
 async function pdfLib(){await loadScript('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js');return window.PDFLib}
 async function pdfJs(){await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');if(!window.pdfjsLib)throw new Error('PDF text library unavailable');return window.pdfjsLib}
+async function mammothLib(){await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js');if(!window.mammoth)throw new Error('Word conversion library unavailable');return window.mammoth}
+async function xlsxLib(){await loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');if(!window.XLSX)throw new Error('Excel conversion library unavailable');return window.XLSX}
+
 function csvParse(text){const rows=[];let row=[],cell='',q=false;for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(c==='"'&&q&&n==='"'){cell+='"';i++;continue}if(c==='"'){q=!q;continue}if(c===','&&!q){row.push(cell);cell='';continue}if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&n==='\n')i++;row.push(cell);cell='';if(row.some(x=>x!=='')||rows.length)rows.push(row);row=[];continue}cell+=c}row.push(cell);if(row.some(x=>x!==''))rows.push(row);return rows}
 function csvEscape(v){v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
 function jsonToRows(obj){if(!Array.isArray(obj))obj=[obj];const keys=[...new Set(obj.flatMap(o=>Object.keys(o||{})))];return [keys,...obj.map(o=>keys.map(k=>o?.[k]??''))]}
@@ -248,14 +270,55 @@ function setupTool(slug){
  'color-palette-generator':()=>Array.from({length:5},()=>'#'+crypto.getRandomValues(new Uint8Array(3)).reduce((s,n)=>s+n.toString(16).padStart(2,'0'),'')).join('\n')
  };
  function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b)[a,b]=[b,a%b];return a||1}
- const fileHandlers=['image-info','image-to-data-url','image-to-base64','image-color-picker','image-cropper','image-resizer','image-compressor','jpg-to-png','png-to-jpg','webp-to-jpg','jpg-to-webp','png-to-webp','webp-to-png','image-dimensions','svg-to-data-url','pdf-page-counter','pdf-metadata','pdf-to-text','merge-pdf','split-pdf','rotate-pdf','compress-pdf'];
+ const fileHandlers=['jpg-to-pdf','pdf-to-jpg','pdf-to-png','delete-pdf-pages','extract-pdf-pages','crop-pdf','watermark-pdf','number-pdf-pages','organize-pdf','word-to-pdf','pdf-to-word','word-to-text','word-to-html','excel-to-csv','excel-to-json','csv-to-excel','excel-to-pdf','html-to-pdf','image-info','image-to-data-url','image-to-base64','image-color-picker','image-cropper','image-resizer','image-compressor','jpg-to-png','png-to-jpg','webp-to-jpg','jpg-to-webp','png-to-webp','webp-to-png','image-dimensions','svg-to-data-url','pdf-page-counter','pdf-metadata','pdf-to-text','merge-pdf','split-pdf','rotate-pdf','compress-pdf'];
  if(fileHandlers.includes(slug)){
-   const accept=slug.startsWith('pdf')||slug.includes('pdf')?'application/pdf':slug.includes('svg')?'.svg,image/svg+xml':'image/*';
+   const accept=slug.startsWith('pdf')||slug.includes('pdf')?'application/pdf':slug.startsWith('word-')||slug==='word-to-pdf'?'.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document':slug.startsWith('excel-')||slug==='csv-to-excel'?'.xls,.xlsx,.csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv':slug==='html-to-pdf'?'.html,text/html':slug.includes('svg')?'.svg,image/svg+xml':'image/*';
    const fi=makeFileInput(['merge-pdf'].includes(slug),accept);
    action.textContent=slug==='merge-pdf'?'Merge PDFs':slug==='split-pdf'?'Split PDF':slug==='rotate-pdf'?'Rotate PDF':slug==='pdf-to-text'?'Extract Text':slug==='pdf-page-counter'?'Count Pages':'Process File';
    action.onclick=()=>run(async()=>{
      const files=[...fi.files];if(!files.length)throw new Error('Choose a file first.');
+     if(['word-to-pdf','pdf-to-word','word-to-text','word-to-html'].includes(slug)){
+       const f=files[0],m=await mammothLib();
+       if(slug==='word-to-pdf'){
+         const r=await m.convertToHtml({arrayBuffer:await f.arrayBuffer()});
+         const w=window.open('','_blank');if(!w)throw new Error('Allow pop-ups to create the PDF.');
+         w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Word to PDF</title><style>body{font-family:Arial,sans-serif;max-width:850px;margin:40px auto;line-height:1.55}img{max-width:100%}</style></head><body>'+r.value+'</body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),500);return;
+       }
+       const r=await m.convertToHtml({arrayBuffer:await f.arrayBuffer()});
+       if(slug==='word-to-text')return esc(r.value.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim());
+       return r.value;
+     }
+     if(['excel-to-csv','excel-to-json','csv-to-excel','excel-to-pdf'].includes(slug)){
+       const XLSX=await xlsxLib(),f=files[0];
+       if(slug==='csv-to-excel'){
+         const wb=XLSX.read(await f.text(),{type:'string'}),blob=new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});setResult('Excel workbook created.');addDownload(blob,'converted.xlsx');return;
+       }
+       const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]];
+       if(slug==='excel-to-csv')return esc(XLSX.utils.sheet_to_csv(ws));
+       if(slug==='excel-to-json')return esc(JSON.stringify(XLSX.utils.sheet_to_json(ws,{defval:''}),null,2));
+       if(slug==='excel-to-pdf'){
+         const html=XLSX.utils.sheet_to_html(ws);const w=window.open('','_blank');if(!w)throw new Error('Allow pop-ups to create the PDF.');w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Excel to PDF</title><style>body{font-family:Arial;padding:25px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:6px}</style></head><body>'+html+'</body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),500);return;
+       }
+     }
+     if(slug==='html-to-pdf'){
+       const f=files[0],html=await f.text(),w=window.open('','_blank');if(!w)throw new Error('Allow pop-ups to create the PDF.');w.document.write(html);w.document.close();w.focus();setTimeout(()=>w.print(),500);return;
+     }
+     if(['jpg-to-pdf'].includes(slug)){
+       const {PDFDocument}=await pdfLib(),doc=await PDFDocument.create();
+       for(const f of files){const im=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=URL.createObjectURL(f)});const canvas=document.createElement('canvas');canvas.width=im.width;canvas.height=im.height;canvas.getContext('2d').drawImage(im,0,0);const jpg=await new Promise(r=>canvas.toBlob(r,'image/jpeg',.92));const bytes=await jpg.arrayBuffer();const emb=f.type==='image/png'?await doc.embedPng(bytes):await doc.embedJpg(bytes);const page=doc.addPage([emb.width,emb.height]);page.drawImage(emb,{x:0,y:0,width:emb.width,height:emb.height});}
+       const blob=new Blob([await doc.save()],{type:'application/pdf'});setResult('PDF created from '+files.length+' image(s).');addDownload(blob,'images.pdf');return;
+     }
      if(slug==='merge-pdf'||slug==='split-pdf'||slug==='rotate-pdf'||slug==='compress-pdf'||slug==='pdf-page-counter'||slug==='pdf-metadata'){const {PDFDocument}=await pdfLib();const bytes=await files[0].arrayBuffer();const doc=await PDFDocument.load(bytes);if(slug==='pdf-page-counter')return 'Pages: '+doc.getPageCount();if(slug==='pdf-metadata')return 'Pages: '+doc.getPageCount()+'\\nTitle: '+(doc.getTitle()||'')+'\\nAuthor: '+(doc.getAuthor()||'');if(slug==='merge-pdf'){const out=await PDFDocument.create();for(const f of files){const src=await PDFDocument.load(await f.arrayBuffer());const pages=await out.copyPages(src,src.getPageIndices());pages.forEach(p=>out.addPage(p))}const blob=new Blob([await out.save()],{type:'application/pdf'});setResult('Merged '+files.length+' PDF file(s).');addDownload(blob,'merged.pdf');return}if(slug==='split-pdf'){if(!window.JSZip)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');const zip=new window.JSZip();for(let i=0;i<doc.getPageCount();i++){const out=await PDFDocument.create();const [p]=await out.copyPages(doc,[i]);out.addPage(p);zip.file('page-'+(i+1)+'.pdf',await out.save())}const finalBlob=await zip.generateAsync({type:'blob'});setResult('Created '+doc.getPageCount()+' individual PDF pages in a ZIP.');addDownload(finalBlob,'split-pdf.zip');return}if(slug==='rotate-pdf'){const {degrees}=PDFLib;doc.getPages().forEach(p=>p.setRotation(degrees(90)));const blob=new Blob([await doc.save()],{type:'application/pdf'});setResult('Rotated all pages by 90°.');addDownload(blob,'rotated.pdf');return}if(slug==='compress-pdf'){const blob=new Blob([await doc.save({useObjectStreams:true})],{type:'application/pdf'});setResult('Re-saved PDF with object streams. File size may vary.');addDownload(blob,'compressed.pdf');return}}
+     if(['pdf-to-jpg','pdf-to-png','delete-pdf-pages','extract-pdf-pages','crop-pdf','watermark-pdf','number-pdf-pages','organize-pdf'].includes(slug)){
+       const {PDFDocument, rgb, degrees}=await pdfLib(),doc=await PDFDocument.load(await files[0].arrayBuffer());
+       const nums=(getText().match(/\d+/g)||[]).map(Number);
+       if(slug==='delete-pdf-pages'){const remove=new Set(nums.map(n=>n-1));const out=await PDFDocument.create();const pages=await out.copyPages(doc,doc.getPageIndices().filter(i=>!remove.has(i)));pages.forEach(p=>out.addPage(p));const blob=new Blob([await out.save()],{type:'application/pdf'});setResult('Selected pages removed.');addDownload(blob,'pages-removed.pdf');return}
+       if(slug==='extract-pdf-pages'){const out=await PDFDocument.create(),ids=(nums.length?nums.map(n=>n-1):[0]).filter(i=>i>=0&&i<doc.getPageCount());const pages=await out.copyPages(doc,ids);pages.forEach(p=>out.addPage(p));const blob=new Blob([await out.save()],{type:'application/pdf'});setResult('Selected pages extracted.');addDownload(blob,'extracted-pages.pdf');return}
+       if(slug==='organize-pdf'){const order=nums.length?nums.map(n=>n-1):doc.getPageIndices();const out=await PDFDocument.create(),pages=await out.copyPages(doc,order.filter(i=>i>=0&&i<doc.getPageCount()));pages.forEach(p=>out.addPage(p));const blob=new Blob([await out.save()],{type:'application/pdf'});setResult('PDF reordered.');addDownload(blob,'organized.pdf');return}
+       if(slug==='crop-pdf'){doc.getPages().forEach(p=>{const w=p.getWidth(),h=p.getHeight();p.setCropBox(w*.05,h*.05,w*.9,h*.9)});const blob=new Blob([await doc.save()],{type:'application/pdf'});setResult('Pages cropped by 5% margins.');addDownload(blob,'cropped.pdf');return}
+       if(slug==='watermark-pdf'){const text=getText().split(/\n/)[0]||'GlobalTools';doc.getPages().forEach(p=>p.drawText(text,{x:p.getWidth()/2-80,y:p.getHeight()/2,size:28,color:rgb(.65,.65,.65),rotate:degrees(35),opacity:.35}));const blob=new Blob([await doc.save()],{type:'application/pdf'});setResult('Watermark added.');addDownload(blob,'watermarked.pdf');return}
+       if(slug==='number-pdf-pages'){doc.getPages().forEach((p,i)=>p.drawText(String(i+1),{x:p.getWidth()/2-8,y:20,size:10,color:rgb(.25,.25,.25)}));const blob=new Blob([await doc.save()],{type:'application/pdf'});setResult('Page numbers added.');addDownload(blob,'numbered.pdf');return}
+     }
      const f=files[0];
      if(slug==='pdf-to-text'){const pdfjs=await pdfJs();const pdf=await pdfjs.getDocument({data:new Uint8Array(await f.arrayBuffer())}).promise;let text='';for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i);const tc=await page.getTextContent();text+='\n--- Page '+i+' ---\n'+tc.items.map(x=>x.str).join(' ')}return esc(text.trim())}
      if(slug==='base64-to-file'){const data=getText().trim();const m=data.match(/^data:([^;]+);base64,(.+)$/);if(!m)throw new Error('Paste a complete data URL in the text field.');const bin=atob(m[2]);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);const blob=new Blob([u],{type:m[1]});setResult('File decoded.');addDownload(blob,'decoded-file');return}
