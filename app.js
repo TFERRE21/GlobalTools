@@ -271,7 +271,7 @@ function setupTool(slug){
  };
  function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b)[a,b]=[b,a%b];return a||1}
  const fileHandlers=['jpg-to-pdf','pdf-to-jpg','pdf-to-png','delete-pdf-pages','extract-pdf-pages','crop-pdf','watermark-pdf','number-pdf-pages','organize-pdf','word-to-pdf','pdf-to-word','word-to-text','word-to-html','excel-to-csv','excel-to-json','csv-to-excel','excel-to-pdf','html-to-pdf','image-info','image-to-data-url','image-to-base64','image-color-picker','image-cropper','image-resizer','image-compressor','jpg-to-png','png-to-jpg','webp-to-jpg','jpg-to-webp','png-to-webp','webp-to-png','image-dimensions','svg-to-data-url','pdf-page-counter','pdf-metadata','pdf-to-text','merge-pdf','split-pdf','rotate-pdf','compress-pdf'];
- const uploadVisual=box.querySelector('.file-upload-visual'); if(uploadVisual)uploadVisual.style.display=fileHandlers.includes(slug)?'block':'none';
+ const uploadVisual=box.querySelector('.file-upload-visual'); if(uploadVisual){uploadVisual.style.setProperty('display',fileHandlers.includes(slug)?'block':'none','important'); if(!fileHandlers.includes(slug))uploadVisual.replaceChildren();}
  if(fileHandlers.includes(slug)){
    const accept=slug.startsWith('pdf')||slug.includes('pdf')?'application/pdf':slug.startsWith('word-')||slug==='word-to-pdf'?'.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document':slug.startsWith('excel-')||slug==='csv-to-excel'?'.xls,.xlsx,.csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv':slug==='html-to-pdf'?'.html,text/html':slug.includes('svg')?'.svg,image/svg+xml':'image/*';
    const fi=makeFileInput(['merge-pdf'].includes(slug),accept);
