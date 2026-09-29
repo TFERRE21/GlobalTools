@@ -126,7 +126,12 @@ const tools=[
 {slug:"color-palette-generator",name:"Color Palette Generator",desc:"Generate color palettes.",cat:"tools"},
 {slug:"ascii-table",name:"ASCII Table",desc:"Explore ASCII codes.",cat:"tools"},
 {slug:"binary-calculator",name:"Binary Calculator",desc:"Work with binary values.",cat:"tools"},
-{slug:"octal-decimal-converter",name:"Octal Decimal Converter",desc:"Convert octal and decimal.",cat:"tools"}];
+{slug:"octal-decimal-converter",name:"Octal Decimal Converter",desc:"Convert octal and decimal.",cat:"tools"},
+{slug:"cpf-generator",name:"Gerador de CPF",desc:"Gere CPFs sintéticos válidos para testes.",cat:"generators"},
+{slug:"cnpj-generator",name:"Gerador de CNPJ",desc:"Gere CNPJs sintéticos válidos para testes.",cat:"generators"},
+{slug:"cpf-validator",name:"Validador de CPF",desc:"Verifique o dígito verificador de um CPF.",cat:"tools"},
+{slug:"cnpj-validator",name:"Validador de CNPJ",desc:"Verifique o dígito verificador de um CNPJ.",cat:"tools"},
+{slug:"cep-generator",name:"Gerador de CEP",desc:"Gere CEPs sintéticos para testes.",cat:"generators"}];
 
 
 function card(t){return '<a class="tool-card" href="/tools/'+t.slug+'.html"><h3>'+t.name+'</h3><p>'+t.desc+'</p><span class="tool-tag">'+t.cat.toUpperCase()+' TOOL →</span></a>'}
@@ -182,7 +187,7 @@ function exportPdf(){
 function addExportButtons(){
  const box=document.getElementById('tool');
  const currentSlug=(location.pathname.match(/\/tools\/([^/]+)\.html/)||[])[1]||'';
- const noExport=['uuid-generator','password-generator','random-password-batch','lorem-ipsum-generator','qr-code-generator','random-number-generator','dice-roller','random-choice-picker','color-palette-generator','ascii-table','password-strength-checker'];
+ const noExport=['uuid-generator','password-generator','random-password-batch','lorem-ipsum-generator','qr-code-generator','random-number-generator','dice-roller','random-choice-picker','color-palette-generator','ascii-table','password-strength-checker','cpf-generator','cnpj-generator','cep-generator','cpf-validator','cnpj-validator'];
  if(!box||noExport.includes(currentSlug)||document.getElementById('export-actions')||document.getElementById('fileInput'))return;
  const actions=document.createElement('div'); actions.id='export-actions'; actions.className='export-actions';
  actions.innerHTML='<button type="button" class="btn secondary" id="exportPdf">Download PDF</button><button type="button" class="btn secondary" id="exportWord">Download Word</button>';
@@ -280,6 +285,33 @@ function setupTool(slug){
  'color-palette-generator':()=>{const count=Math.max(1,Math.min(20,Number(document.getElementById('paletteCount')?.value)||5));return Array.from({length:count},()=>'#'+crypto.getRandomValues(new Uint8Array(3)).reduce((s,n)=>s+n.toString(16).padStart(2,'0'),'')).join('\n')}
  };
  function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b)[a,b]=[b,a%b];return a||1}
+function onlyDigits(v){return String(v||'').replace(/\D/g,'')}
+function cpfValid(v){
+ const d=onlyDigits(v);if(d.length!==11||/^([0-9])\1{10}$/.test(d))return false;
+ let sum=0;for(let i=0;i<9;i++)sum+=+d[i]*(10-i);let r=sum%11,x=r<2?0:11-r;if(x!==+d[9])return false;
+ sum=0;for(let i=0;i<10;i++)sum+=+d[i]*(11-i);r=sum%11;x=r<2?0:11-r;return x===+d[10]
+}
+function makeCpf(){
+ let b='';do{b=String(Math.floor(Math.random()*1e9)).padStart(9,'0')}while(/^([0-9])\1{8}$/.test(b));
+ let sum=0;for(let i=0;i<9;i++)sum+=+b[i]*(10-i);let r=sum%11,d1=r<2?0:11-r;
+ sum=0;for(let i=0;i<9;i++)sum+=+b[i]*(11-i);sum+=d1*2;r=sum%11;let d2=r<2?0:11-r;
+ return b+d1+d2
+}
+function cnpjValid(v){
+ const d=onlyDigits(v);if(d.length!==14||/^([0-9])\1{13}$/.test(d))return false;
+ const calc=(base,weights)=>{let sum=0;for(let i=0;i<base.length;i++)sum+=+base[i]*weights[i];let r=sum%11;return r<2?0:11-r};
+ const d1=calc(d.slice(0,12),[5,4,3,2,9,8,7,6,5,4,3,2]);
+ const d2=calc(d.slice(0,12)+d1,[6,5,4,3,2,9,8,7,6,5,4,3,2]);
+ return d1===+d[12]&&d2===+d[13]
+}
+function makeCnpj(){
+ let b;do{b=String(Math.floor(Math.random()*1e8)).padStart(8,'0')}while(/^([0-9])\1{7}$/.test(b));
+ b+='0001';
+ const calc=(base,weights)=>{let sum=0;for(let i=0;i<base.length;i++)sum+=+base[i]*weights[i];let r=sum%11;return r<2?0:11-r};
+ return b+calc(b,[5,4,3,2,9,8,7,6,5,4,3,2])+calc(b+calc(b,[5,4,3,2,9,8,7,6,5,4,3,2]),[6,5,4,3,2,9,8,7,6,5,4,3,2])
+}
+function formatCpf(d){d=onlyDigits(d);return d.length===11?d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6,9)+'-'+d.slice(9):d}
+function formatCnpj(d){d=onlyDigits(d);return d.length===14?d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5,8)+'/'+d.slice(8,12)+'-'+d.slice(12):d}
  const fileHandlers=['jpg-to-pdf','pdf-to-jpg','pdf-to-png','delete-pdf-pages','extract-pdf-pages','crop-pdf','watermark-pdf','number-pdf-pages','organize-pdf','word-to-pdf','pdf-to-word','word-to-text','word-to-html','excel-to-csv','excel-to-json','csv-to-excel','excel-to-pdf','html-to-pdf','image-info','image-to-data-url','image-to-base64','image-color-picker','image-cropper','image-resizer','image-compressor','jpg-to-png','png-to-jpg','webp-to-jpg','jpg-to-webp','png-to-webp','webp-to-png','image-dimensions','svg-to-data-url','pdf-page-counter','pdf-metadata','pdf-to-text','merge-pdf','split-pdf','rotate-pdf','compress-pdf'];
  const uploadVisual=box.querySelector('.file-upload-visual'); if(uploadVisual){uploadVisual.style.setProperty('display',fileHandlers.includes(slug)?'block':'none','important'); if(!fileHandlers.includes(slug))uploadVisual.replaceChildren();}
  if(fileHandlers.includes(slug)){
@@ -451,6 +483,11 @@ function setupTool(slug){
    return;
  }
  let handler=textTools[slug]||dev[slug]||calc[slug];
+ if(slug==='cpf-generator'){handler=()=>{const count=Math.max(1,Math.min(100,Number(document.getElementById('cpfCount')?.value)||1)),mask=document.getElementById('cpfMask')?.checked!==false;return Array.from({length:count},()=>{const d=makeCpf();return mask?formatCpf(d):d}).join('\n')}}
+ if(slug==='cnpj-generator'){handler=()=>{const count=Math.max(1,Math.min(100,Number(document.getElementById('cnpjCount')?.value)||1)),mask=document.getElementById('cnpjMask')?.checked!==false;return Array.from({length:count},()=>{const d=makeCnpj();return mask?formatCnpj(d):d}).join('\n')}}
+ if(slug==='cpf-validator'){handler=()=>{const d=onlyDigits(document.getElementById('cpfValue')?.value);return cpfValid(d)?'CPF válido pelo dígito verificador.':'CPF inválido.'}}
+ if(slug==='cnpj-validator'){handler=()=>{const d=onlyDigits(document.getElementById('cnpjValue')?.value);return cnpjValid(d)?'CNPJ válido pelo dígito verificador.':'CNPJ inválido.'}}
+ if(slug==='cep-generator'){handler=()=>{const count=Math.max(1,Math.min(100,Number(document.getElementById('cepCount')?.value)||1)),mask=document.getElementById('cepMask')?.checked!==false;return Array.from({length:count},()=>{const d=String(Math.floor(Math.random()*1e8)).padStart(8,'0');return mask?d.slice(0,5)+'-'+d.slice(5):d}).join('\n')}}
  if(slug==='uuid-generator'){handler=()=>{const count=Math.max(1,Math.min(100,Number(document.getElementById('uuidCount')?.value)||1));return Array.from({length:count},()=>crypto.randomUUID()).join('\n')}}
  if(slug==='password-generator'){handler=()=>{const len=Math.max(4,Math.min(128,Number(document.getElementById('passwordLength')?.value)||20)),count=Math.max(1,Math.min(50,Number(document.getElementById('passwordCount')?.value)||1));let chars='';if(document.getElementById('pwUpper')?.checked)chars+='ABCDEFGHJKLMNPQRSTUVWXYZ';if(document.getElementById('pwLower')?.checked)chars+='abcdefghijkmnopqrstuvwxyz';if(document.getElementById('pwNumbers')?.checked)chars+='23456789';if(document.getElementById('pwSymbols')?.checked)chars+='!@#$%^&*_-+=';if(!chars)throw new Error('Selecione pelo menos um conjunto de caracteres.');return Array.from({length:count},()=>{const a=new Uint32Array(len);crypto.getRandomValues(a);return [...a].map(n=>chars[n%chars.length]).join('')}).join('\n')}}
  if(slug==='random-password-batch'){handler=()=>{const len=Math.max(4,Math.min(128,Number(document.getElementById('batchLength')?.value)||20)),count=Math.max(1,Math.min(100,Number(document.getElementById('batchCount')?.value)||10)),symbols=document.getElementById('batchSymbols')?.checked!==false,chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'+(symbols?'!@#$%^&*_-+=':'');return Array.from({length:count},()=>{const a=new Uint32Array(len);crypto.getRandomValues(a);return [...a].map(n=>chars[n%chars.length]).join('')}).join('\n')}}
@@ -464,12 +501,17 @@ function setupTool(slug){
  if(!handler)handler=()=>getText()
  input.placeholder='Enter or paste your data...';
  if(['uuid-generator','password-generator','random-password-batch','lorem-ipsum-generator','qr-code-generator','dice-roller','random-number-generator','random-choice-picker','color-palette-generator','ascii-table'].includes(slug))input.placeholder=slug==='random-choice-picker'?'One option per line':slug==='dice-roller'?'Enter: sides count (e.g. 6 2)':'Enter data or parameters...';
- const generatorSlugs=['uuid-generator','password-generator','random-password-batch','lorem-ipsum-generator','qr-code-generator','random-number-generator','dice-roller','random-choice-picker','color-palette-generator','ascii-table'];
+ const generatorSlugs=['uuid-generator','password-generator','random-password-batch','lorem-ipsum-generator','qr-code-generator','random-number-generator','dice-roller','random-choice-picker','color-palette-generator','ascii-table','cpf-generator','cnpj-generator','cep-generator'];
  if(generatorSlugs.includes(slug)){
    input.style.display='none';
    const controls=document.createElement('div');controls.id='generatorControls';controls.className='generator-controls';
    const field=(id,label,value,type='number',extra='')=>'<label for="'+id+'">'+label+'</label><input id="'+id+'" type="'+type+'" value="'+value+'" '+extra+'>';
-   if(slug==='password-generator')controls.innerHTML='<h3>Configurar senha</h3><div class="generator-grid">'+field('passwordLength','Tamanho',20,'number','min="4" max="128"')+field('passwordCount','Quantidade',1,'number','min="1" max="50"')+'</div><div class="generator-checks"><label><input id="pwUpper" type="checkbox" checked> Maiúsculas</label><label><input id="pwLower" type="checkbox" checked> Minúsculas</label><label><input id="pwNumbers" type="checkbox" checked> Números</label><label><input id="pwSymbols" type="checkbox" checked> Símbolos</label></div>';
+   if(slug==='cpf-generator')controls.innerHTML='<h3>Gerar CPF para testes</h3><div class="generator-grid"><div>'+field('cpfCount','Quantidade',1,'number','min="1" max="100"')+'</div></div><div class="generator-checks"><label><input id="cpfMask" type="checkbox" checked> Com pontuação</label></div><p class="generator-help">Números sintéticos para testes. Não correspondem a uma consulta de CPF real.</p>';
+   else if(slug==='cnpj-generator')controls.innerHTML='<h3>Gerar CNPJ para testes</h3><div class="generator-grid"><div>'+field('cnpjCount','Quantidade',1,'number','min="1" max="100"')+'</div></div><div class="generator-checks"><label><input id="cnpjMask" type="checkbox" checked> Com pontuação</label></div><p class="generator-help">Números sintéticos para testes. Não correspondem a uma empresa real.</p>';
+   else if(slug==='cep-generator')controls.innerHTML='<h3>Gerar CEP para testes</h3><div class="generator-grid"><div>'+field('cepCount','Quantidade',1,'number','min="1" max="100"')+'</div></div><div class="generator-checks"><label><input id="cepMask" type="checkbox" checked> Com hífen</label></div><p class="generator-help">O formato é válido, mas o CEP gerado não consulta endereço real.</p>';
+   else if(slug==='cpf-validator')controls.innerHTML='<h3>Validar CPF</h3><label for="cpfValue">CPF</label><input id="cpfValue" type="text" inputmode="numeric" placeholder="000.000.000-00">';
+   else if(slug==='cnpj-validator')controls.innerHTML='<h3>Validar CNPJ</h3><label for="cnpjValue">CNPJ</label><input id="cnpjValue" type="text" inputmode="numeric" placeholder="00.000.000/0001-00">';
+   else if(slug==='password-generator')controls.innerHTML='<h3>Configurar senha</h3><div class="generator-grid">'+field('passwordLength','Tamanho',20,'number','min="4" max="128"')+field('passwordCount','Quantidade',1,'number','min="1" max="50"')+'</div><div class="generator-checks"><label><input id="pwUpper" type="checkbox" checked> Maiúsculas</label><label><input id="pwLower" type="checkbox" checked> Minúsculas</label><label><input id="pwNumbers" type="checkbox" checked> Números</label><label><input id="pwSymbols" type="checkbox" checked> Símbolos</label></div>';
    else if(slug==='random-password-batch')controls.innerHTML='<h3>Configurar lote</h3><div class="generator-grid">'+field('batchLength','Tamanho',20,'number','min="4" max="128"')+field('batchCount','Quantidade',10,'number','min="1" max="100"')+'</div><div class="generator-checks"><label><input id="batchSymbols" type="checkbox" checked> Incluir símbolos</label></div>';
    else if(slug==='uuid-generator')controls.innerHTML='<h3>Gerar UUID</h3><div class="generator-grid">'+field('uuidCount','Quantidade',1,'number','min="1" max="100"')+'</div><p class="generator-help">Gera UUIDs v4 aleatórios.</p>';
    else if(slug==='lorem-ipsum-generator')controls.innerHTML='<h3>Configurar texto</h3><div class="generator-grid">'+field('loremParagraphs','Parágrafos',3,'number','min="1" max="20"')+field('loremSentences','Frases por parágrafo',5,'number','min="1" max="20"')+'</div>';
@@ -480,7 +522,7 @@ function setupTool(slug){
    else if(slug==='color-palette-generator')controls.innerHTML='<h3>Configurar paleta</h3><div class="generator-grid">'+field('paletteCount','Quantidade de cores',5,'number','min="1" max="20"')+'</div>';
    else if(slug==='ascii-table')controls.innerHTML='<h3>Tabela ASCII</h3><p class="generator-help">Gera os 128 caracteres ASCII padrão.</p>';
    box.insertBefore(controls,action);
-   action.textContent=slug==='qr-code-generator'?'Gerar QR Code':slug==='password-generator'?'Gerar senha':slug==='random-password-batch'?'Gerar lote':slug==='uuid-generator'?'Gerar UUID':slug==='lorem-ipsum-generator'?'Gerar texto':slug==='random-number-generator'?'Gerar números':slug==='dice-roller'?'Rolar dados':slug==='random-choice-picker'?'Escolher opção':slug==='color-palette-generator'?'Gerar paleta':'Gerar tabela';
+   action.textContent=slug==='cpf-generator'?'Gerar CPF':slug==='cnpj-generator'?'Gerar CNPJ':slug==='cep-generator'?'Gerar CEP':slug==='cpf-validator'?'Validar CPF':slug==='cnpj-validator'?'Validar CNPJ':slug==='qr-code-generator'?'Gerar QR Code':slug==='password-generator'?'Gerar senha':slug==='random-password-batch'?'Gerar lote':slug==='uuid-generator'?'Gerar UUID':slug==='lorem-ipsum-generator'?'Gerar texto':slug==='random-number-generator'?'Gerar números':slug==='dice-roller'?'Rolar dados':slug==='random-choice-picker'?'Escolher opção':slug==='color-palette-generator'?'Gerar paleta':'Gerar tabela';
  }
  action.textContent='Run Tool';action.onclick=async()=>{await run(handler);addExportButtons()};
  addExportButtons();
