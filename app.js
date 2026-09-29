@@ -311,8 +311,8 @@ function setupTool(slug){
  const uploadVisual=box.querySelector('.file-upload-visual'); if(uploadVisual){uploadVisual.style.setProperty('display',fileHandlers.includes(slug)?'block':'none','important'); if(!fileHandlers.includes(slug))uploadVisual.replaceChildren();}
  if(fileHandlers.includes(slug)){
    const accept=slug.startsWith('pdf')||slug.includes('pdf')?'application/pdf':slug.startsWith('word-')||slug==='word-to-pdf'?'.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document':slug.startsWith('excel-')||slug==='csv-to-excel'?'.xls,.xlsx,.csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv':slug==='html-to-pdf'?'.html,text/html':slug.includes('svg')?'.svg,image/svg+xml':'image/*';
-   const fi=makeFileInput(['merge-pdf'].includes(slug),accept);
-   action.textContent=slug==='merge-pdf'?'Merge PDFs':slug==='split-pdf'?'Split PDF':slug==='rotate-pdf'?'Rotate PDF':slug==='pdf-to-text'?'Extract Text':slug==='pdf-page-counter'?'Count Pages':'Process File';
+   const fi=makeFileInput(['merge-pdf','merge-files'].includes(slug),slug==='compress-file'?'application/pdf,image/*':accept);
+   action.textContent=slug==='merge-pdf'||slug==='merge-files'?'Juntar Arquivos':slug==='edit-pdf'?'Editar PDF':slug==='compress-file'?'Comprimir Arquivo':slug==='split-pdf'?'Split PDF':slug==='rotate-pdf'?'Rotate PDF':slug==='pdf-to-text'?'Extract Text':slug==='pdf-page-counter'?'Count Pages':'Process File';
    action.onclick=()=>{if(!fi.files.length){fi.click();return} return run(async()=>{
      const files=[...fi.files];if(!files.length)throw new Error('Choose a file first.');
      if(['word-to-pdf','pdf-to-word','word-to-text','word-to-html'].includes(slug)){
