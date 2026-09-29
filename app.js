@@ -398,7 +398,29 @@ function setupTool(slug){
      }
      if(slug==='merge-pdf'||slug==='split-pdf'||slug==='rotate-pdf'||slug==='compress-pdf'||slug==='pdf-page-counter'||slug==='pdf-metadata'){const {PDFDocument}=await pdfLib();const bytes=await files[0].arrayBuffer();const doc=await PDFDocument.load(bytes);if(slug==='pdf-page-counter')return 'Pages: '+doc.getPageCount();if(slug==='pdf-metadata')return 'Pages: '+doc.getPageCount()+'\\nTitle: '+(doc.getTitle()||'')+'\\nAuthor: '+(doc.getAuthor()||'');if(slug==='merge-files'){if(files.length<2)throw new Error('Selecione pelo menos 2 arquivos PDF.');const out=await PDFDocument.create();for(const f of files){const src=await PDFDocument.load(await f.arrayBuffer());const pages=await out.copyPages(src,src.getPageIndices());pages.forEach(p=>out.addPage(p))}const blob=new Blob([await out.save()],{type:'application/pdf'});setResult('Arquivos juntados com sucesso.');addDownload(blob,'arquivos-juntados.pdf');return}
 if(slug==='edit-pdf'){const {PDFDocument,rgb}=await pdfLib(),doc=await PDFDocument.load(await files[0].arrayBuffer());const text=getText().trim()||'Texto inserido pelo GlobalTools';doc.getPages().forEach(p=>p.drawText(text,{x:40,y:40,size:16,color:rgb(0,0,0)}));const blob=new Blob([await doc.save()],{type:'application/pdf'});setResult('PDF editado com sucesso.');addDownload(blob,'pdf-editado.pdf');return}
-if(slug==='compress-file'){const f=files[0];if(f.type==='application/pdf'){const {PDFDocument}=await pdfLib(),doc=await PDFDocument.load(await f.arrayBuffer()),blob=new Blob([await doc.save({useObjectStreams:true})],{type:'application/pdf'});setResult('PDF comprimido/reprocessado.');addDownload(blob,'arquivo-comprimido.pdf');return}if(f.type.startsWith('image/')){const bmp=await createImageBitmap(f),canvas=document.createElement('canvas');canvas.width=bmp.width;canvas.height=bmp.height;canvas.getContext('2d').drawImage(bmp,0,0);const blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',.72));setResult('Imagem comprimida.');addDownload(blob,'imagem-comprimida.jpg');return}throw new Error('Para este formato use uma ferramenta específica de compressão.')}
+if(slug==='compress-file'){
+ const f=files[0];if(!f)throw new Error('Selecione um arquivo.');
+ const name=(f.name||'').toLowerCase(),type=(f.type||'').toLowerCase();
+ const head=new Uint8Array(await f.slice(0,8).arrayBuffer());
+ const isPdf=type==='application/pdf'||name.endsWith('.pdf')||(head[0]===37&&head[1]===80&&head[2]===68&&head[3]===70);
+ if(isPdf){
+   const {PDFDocument}=await pdfLib();
+   const doc=await PDFDocument.load(await f.arrayBuffer(),{ignoreEncryption:true});
+   const blob=new Blob([await doc.save({useObjectStreams:true,addDefaultPage:false})],{type:'application/pdf'});
+   setResult('PDF processado e otimizado com sucesso.');
+   addDownload(blob,'arquivo-comprimido.pdf');return
+ }
+ const isImage=type.startsWith('image/')||/\.(jpg|jpeg|png|webp)$/i.test(name);
+ if(isImage){
+   const bmp=await createImageBitmap(f);
+   const max=2400,scale=Math.min(1,max/Math.max(bmp.width,bmp.height));
+   const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(bmp.width*scale));canvas.height=Math.max(1,Math.round(bmp.height*scale));
+   canvas.getContext('2d').drawImage(bmp,0,0,canvas.width,canvas.height);
+   const blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',.72));
+   if(!blob)throw new Error('Não foi possível gerar a imagem comprimida.');
+   setResult('Imagem comprimida com sucesso.');addDownload(blob,'imagem-comprimida.jpg');return
+ }
+ throw new Error('Formato não suportado. Use PDF, JPG, JPEG, PNG ou WebP.')}
 if(slug==='merge-pdf'){const out=await PDFDocument.create();for(const f of files){const src=await PDFDocument.load(await f.arrayBuffer());const pages=await out.copyPages(src,src.getPageIndices());pages.forEach(p=>out.addPage(p))}const blob=new Blob([await out.save()],{type:'application/pdf'});setResult('Merged '+files.length+' PDF file(s).');addDownload(blob,'merged.pdf');return}if(slug==='split-pdf'){if(!window.JSZip)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');const zip=new window.JSZip();for(let i=0;i<doc.getPageCount();i++){const out=await PDFDocument.create();const [p]=await out.copyPages(doc,[i]);out.addPage(p);zip.file('page-'+(i+1)+'.pdf',await out.save())}const finalBlob=await zip.generateAsync({type:'blob'});setResult('Created '+doc.getPageCount()+' individual PDF pages in a ZIP.');addDownload(finalBlob,'split-pdf.zip');return}if(slug==='rotate-pdf'){const {degrees}=PDFLib;doc.getPages().forEach(p=>p.setRotation(degrees(90)));const blob=new Blob([await doc.save()],{type:'application/pdf'});setResult('Rotated all pages by 90°.');addDownload(blob,'rotated.pdf');return}if(slug==='compress-pdf'){const blob=new Blob([await doc.save({useObjectStreams:true})],{type:'application/pdf'});setResult('Re-saved PDF with object streams. File size may vary.');addDownload(blob,'compressed.pdf');return}}
      if(['pdf-to-jpg','pdf-to-png','delete-pdf-pages','extract-pdf-pages','crop-pdf','watermark-pdf','number-pdf-pages','organize-pdf'].includes(slug)){
        if(slug==='pdf-to-jpg'||slug==='pdf-to-png'){
