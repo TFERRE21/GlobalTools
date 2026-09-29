@@ -130,6 +130,35 @@ function textToHtml(md){return esc(md).split(/\n{2,}/).map(p=>'<p>'+p.replace(/\
 function safeJson(v){try{return JSON.parse(v)}catch(e){throw new Error('Invalid JSON: '+e.message)}}
 function parseNums(s){return s.split(/[\s,;]+/).filter(Boolean).map(Number).filter(Number.isFinite)}
 function randomPassword(len=20){const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*_-+=';const a=new Uint32Array(len);crypto.getRandomValues(a);return [...a].map(n=>chars[n%chars.length]).join('')}
+
+function exportWord(){
+ const result=document.getElementById('result'); if(!result) return;
+ const text=result.innerText||result.textContent||'';
+ if(!text.trim()) return alert('Run the tool first.');
+ const title=document.querySelector('h1')?.innerText||'GlobalTools';
+ const html='<!doctype html><html><head><meta charset="utf-8"><title>'+esc(title)+'</title></head><body><h1>'+esc(title)+'</h1><pre style="white-space:pre-wrap;font-family:Arial">'+esc(text)+'</pre></body></html>';
+ const blob=new Blob([html],{type:'application/msword'});
+ downloadBlob(blob,title.replace(/[^a-z0-9]+/gi,'-').toLowerCase()+'.doc');
+}
+function exportPdf(){
+ const result=document.getElementById('result'); if(!result) return;
+ const text=result.innerText||result.textContent||'';
+ if(!text.trim()) return alert('Run the tool first.');
+ const title=document.querySelector('h1')?.innerText||'GlobalTools';
+ const w=window.open('','_blank');
+ if(!w) return alert('Allow pop-ups to export PDF.');
+ w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>body{font-family:Arial,sans-serif;padding:40px;white-space:pre-wrap}h1{margin-bottom:24px}</style></head><body><h1>'+esc(title)+'</h1>'+esc(text).replace(/\n/g,'<br>')+'</body></html>');
+ w.document.close(); w.focus(); setTimeout(()=>w.print(),300);
+}
+function addExportButtons(){
+ const box=document.getElementById('tool'); if(!box||document.getElementById('export-actions'))return;
+ const actions=document.createElement('div'); actions.id='export-actions'; actions.className='export-actions';
+ actions.innerHTML='<button type="button" class="btn secondary" id="exportPdf">Download PDF</button><button type="button" class="btn secondary" id="exportWord">Download Word</button>';
+ box.appendChild(actions);
+ document.getElementById('exportPdf').onclick=exportPdf;
+ document.getElementById('exportWord').onclick=exportWord;
+}
+
 function setupTool(slug){
  const box=document.getElementById('tool');if(!box)return;
  let input=document.getElementById('input'), action=document.getElementById('action'), out=document.getElementById('result');
@@ -256,11 +285,12 @@ function setupTool(slug){
  if(!handler)handler=()=>getText()
  input.placeholder='Enter or paste your data...';
  if(['uuid-generator','password-generator','random-password-batch','lorem-ipsum-generator','qr-code-generator','dice-roller','random-number-generator','random-choice-picker','color-palette-generator','ascii-table'].includes(slug))input.placeholder=slug==='random-choice-picker'?'One option per line':slug==='dice-roller'?'Enter: sides count (e.g. 6 2)':'Enter data or parameters...';
- action.textContent='Run Tool';action.onclick=()=>run(handler);
+ action.textContent='Run Tool';action.onclick=async()=>{await run(handler);addExportButtons()};
+ addExportButtons();
 }
 const path=location.pathname;
 if(path==='/'||path==='/index.html'){renderHome();const s=document.getElementById('search');if(s)s.oninput=()=>renderHome(tools.filter(t=>(t.name+' '+t.desc+' '+t.cat).toLowerCase().includes(s.value.toLowerCase())))}
-else {const m=path.match(/\/tools\/([^/]+)\.html/);if(m)setupTool(m[1])}
+else {const m=path.match(/\/tools\/([^/]+)\.html/);if(m)setupTool(m[1]);addExportButtons()}
 
 const translations={
   en:{navTools:"Tools",navCategories:"Categories",navPrivacy:"Privacy",badge:"⚡ Free • Fast • Browser-based",title:"Simple tools for everyday problems.",subtitle:"Convert, compress, format, generate and calculate — instantly in your browser.",search:"Search for a tool...",catTitle:"Browse categories",catSub:"Useful tools, organized by task.",popular:"Popular tools",popularSub:"Everything is free to start.",pdf:"Work with PDF files",image:"Resize, convert and inspect",text:"Clean and analyze text",developer:"Format and encode data",generators:"Create useful data",converters:"Convert common formats",fast:"Designed for instant results.",private:"Many tools process data locally.",global:"Built for users everywhere.",free:"No account required for core tools.",footer:"Free online tools for everyone."},
