@@ -136,7 +136,13 @@ function setResult(v){const out=document.getElementById('result');if(!out)return
 function inputEl(){return document.getElementById('input')}
 function getText(){return inputEl()?.value||''}
 function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-function addDownload(blob,name){const b=document.createElement('button');b.className='btn';b.textContent='Download';b.onclick=()=>downloadBlob(blob,name);document.getElementById('result').appendChild(document.createTextNode(' '));document.getElementById('result').appendChild(b)}
+function showProgress(percent=0,label='Processando...'){
+ let p=document.getElementById('progressBox');
+ if(!p){p=document.createElement('div');p.id='progressBox';p.className='progress-box';p.innerHTML='<div class="progress-label"><span id="progressText"></span><strong id="progressPct">0%</strong></div><div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>';const tool=document.getElementById('tool');const result=document.getElementById('result');tool.insertBefore(p,result)}
+ const n=Math.max(0,Math.min(100,Math.round(percent)));p.style.display='block';document.getElementById('progressText').textContent=label;document.getElementById('progressPct').textContent=n+'%';document.getElementById('progressBar').style.width=n+'%'
+}
+function hideProgress(){const p=document.getElementById('progressBox');if(p)p.style.display='none'}
+function addDownload(blob,name){const b=document.createElement('button');b.className='btn';b.textContent='Download';b.onclick=()=>downloadBlob(blob,name);const result=document.getElementById('result');result.appendChild(document.createTextNode(' '));result.appendChild(b);const exports=document.getElementById('export-actions');if(exports)exports.style.display='flex'}
 function makeFileInput(multiple=false,accept=''){const input=document.createElement('input');input.type='file';input.multiple=multiple;if(accept)input.accept=accept;input.id='fileInput';input.className='real-file-input';const box=document.getElementById('tool');const old=document.getElementById('input');if(old)old.replaceWith(input);const visual=box?.querySelector('.upload-visual');const setFiles=files=>{if(!files?.length)return;try{const dt=new DataTransfer();[...files].slice(0,multiple?20:1).forEach(f=>dt.items.add(f));input.files=dt.files}catch(e){} if(visual){const h=visual.querySelector('h2');if(h)h.textContent=input.files.length+' file(s) selected';}};if(visual){visual.style.cursor='pointer';visual.addEventListener('click',()=>input.click());['dragenter','dragover'].forEach(ev=>visual.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();box.classList.add('drag-active')}));['dragleave','drop'].forEach(ev=>visual.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();box.classList.remove('drag-active')}));visual.addEventListener('drop',e=>setFiles(e.dataTransfer.files));}input.addEventListener('change',()=>{if(visual){const h=visual.querySelector('h2');if(h)h.textContent=input.files.length?input.files.length+' file(s) selected':'Choose files';}});return input}
 function loadScript(src){return new Promise((resolve,reject)=>{if(document.querySelector('script[data-lib="'+src+'"]'))return resolve();const s=document.createElement('script');s.src=src;s.dataset.lib=src;s.onload=resolve;s.onerror=reject;document.head.appendChild(s)})}
 async function pdfLib(){await loadScript('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js');return window.PDFLib}
@@ -174,7 +180,7 @@ function exportPdf(){
 }
 function addExportButtons(){
  const box=document.getElementById('tool'); if(!box||document.getElementById('export-actions'))return;
- const actions=document.createElement('div'); actions.id='export-actions'; actions.className='export-actions';
+ const actions=document.createElement('div'); actions.id='export-actions'; actions.className='export-actions'; actions.style.display='none';
  actions.innerHTML='<button type="button" class="btn secondary" id="exportPdf">Download PDF</button><button type="button" class="btn secondary" id="exportWord">Download Word</button>';
  box.appendChild(actions);
  document.getElementById('exportPdf').onclick=exportPdf;
