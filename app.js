@@ -246,6 +246,7 @@ function setupTool(slug){
  if(slug==='uuid-generator'){handler=()=>crypto.randomUUID()}
  if(slug==='password-generator'){handler=()=>randomPassword(20)}
  if(slug==='random-password-batch'){handler=()=>Array.from({length:10},()=>randomPassword(20)).join('\n')}
+ if(slug==='url-shortener-helper'){handler=async()=>{const u=getText().trim();if(!/^https?:\/\//i.test(u))throw new Error('Enter a complete URL starting with http:// or https://');const r=await fetch('https://is.gd/create.php?format=simple&url='+encodeURIComponent(u));if(!r.ok)throw new Error('Shortener service unavailable.');return esc((await r.text()).trim())}}
  if(slug==='password-strength-checker'){handler=()=>{const v=getText(),score=(v.length>=12)+(v.length>=16)+(/[a-z]/.test(v))+( /[A-Z]/.test(v))+( /\d/.test(v))+( /[^A-Za-z0-9]/.test(v));return 'Score: '+score+'/6<br>Length: '+v.length+'<br>'+ (score>=5?'Strong characteristics':'Add length, numbers, upper/lowercase and symbols.')}}
  if(slug==='hash-generator')handler=async()=>{const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(getText()));return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}
  if(slug==='lorem-ipsum-generator')handler=()=>('Lorem ipsum dolor sit amet, consectetur adipiscing elit. '.repeat(12)).trim()
