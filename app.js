@@ -276,7 +276,7 @@ function setupTool(slug){
  'timezone-converter':()=>{const [date,from,to]=getText().trim().split(/\s+/);return new Intl.DateTimeFormat('en-US',{timeZone:to||'UTC',dateStyle:'full',timeStyle:'long'}).format(new Date(date))},
  'random-number-generator':()=>{const min=Number(document.getElementById('randomMin')?.value||1),max=Number(document.getElementById('randomMax')?.value||100),count=Math.max(1,Math.min(100,Number(document.getElementById('randomCount')?.value)||1));if(max<min)throw new Error('O valor máximo deve ser maior ou igual ao mínimo.');return Array.from({length:count},()=>String(Math.floor(Math.random()*(max-min+1))+min)).join('\n')},
  'random-choice-picker':()=>{const a=getText().split(/\r?\n/).filter(Boolean);return a[Math.floor(Math.random()*a.length)]||''},
- 'dice-roller':()=>{const [sides=6,count=1]=parseNums(getText());return Array.from({length:count},()=>Math.floor(Math.random()*sides)+1).join(', ')},
+ 'dice-roller':()=>{const sides=Math.max(2,Math.min(1000,Number(document.getElementById('diceSides')?.value)||6)),count=Math.max(1,Math.min(100,Number(document.getElementById('diceCount')?.value)||1));return Array.from({length:count},()=>Math.floor(Math.random()*sides)+1).join(', ')},
  'color-palette-generator':()=>{const count=Math.max(1,Math.min(20,Number(document.getElementById('paletteCount')?.value)||5));return Array.from({length:count},()=>'#'+crypto.getRandomValues(new Uint8Array(3)).reduce((s,n)=>s+n.toString(16).padStart(2,'0'),'')).join('\n')}
  };
  function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b)[a,b]=[b,a%b];return a||1}
