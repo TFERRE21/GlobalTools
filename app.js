@@ -194,7 +194,7 @@ function setupTool(slug){
  if(!input){input=document.createElement('textarea');input.id='input';box.prepend(input)}
  if(!action){action=document.createElement('button');action.id='action';action.className='btn';action.textContent='Run Tool';box.appendChild(action)}
  if(!out){out=document.createElement('div');out.id='result';out.className='result';box.appendChild(out)}
- const run=async fn=>{try{setResult(await fn())}catch(e){setResult('<div class="tool-error"><b>Error:</b> '+esc(e.message||e)+'</div>')}};
+ const run=async fn=>{try{const value=await fn();if(value!==undefined&&value!==null)setResult(value)}catch(e){hideProgress();setResult('<div class="tool-error"><b>Erro:</b> '+esc(e.message||e)+'</div>')}};
  const textTools={
  'word-counter':()=>{const v=getText(),words=v.trim()?v.trim().split(/\s+/).length:0,chars=v.length,no=v.replace(/\s/g,'').length,sent=v.trim()?v.split(/[.!?]+/).filter(x=>x.trim()).length:0,para=v.trim()?v.split(/\n\s*\n/).filter(x=>x.trim()).length:0;return 'Words: '+words+'<br>Characters: '+chars+'<br>Characters without spaces: '+no+'<br>Sentences: '+sent+'<br>Paragraphs: '+para},
  'character-counter':()=>{const v=getText();return 'Characters: '+v.length+'<br>Without spaces: '+v.replace(/\s/g,'').length},
