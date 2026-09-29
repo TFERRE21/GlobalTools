@@ -22,7 +22,17 @@ const tools=[
 {slug:"pdf-tools",name:"PDF Tools",desc:"PDF utilities and browser-based document helpers.",cat:"pdf"},
 {slug:"text-to-slug",name:"Text to Slug",desc:"Create clean URL slugs from text.",cat:"text"},
 {slug:"hash-generator",name:"SHA-256 Hash Generator",desc:"Generate SHA-256 hashes from text.",cat:"developer"},
-{slug:"number-base-converter",name:"Number Base Converter",desc:"Convert numbers between binary, decimal, hexadecimal and more.",cat:"developer"}
+{slug:"number-base-converter",name:"Number Base Converter",desc:"Convert numbers between binary, decimal, hexadecimal and more.",cat:"developer"},
+{slug:"reverse-text",name:"Reverse Text",desc:"Reverse text instantly.",cat:"text"},
+{slug:"sort-lines",name:"Sort Lines",desc:"Sort lines alphabetically.",cat:"text"},
+{slug:"remove-extra-spaces",name:"Remove Extra Spaces",desc:"Clean repeated spaces and blank lines.",cat:"text"},
+{slug:"html-escape",name:"HTML Escape",desc:"Escape text for safe HTML.",cat:"developer"},
+{slug:"html-unescape",name:"HTML Unescape",desc:"Decode common HTML entities.",cat:"developer"},
+{slug:"random-number-generator",name:"Random Number Generator",desc:"Generate random numbers.",cat:"generators"},
+{slug:"dice-roller",name:"Dice Roller",desc:"Roll virtual dice.",cat:"generators"},
+{slug:"binary-to-text",name:"Binary to Text",desc:"Decode binary bytes into text.",cat:"developer"},
+{slug:"text-to-binary",name:"Text to Binary",desc:"Convert text into binary.",cat:"developer"},
+{slug:"count-lines",name:"Line Counter",desc:"Count lines in text.",cat:"text"}
 ];
 
 function card(t){return '<a class="tool-card" href="/tools/'+t.slug+'.html"><h3>'+t.name+'</h3><p>'+t.desc+'</p><span class="tool-tag">'+t.cat.toUpperCase()+' TOOL →</span></a>'}
