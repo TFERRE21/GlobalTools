@@ -126,30 +126,7 @@ const tools=[
 {slug:"color-palette-generator",name:"Color Palette Generator",desc:"Generate color palettes.",cat:"tools"},
 {slug:"ascii-table",name:"ASCII Table",desc:"Explore ASCII codes.",cat:"tools"},
 {slug:"binary-calculator",name:"Binary Calculator",desc:"Work with binary values.",cat:"tools"},
-{slug:"octal-decimal-converter",name:"Octal Decimal Converter",desc:"Convert octal and decimal.",cat:"tools"},
-{slug:"cpf-generator",name:"Gerador de CPF",desc:"Gere CPFs sintéticos válidos para testes.",cat:"generators"},
-{slug:"cnpj-generator",name:"Gerador de CNPJ",desc:"Gere CNPJs sintéticos válidos para testes.",cat:"generators"},
-{slug:"cpf-validator",name:"Validador de CPF",desc:"Verifique o dígito verificador de um CPF.",cat:"tools"},
-{slug:"cnpj-validator",name:"Validador de CNPJ",desc:"Verifique o dígito verificador de um CNPJ.",cat:"tools"},
-{slug:"cep-generator",name:"Gerador de CEP",desc:"Gere CEPs sintéticos para testes.",cat:"generators"},
-{slug:"address-generator",name:"Gerador de Endereço",desc:"Gere endereços fictícios para testes.",cat:"generators"},
-{slug:"card-generator",name:"Gerador de Cartão",desc:"Gere números sintéticos para testes com validação Luhn.",cat:"generators"},
-{slug:"bank-account-generator",name:"Gerador de Conta Bancária",desc:"Gere dados bancários fictícios para testes.",cat:"generators"},
-{slug:"currency-converter",name:"Conversor de Moeda",desc:"Converta moedas usando taxas informadas por você.",cat:"converters"},
-{slug:"salary-pj-clt",name:"Salário PJ vs CLT",desc:"Compare remuneração anual de PJ e CLT.",cat:"calculators"},
-{slug:"pix-generator",name:"Gerador PIX Copia e Cola",desc:"Monte um payload PIX e QR Code para testes.",cat:"generators"},
-{slug:"yaml-json",name:"YAML ↔ JSON",desc:"Converta estruturas YAML simples e JSON.",cat:"developer"},
-{slug:"text-diff",name:"Diff de Texto",desc:"Compare dois textos e veja as diferenças.",cat:"text"},
-{slug:"markdown-editor",name:"Editor de Markdown",desc:"Edite Markdown com visualização HTML.",cat:"text"},
-{slug:"fake-json-generator",name:"Dados Fake / Mock JSON",desc:"Gere dados JSON fictícios para testes.",cat:"developer"},
-{slug:"project-scope-generator",name:"Escopo de Projeto",desc:"Gere um documento de escopo em Markdown.",cat:"tools"},
-{slug:"cidr-calculator",name:"Calculadora CIDR",desc:"Calcule rede, broadcast, hosts e máscara.",cat:"calculators"},
-{slug:"cron-builder",name:"Cron Builder",desc:"Monte expressões cron e veja a configuração.",cat:"developer"},
-{slug:"gitignore-generator",name:"Gerador de .gitignore",desc:"Monte um .gitignore para linguagens e ferramentas.",cat:"developer"},
-{slug:"work-hours-calculator",name:"Horas Trabalhadas",desc:"Calcule jornada, intervalo e saldo.",cat:"calculators"},
-{slug:"case-code-converter",name:"Conversor de Case de Código",desc:"Converta entre camelCase, snake_case, PascalCase e kebab-case.",cat:"text"},
-{slug:"color-contrast",name:"Cor + Contraste WCAG",desc:"Converta cores e verifique contraste WCAG.",cat:"tools"},
-{slug:"css-gradient-generator",name:"CSS Gradient Generator",desc:"Crie gradientes CSS lineares e radiais.",cat:"tools"}];
+{slug:"octal-decimal-converter",name:"Octal Decimal Converter",desc:"Convert octal and decimal.",cat:"tools"}];
 
 
 function card(t){return '<a class="tool-card" href="/tools/'+t.slug+'.html"><h3>'+t.name+'</h3><p>'+t.desc+'</p><span class="tool-tag">'+t.cat.toUpperCase()+' TOOL →</span></a>'}
@@ -204,9 +181,7 @@ function exportPdf(){
 }
 function addExportButtons(){
  const box=document.getElementById('tool');
- const currentSlug=(location.pathname.match(/\/tools\/([^/]+)\.html/)||[])[1]||'';
- const noExport=['uuid-generator','password-generator','random-password-batch','lorem-ipsum-generator','qr-code-generator','random-number-generator','dice-roller','random-choice-picker','color-palette-generator','ascii-table','password-strength-checker','cpf-generator','cnpj-generator','cep-generator','cpf-validator','cnpj-validator','address-generator','card-generator','bank-account-generator','pix-generator','fake-json-generator','project-scope-generator','gitignore-generator','css-gradient-generator'];
- if(!box||noExport.includes(currentSlug)||document.getElementById('export-actions')||document.getElementById('fileInput'))return;
+ if(!box||document.getElementById('export-actions')||document.getElementById('fileInput'))return;
  const actions=document.createElement('div'); actions.id='export-actions'; actions.className='export-actions';
  actions.innerHTML='<button type="button" class="btn secondary" id="exportPdf">Download PDF</button><button type="button" class="btn secondary" id="exportWord">Download Word</button>';
  box.appendChild(actions);
@@ -297,47 +272,12 @@ function setupTool(slug){
  'unix-timestamp':()=>new Date(Number(getText())*1000).toString(),
  'date-to-timestamp':()=>Math.floor(new Date(getText()).getTime()/1000),
  'timezone-converter':()=>{const [date,from,to]=getText().trim().split(/\s+/);return new Intl.DateTimeFormat('en-US',{timeZone:to||'UTC',dateStyle:'full',timeStyle:'long'}).format(new Date(date))},
- 'random-number-generator':()=>{const min=Number(document.getElementById('randomMin')?.value||1),max=Number(document.getElementById('randomMax')?.value||100),count=Math.max(1,Math.min(100,Number(document.getElementById('randomCount')?.value)||1));if(max<min)throw new Error('O valor máximo deve ser maior ou igual ao mínimo.');return Array.from({length:count},()=>String(Math.floor(Math.random()*(max-min+1))+min)).join('\n')},
+ 'random-number-generator':()=>{const [min=1,max=100]=parseNums(getText());return String(Math.floor(Math.random()*(max-min+1))+min)},
  'random-choice-picker':()=>{const a=getText().split(/\r?\n/).filter(Boolean);return a[Math.floor(Math.random()*a.length)]||''},
- 'dice-roller':()=>{const sides=Math.max(2,Math.min(1000,Number(document.getElementById('diceSides')?.value)||6)),count=Math.max(1,Math.min(100,Number(document.getElementById('diceCount')?.value)||1));return Array.from({length:count},()=>Math.floor(Math.random()*sides)+1).join(', ')},
- 'color-palette-generator':()=>{const count=Math.max(1,Math.min(20,Number(document.getElementById('paletteCount')?.value)||5));return Array.from({length:count},()=>'#'+crypto.getRandomValues(new Uint8Array(3)).reduce((s,n)=>s+n.toString(16).padStart(2,'0'),'')).join('\n')}
+ 'dice-roller':()=>{const [sides=6,count=1]=parseNums(getText());return Array.from({length:count},()=>Math.floor(Math.random()*sides)+1).join(', ')},
+ 'color-palette-generator':()=>Array.from({length:5},()=>'#'+crypto.getRandomValues(new Uint8Array(3)).reduce((s,n)=>s+n.toString(16).padStart(2,'0'),'')).join('\n')
  };
  function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b)[a,b]=[b,a%b];return a||1}
-function onlyDigits(v){return String(v||'').replace(/\D/g,'')}
-function luhnValid(v){const d=onlyDigits(v);if(d.length<12)return false;let sum=0,alt=false;for(let i=d.length-1;i>=0;i--){let n=+d[i];if(alt){n*=2;if(n>9)n-=9}sum+=n;alt=!alt}return sum%10===0}
-function makeCard(){let d='4';for(let i=1;i<15;i++)d+=Math.floor(Math.random()*10);let sum=0,alt=true;for(let i=d.length-1;i>=0;i--){let n=+d[i];if(alt){n*=2;if(n>9)n-=9}sum+=n;alt=!alt}return d+((10-sum%10)%10)}
-function fakeAddress(country='Brasil'){const cities=country==='Brasil'?['Brasília','São Paulo','Goiânia','Belo Horizonte','Curitiba']:['New York','Miami','Lisbon','Madrid','London'];const streets=['Avenida Central','Rua das Flores','Avenida Brasil','Rua Principal','Alameda das Palmeiras'];return streets[Math.floor(Math.random()*streets.length)]+', '+(Math.floor(Math.random()*9000)+100)+', '+cities[Math.floor(Math.random()*cities.length)]+', '+country}
-function simpleYamlToJson(v){const o={};v.split(/\r?\n/).forEach(line=>{const m=line.match(/^\s*([^:#]+):\s*(.*)\s*$/);if(m){let x=m[2];if(x==='true')x=true;else if(x==='false')x=false;else if(x!==''&&!isNaN(x))x=Number(x);else x=x.replace(/^['"]|['"]$/g,'');o[m[1].trim()]=x}});return o}
-function simpleJsonToYaml(o,ind=''){if(o===null)return 'null';if(typeof o!=='object')return String(o);return Object.entries(o).map(([k,v])=>typeof v==='object'&&v!==null?k+':\n'+simpleJsonToYaml(v,ind+'  ').split('\n').map(x=>ind+'  '+x.trimStart()).join('\n'):k+': '+String(v)).join('\n')}
-function hexRgb(h){h=h.replace('#','');if(h.length===3)h=h.split('').map(x=>x+x).join('');if(!/^[0-9a-f]{6}$/i.test(h))throw new Error('Cor HEX inválida.');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4),16)]}
-function luminance(rgb){return rgb.map(v=>v/255).map(v=>v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)).reduce((a,v,i)=>a+[.2126,.7152,.0722][i]*v,0)}
-
-function cpfValid(v){
- const d=onlyDigits(v);if(d.length!==11||/^([0-9])\1{10}$/.test(d))return false;
- let sum=0;for(let i=0;i<9;i++)sum+=+d[i]*(10-i);let r=sum%11,x=r<2?0:11-r;if(x!==+d[9])return false;
- sum=0;for(let i=0;i<10;i++)sum+=+d[i]*(11-i);r=sum%11;x=r<2?0:11-r;return x===+d[10]
-}
-function makeCpf(){
- let b='';do{b=String(Math.floor(Math.random()*1e9)).padStart(9,'0')}while(/^([0-9])\1{8}$/.test(b));
- let sum=0;for(let i=0;i<9;i++)sum+=+b[i]*(10-i);let r=sum%11,d1=r<2?0:11-r;
- sum=0;for(let i=0;i<9;i++)sum+=+b[i]*(11-i);sum+=d1*2;r=sum%11;let d2=r<2?0:11-r;
- return b+d1+d2
-}
-function cnpjValid(v){
- const d=onlyDigits(v);if(d.length!==14||/^([0-9])\1{13}$/.test(d))return false;
- const calc=(base,weights)=>{let sum=0;for(let i=0;i<base.length;i++)sum+=+base[i]*weights[i];let r=sum%11;return r<2?0:11-r};
- const d1=calc(d.slice(0,12),[5,4,3,2,9,8,7,6,5,4,3,2]);
- const d2=calc(d.slice(0,12)+d1,[6,5,4,3,2,9,8,7,6,5,4,3,2]);
- return d1===+d[12]&&d2===+d[13]
-}
-function makeCnpj(){
- let b;do{b=String(Math.floor(Math.random()*1e8)).padStart(8,'0')}while(/^([0-9])\1{7}$/.test(b));
- b+='0001';
- const calc=(base,weights)=>{let sum=0;for(let i=0;i<base.length;i++)sum+=+base[i]*weights[i];let r=sum%11;return r<2?0:11-r};
- return b+calc(b,[5,4,3,2,9,8,7,6,5,4,3,2])+calc(b+calc(b,[5,4,3,2,9,8,7,6,5,4,3,2]),[6,5,4,3,2,9,8,7,6,5,4,3,2])
-}
-function formatCpf(d){d=onlyDigits(d);return d.length===11?d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6,9)+'-'+d.slice(9):d}
-function formatCnpj(d){d=onlyDigits(d);return d.length===14?d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5,8)+'/'+d.slice(8,12)+'-'+d.slice(12):d}
  const fileHandlers=['jpg-to-pdf','pdf-to-jpg','pdf-to-png','delete-pdf-pages','extract-pdf-pages','crop-pdf','watermark-pdf','number-pdf-pages','organize-pdf','word-to-pdf','pdf-to-word','word-to-text','word-to-html','excel-to-csv','excel-to-json','csv-to-excel','excel-to-pdf','html-to-pdf','image-info','image-to-data-url','image-to-base64','image-color-picker','image-cropper','image-resizer','image-compressor','jpg-to-png','png-to-jpg','webp-to-jpg','jpg-to-webp','png-to-webp','webp-to-png','image-dimensions','svg-to-data-url','pdf-page-counter','pdf-metadata','pdf-to-text','merge-pdf','split-pdf','rotate-pdf','compress-pdf'];
  const uploadVisual=box.querySelector('.file-upload-visual'); if(uploadVisual){uploadVisual.style.setProperty('display',fileHandlers.includes(slug)?'block':'none','important'); if(!fileHandlers.includes(slug))uploadVisual.replaceChildren();}
  if(fileHandlers.includes(slug)){
@@ -399,17 +339,8 @@ function formatCnpj(d){d=onlyDigits(d);return d.length===14?d.slice(0,2)+'.'+d.s
          addDownload(blob,'converted.docx');return;
        }
        const m=await mammothLib(),r=await m.convertToHtml({arrayBuffer:await f.arrayBuffer()});
-       if(slug==='word-to-text'){
-         const text=r.value.replace(/<[^>]+>/g,' ').replace(/\\s+/g,' ').trim();
-         const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
-         setResult('Texto extraído do Word. Clique em Download.');
-         addDownload(blob,'converted.txt');return;
-       }
-       if(slug==='word-to-html'){
-         const blob=new Blob([r.value],{type:'text/html;charset=utf-8'});
-         setResult('HTML criado a partir do Word. Clique em Download.');
-         addDownload(blob,'converted.html');return;
-       }
+       if(slug==='word-to-text')return esc(r.value.replace(/<[^>]+>/g,' ').replace(/\\s+/g,' ').trim());
+       if(slug==='word-to-html')return r.value;
        if(slug==='word-to-pdf'){
          const {PDFDocument,StandardFonts,rgb}=await pdfLib(),doc=await PDFDocument.create(),font=await doc.embedFont(StandardFonts.Helvetica);const plain=r.value.replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/\\s+/g,' ').trim();let page=doc.addPage([595,842]),y=800;
          for(const line of plain.match(/.{1,90}(?:\\s|$)/g)||[plain]){if(y<50){page=doc.addPage([595,842]);y=800}page.drawText(line.trim(),{x:40,y,size:11,font,color:rgb(0.1,0.1,0.1)});y-=18}
@@ -422,16 +353,8 @@ function formatCnpj(d){d=onlyDigits(d);return d.length===14?d.slice(0,2)+'.'+d.s
          const wb=XLSX.read(await f.text(),{type:'string'}),blob=new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});setResult('Excel workbook created.');addDownload(blob,'converted.xlsx');return;
        }
        const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]];
-       if(slug==='excel-to-csv'){
-         const csv=XLSX.utils.sheet_to_csv(ws),blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
-         setResult('CSV criado a partir do Excel. Clique em Download.');
-         addDownload(blob,'converted.csv');return;
-       }
-       if(slug==='excel-to-json'){
-         const json=JSON.stringify(XLSX.utils.sheet_to_json(ws,{defval:''}),null,2),blob=new Blob([json],{type:'application/json;charset=utf-8'});
-         setResult('JSON criado a partir do Excel. Clique em Download.');
-         addDownload(blob,'converted.json');return;
-       }
+       if(slug==='excel-to-csv')return esc(XLSX.utils.sheet_to_csv(ws));
+       if(slug==='excel-to-json')return esc(JSON.stringify(XLSX.utils.sheet_to_json(ws,{defval:''}),null,2));
        if(slug==='excel-to-pdf'){
          const html=XLSX.utils.sheet_to_html(ws);const w=window.open('','_blank');if(!w)throw new Error('Allow pop-ups to create the PDF.');w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Excel to PDF</title><style>body{font-family:Arial;padding:25px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:6px}</style></head><body>'+html+'</body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),500);return;
        }
@@ -463,38 +386,7 @@ function formatCnpj(d){d=onlyDigits(d);return d.length===14?d.slice(0,2)+'.'+d.s
        if(slug==='number-pdf-pages'){doc.getPages().forEach((p,i)=>p.drawText(String(i+1),{x:p.getWidth()/2-8,y:20,size:10,color:rgb(.25,.25,.25)}));const blob=new Blob([await doc.save()],{type:'application/pdf'});setResult('Page numbers added.');addDownload(blob,'numbered.pdf');return}
      }
      const f=files[0];
-     if(slug==='pdf-to-text'){
-       showProgress(5,'Lendo o PDF...');
-       const pdfjs=await pdfJs(),loadingTask=pdfjs.getDocument({data:new Uint8Array(await f.arrayBuffer())});
-       loadingTask.onProgress=p=>{if(p.total)showProgress(5+(p.loaded/p.total)*10,'Carregando PDF...')};
-       const pdf=await loadingTask.promise;let text='',ocrWorker=null,usedOcr=false,total=pdf.numPages;
-       for(let i=1;i<=total;i++){
-         const page=await pdf.getPage(i),tc=await page.getTextContent();
-         let pageText=tc.items.map(x=>x.str).join(' ').trim();
-         if(!pageText){
-           if(!ocrWorker){
-             showProgress(16,'Preparando OCR em português...');
-             const Tesseract=await tesseractLib();
-             ocrWorker=await Tesseract.createWorker('por',1,{logger:m=>{
-               if(m&&typeof m.progress==='number')showProgress(16+((i-1)/total)*74+m.progress*(74/total),'OCR página '+i+' de '+total+'...');
-             }});
-           }
-           const viewport=page.getViewport({scale:2}),canvas=document.createElement('canvas');
-           canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
-           await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
-           const ret=await ocrWorker.recognize(canvas);pageText=(ret.data.text||'').trim();usedOcr=true;
-         }
-         text+=(i>1?'\n\n':'')+'--- Page '+i+' ---\n'+pageText;
-         showProgress(18+(i/total)*72,(usedOcr?'Processando página ':'Extraindo página ')+i+' de '+total+'...');
-       }
-       if(ocrWorker)await ocrWorker.terminate();
-       if(!text.trim())throw new Error('Não foi possível extrair texto deste PDF, mesmo usando OCR.');
-       showProgress(95,'Gerando arquivo de texto...');
-       const blob=new Blob([text.trim()],{type:'text/plain;charset=utf-8'});
-       showProgress(100,'Conversão concluída!');
-       setResult(usedOcr?'Texto extraído com OCR. Clique em Download.':'Texto extraído do PDF. Clique em Download.');
-       addDownload(blob,'extracted-text.txt');return;
-     }
+     if(slug==='pdf-to-text'){const pdfjs=await pdfJs();const pdf=await pdfjs.getDocument({data:new Uint8Array(await f.arrayBuffer())}).promise;let text='';for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i);const tc=await page.getTextContent();text+='\n--- Page '+i+' ---\n'+tc.items.map(x=>x.str).join(' ')}return esc(text.trim())}
      if(slug==='base64-to-file'){const data=getText().trim();const m=data.match(/^data:([^;]+);base64,(.+)$/);if(!m)throw new Error('Paste a complete data URL in the text field.');const bin=atob(m[2]);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);const blob=new Blob([u],{type:m[1]});setResult('File decoded.');addDownload(blob,'decoded-file');return}
      if(slug==='image-info'||slug==='image-dimensions'){const im=new Image();im.src=URL.createObjectURL(f);await im.decode();return 'File: '+esc(f.name)+'<br>Type: '+esc(f.type)+'<br>Size: '+(f.size/1024).toFixed(1)+' KB<br>Dimensions: '+im.width+' × '+im.height}
      if(slug==='image-to-data-url'||slug==='image-to-base64'){const data=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(f)});return '<textarea style="min-height:220px">'+esc(data)+'</textarea>'}
@@ -509,83 +401,19 @@ function formatCnpj(d){d=onlyDigits(d);return d.length===14?d.slice(0,2)+'.'+d.s
    return;
  }
  let handler=textTools[slug]||dev[slug]||calc[slug];
- if(slug==='address-generator'){handler=()=>fakeAddress(document.getElementById('addressCountry')?.value||'Brasil')}
- if(slug==='card-generator'){handler=()=>{const count=Math.max(1,Math.min(50,Number(document.getElementById('cardCount')?.value)||1));return Array.from({length:count},makeCard).join('\n')}}
- if(slug==='bank-account-generator'){handler=()=>{const bank=document.getElementById('bankCode')?.value||'001';return 'Banco: '+bank+'\nAgência: '+String(Math.floor(Math.random()*9999)+1).padStart(4,'0')+'\nConta: '+String(Math.floor(Math.random()*99999999)+1).padStart(8,'0')+'-'+Math.floor(Math.random()*10)}}
- if(slug==='currency-converter'){handler=()=>{const v=Number(document.getElementById('currencyValue')?.value||0),rate=Number(document.getElementById('currencyRate')?.value||1);return (v*rate).toFixed(2)}}
- if(slug==='salary-pj-clt'){handler=()=>{const clt=Number(document.getElementById('cltSalary')?.value||0),pj=Number(document.getElementById('pjSalary')?.value||0),months=12;return 'CLT anual bruto: R$ '+(clt*months).toFixed(2)+'\nPJ anual: R$ '+(pj*months).toFixed(2)+'\nDiferença anual: R$ '+((pj-clt)*months).toFixed(2)}}
- if(slug==='pix-generator'){handler=()=>{const key=document.getElementById('pixKey')?.value?.trim(),name=document.getElementById('pixName')?.value?.trim()||'RECEBEDOR',city=document.getElementById('pixCity')?.value?.trim()||'BRASILIA',value=document.getElementById('pixValue')?.value?.trim()||'';if(!key)throw new Error('Informe a chave PIX.');const payload='00020126580014BR.GOV.BCB.PIX0136'+key.slice(0,36)+'5204000053039865404'+value+'5802BR5913'+name.slice(0,13)+'6008'+city.slice(0,8)+'6304';return payload+'\n\nObservação: payload simplificado para testes.'}}
- if(slug==='yaml-json'){handler=()=>{const mode=document.getElementById('yamlMode')?.value||'yaml-json',v=getText().trim();return mode==='yaml-json'?JSON.stringify(simpleYamlToJson(v),null,2):simpleJsonToYaml(JSON.parse(v))}}
- if(slug==='text-diff'){handler=()=>{const a=document.getElementById('diffA')?.value||'',b=document.getElementById('diffB')?.value||'',aa=a.split(/\r?\n/),bb=b.split(/\r?\n/),out=[];const n=Math.max(aa.length,bb.length);for(let i=0;i<n;i++){if(aa[i]===bb[i])out.push('  '+esc(aa[i]||''));else{if(aa[i]!==undefined)out.push('<del>- '+esc(aa[i])+'</del>');if(bb[i]!==undefined)out.push('<ins>+ '+esc(bb[i])+'</ins>')}}return out.join('<br>')}}
- if(slug==='markdown-editor'){handler=()=>textToHtml(getText())}
- if(slug==='fake-json-generator'){handler=()=>JSON.stringify(Array.from({length:Math.max(1,Math.min(100,Number(document.getElementById('mockCount')?.value)||5))},(_,i)=>({id:i+1,name:'User '+(i+1),email:'user'+(i+1)+'@example.com',active:true})),null,2)}
- if(slug==='project-scope-generator'){handler=()=>{const p=document.getElementById('projectName')?.value||'Projeto';return '# Escopo do Projeto\n\n## Projeto\n'+p+'\n\n## Objetivo\n'+(document.getElementById('projectGoal')?.value||'Definir o objetivo do projeto.')+'\n\n## Entregas\n'+(document.getElementById('projectDeliverables')?.value||'Definir entregas principais.')}}
- if(slug==='cidr-calculator'){handler=()=>{const v=document.getElementById('cidrValue')?.value||'192.168.1.0/24',m=v.match(/^([0-9.]+)\/(\d+)$/);if(!m)throw new Error('Use IPv4/prefixo, por exemplo 192.168.1.0/24');const ip=m[1].split('.').map(Number),p=Number(m[2]);const mask=p===0?0:(0xffffffff<<(32-p))>>>0,n=((ip[0]<<24)|(ip[1]<<16)|(ip[2]<<8)|ip[3])>>>0,net=(n&mask)>>>0,bcast=(net|(~mask>>>0))>>>0,fmt=x=>[(x>>>24)&255,(x>>>16)&255,(x>>>8)&255,x&255].join('.');return 'Rede: '+fmt(net)+'\nBroadcast: '+fmt(bcast)+'\nHosts: '+(p>=31?Math.max(0,2**(32-p)-2):2**(32-p)-2)+'\nMáscara: '+fmt(mask)}}
- if(slug==='cron-builder'){handler=()=>{const min=document.getElementById('cronMin')?.value||'*',hour=document.getElementById('cronHour')?.value||'*',day=document.getElementById('cronDay')?.value||'*',month=document.getElementById('cronMonth')?.value||'*',week=document.getElementById('cronWeek')?.value||'*';return min+' '+hour+' '+day+' '+month+' '+week}}
- if(slug==='gitignore-generator'){handler=()=>{const names=(document.getElementById('gitLanguages')?.value||'node,windows').split(',').map(x=>x.trim().toLowerCase());let out='# Generated by GlobalTools\n';if(names.includes('node'))out+='node_modules/\n.env\ndist/\n';if(names.includes('python'))out+='__pycache__/\n*.py[cod]\n.venv/\n';if(names.includes('java'))out+='target/\n*.class\n';if(names.includes('windows'))out+='Thumbs.db\nDesktop.ini\n';return out}}
- if(slug==='work-hours-calculator'){handler=()=>{const start=document.getElementById('workStart')?.value||'08:00',end=document.getElementById('workEnd')?.value||'17:00',breaks=Number(document.getElementById('workBreak')?.value||60),a=new Date('1970-01-01T'+start),b=new Date('1970-01-01T'+end);return 'Horas trabalhadas: '+Math.max(0,(b-a)/3600000-breaks/60).toFixed(2)+' h'}}
- if(slug==='case-code-converter'){handler=()=>{const v=getText().trim().replace(/([a-z])([A-Z])/g,'$1 $2').replace(/[_\-\s]+/g,' ').toLowerCase(),parts=v.split(' ').filter(Boolean);return 'camelCase: '+parts[0]+parts.slice(1).map(x=>x[0].toUpperCase()+x.slice(1)).join('')+'\nsnake_case: '+parts.join('_')+'\nPascalCase: '+parts.map(x=>x[0].toUpperCase()+x.slice(1)).join('')+'\nkebab-case: '+parts.join('-')}}
- if(slug==='color-contrast'){handler=()=>{const a=hexRgb(document.getElementById('colorA')?.value||'#000000'),b=hexRgb(document.getElementById('colorB')?.value||'#ffffff'),l1=luminance(a),l2=luminance(b),ratio=(Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05);return 'Contraste: '+ratio.toFixed(2)+':1\nWCAG AA texto normal: '+(ratio>=4.5?'Sim':'Não')+'\nWCAG AAA texto normal: '+(ratio>=7?'Sim':'Não')}}
- if(slug==='css-gradient-generator'){handler=()=>{const type=document.getElementById('gradientType')?.value||'linear',a=document.getElementById('gradientA')?.value||'#e5322d',b=document.getElementById('gradientB')?.value||'#222222',angle=document.getElementById('gradientAngle')?.value||90;return type==='radial'?'background: radial-gradient(circle, '+a+', '+b+');':'background: linear-gradient('+angle+'deg, '+a+', '+b+');'}}
- if(slug==='cpf-generator'){handler=()=>{const count=Math.max(1,Math.min(100,Number(document.getElementById('cpfCount')?.value)||1)),mask=document.getElementById('cpfMask')?.checked!==false;return Array.from({length:count},()=>{const d=makeCpf();return mask?formatCpf(d):d}).join('\n')}}
- if(slug==='cnpj-generator'){handler=()=>{const count=Math.max(1,Math.min(100,Number(document.getElementById('cnpjCount')?.value)||1)),mask=document.getElementById('cnpjMask')?.checked!==false;return Array.from({length:count},()=>{const d=makeCnpj();return mask?formatCnpj(d):d}).join('\n')}}
- if(slug==='cpf-validator'){handler=()=>{const d=onlyDigits(document.getElementById('cpfValue')?.value);return cpfValid(d)?'CPF válido pelo dígito verificador.':'CPF inválido.'}}
- if(slug==='cnpj-validator'){handler=()=>{const d=onlyDigits(document.getElementById('cnpjValue')?.value);return cnpjValid(d)?'CNPJ válido pelo dígito verificador.':'CNPJ inválido.'}}
- if(slug==='cep-generator'){handler=()=>{const count=Math.max(1,Math.min(100,Number(document.getElementById('cepCount')?.value)||1)),mask=document.getElementById('cepMask')?.checked!==false;return Array.from({length:count},()=>{const d=String(Math.floor(Math.random()*1e8)).padStart(8,'0');return mask?d.slice(0,5)+'-'+d.slice(5):d}).join('\n')}}
- if(slug==='uuid-generator'){handler=()=>{const count=Math.max(1,Math.min(100,Number(document.getElementById('uuidCount')?.value)||1));return Array.from({length:count},()=>crypto.randomUUID()).join('\n')}}
- if(slug==='password-generator'){handler=()=>{const len=Math.max(4,Math.min(128,Number(document.getElementById('passwordLength')?.value)||20)),count=Math.max(1,Math.min(50,Number(document.getElementById('passwordCount')?.value)||1));let chars='';if(document.getElementById('pwUpper')?.checked)chars+='ABCDEFGHJKLMNPQRSTUVWXYZ';if(document.getElementById('pwLower')?.checked)chars+='abcdefghijkmnopqrstuvwxyz';if(document.getElementById('pwNumbers')?.checked)chars+='23456789';if(document.getElementById('pwSymbols')?.checked)chars+='!@#$%^&*_-+=';if(!chars)throw new Error('Selecione pelo menos um conjunto de caracteres.');return Array.from({length:count},()=>{const a=new Uint32Array(len);crypto.getRandomValues(a);return [...a].map(n=>chars[n%chars.length]).join('')}).join('\n')}}
- if(slug==='random-password-batch'){handler=()=>{const len=Math.max(4,Math.min(128,Number(document.getElementById('batchLength')?.value)||20)),count=Math.max(1,Math.min(100,Number(document.getElementById('batchCount')?.value)||10)),symbols=document.getElementById('batchSymbols')?.checked!==false,chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'+(symbols?'!@#$%^&*_-+=':'');return Array.from({length:count},()=>{const a=new Uint32Array(len);crypto.getRandomValues(a);return [...a].map(n=>chars[n%chars.length]).join('')}).join('\n')}}
+ if(slug==='uuid-generator'){handler=()=>crypto.randomUUID()}
+ if(slug==='password-generator'){handler=()=>randomPassword(20)}
+ if(slug==='random-password-batch'){handler=()=>Array.from({length:10},()=>randomPassword(20)).join('\n')}
  if(slug==='url-shortener-helper'){handler=async()=>{const u=getText().trim();if(!/^https?:\/\//i.test(u))throw new Error('Enter a complete URL starting with http:// or https://');const r=await fetch('https://is.gd/create.php?format=simple&url='+encodeURIComponent(u));if(!r.ok)throw new Error('Shortener service unavailable.');return esc((await r.text()).trim())}}
  if(slug==='password-strength-checker'){handler=()=>{const v=getText(),score=(v.length>=12)+(v.length>=16)+(/[a-z]/.test(v))+( /[A-Z]/.test(v))+( /\d/.test(v))+( /[^A-Za-z0-9]/.test(v));return 'Score: '+score+'/6<br>Length: '+v.length+'<br>'+ (score>=5?'Strong characteristics':'Add length, numbers, upper/lowercase and symbols.')}}
  if(slug==='hash-generator')handler=async()=>{const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(getText()));return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}
- if(slug==='lorem-ipsum-generator')handler=()=>{const paragraphs=Math.max(1,Math.min(20,Number(document.getElementById('loremParagraphs')?.value)||3)),sentences=Math.max(1,Math.min(20,Number(document.getElementById('loremSentences')?.value)||5)),base='Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent commodo, nisl vel tincidunt luctus, sapien arcu facilisis lorem, vitae feugiat sem justo non massa.';return Array.from({length:paragraphs},()=>Array.from({length:sentences},(_,i)=>base.split('. ')[i%2]||base).join(' ')).join('\n\n')}
- if(slug==='qr-code-generator')handler=()=>{const v=document.getElementById('qrContent')?.value?.trim()||'';if(!v)throw new Error('Digite um texto ou URL para gerar o QR Code.');const size=document.getElementById('qrSize')?.value||'280';return '<img alt="QR code" style="max-width:'+size+'px;width:100%;height:auto" src="https://api.qrserver.com/v1/create-qr-code/?size='+size+'x'+size+'&data='+encodeURIComponent(v)+'"><br><small>QR Code gerado para o conteúdo informado.</small>'}
+ if(slug==='lorem-ipsum-generator')handler=()=>('Lorem ipsum dolor sit amet, consectetur adipiscing elit. '.repeat(12)).trim()
+ if(slug==='qr-code-generator')handler=()=>{const v=encodeURIComponent(getText().trim());return '<img alt="QR code" style="max-width:280px" src="https://api.qrserver.com/v1/create-qr-code/?size=280x280&data='+v+'"><br><small>QR image is generated by an external QR service.</small>'}
  if(slug==='text-to-pdf'||slug==='markdown-to-pdf')handler=async()=>{const {PDFDocument,rgb,StandardFonts}=await pdfLib();const doc=await PDFDocument.create();let page=doc.addPage([595,842]);const font=await doc.embedFont(StandardFonts.Helvetica);const lines=getText().replace(/\r/g,'').split(/\n/);let y=800;for(const line of lines){if(y<50){page=doc.addPage([595,842]);y=800}page.drawText(line.slice(0,95),{x:40,y,size:11,font,color:rgb(0.1,0.1,0.1)});y-=18}const blob=new Blob([await doc.save()],{type:'application/pdf'});setResult('PDF created successfully.');addDownload(blob,'globaltools-document.pdf');return ''}
  if(slug==='pdf-tools')handler=()=> 'PDF utilities are available as dedicated tools: page counter, metadata, PDF to text, merge, split, rotate and compress.'
  if(!handler)handler=()=>getText()
  input.placeholder='Enter or paste your data...';
  if(['uuid-generator','password-generator','random-password-batch','lorem-ipsum-generator','qr-code-generator','dice-roller','random-number-generator','random-choice-picker','color-palette-generator','ascii-table'].includes(slug))input.placeholder=slug==='random-choice-picker'?'One option per line':slug==='dice-roller'?'Enter: sides count (e.g. 6 2)':'Enter data or parameters...';
- const generatorSlugs=['uuid-generator','password-generator','random-password-batch','lorem-ipsum-generator','qr-code-generator','random-number-generator','dice-roller','random-choice-picker','color-palette-generator','ascii-table','cpf-generator','cnpj-generator','cep-generator','address-generator','card-generator','bank-account-generator','pix-generator','fake-json-generator','project-scope-generator','gitignore-generator','css-gradient-generator','cpf-validator','cnpj-validator','currency-converter','salary-pj-clt','yaml-json','text-diff','markdown-editor','cidr-calculator','cron-builder','work-hours-calculator','case-code-converter','color-contrast'];
- if(generatorSlugs.includes(slug)){
-   input.style.display='none';
-   const controls=document.createElement('div');controls.id='generatorControls';controls.className='generator-controls';
-   const field=(id,label,value,type='number',extra='')=>'<label for="'+id+'">'+label+'</label><input id="'+id+'" type="'+type+'" value="'+value+'" '+extra+'>';
-   if(slug==='address-generator')controls.innerHTML='<h3>Endereço fictício</h3><label for="addressCountry">País</label><select id="addressCountry"><option>Brasil</option><option>Estados Unidos</option><option>Portugal</option><option>Espanha</option><option>Reino Unido</option></select>';
-   else if(slug==='card-generator')controls.innerHTML='<h3>Cartão para testes</h3><div class="generator-grid"><div>'+field('cardCount','Quantidade',1,'number','min="1" max="50"')+'</div></div><p class="generator-help">Número sintético para testes; não representa um cartão real.</p>';
-   else if(slug==='bank-account-generator')controls.innerHTML='<h3>Conta bancária fictícia</h3><label for="bankCode">Código do banco</label><input id="bankCode" value="001" inputmode="numeric">';
-   else if(slug==='currency-converter')controls.innerHTML='<h3>Conversão por taxa informada</h3><div class="generator-grid">'+field('currencyValue','Valor',100)+field('currencyRate','Taxa',1,'number','step="0.000001"')+'</div>';
-   else if(slug==='salary-pj-clt')controls.innerHTML='<h3>Comparar remuneração</h3><div class="generator-grid">'+field('cltSalary','CLT mensal',5000)+field('pjSalary','PJ mensal',7000)+'</div>';
-   else if(slug==='pix-generator')controls.innerHTML='<h3>Dados do PIX</h3><label for="pixKey">Chave PIX</label><input id="pixKey" placeholder="chave@example.com"><label for="pixName">Nome</label><input id="pixName" placeholder="Recebedor"><label for="pixCity">Cidade</label><input id="pixCity" value="BRASILIA"><label for="pixValue">Valor</label><input id="pixValue" placeholder="100.00" inputmode="decimal">';
-   else if(slug==='yaml-json')controls.innerHTML='<h3>Conversão</h3><select id="yamlMode"><option value="yaml-json">YAML → JSON</option><option value="json-yaml">JSON → YAML</option></select>';
-   else if(slug==='text-diff')controls.innerHTML='<h3>Comparar textos</h3><label>Texto A</label><textarea id="diffA" rows="6"></textarea><label>Texto B</label><textarea id="diffB" rows="6"></textarea>';
-   else if(slug==='fake-json-generator')controls.innerHTML='<h3>Dados mock</h3>'+field('mockCount','Quantidade',5,'number','min="1" max="100"');
-   else if(slug==='project-scope-generator')controls.innerHTML='<h3>Escopo</h3><label>Nome do projeto</label><input id="projectName" value="Meu Projeto"><label>Objetivo</label><textarea id="projectGoal"></textarea><label>Entregas</label><textarea id="projectDeliverables"></textarea>';
-   else if(slug==='cidr-calculator')controls.innerHTML='<h3>Rede IPv4</h3><label>IPv4/CIDR</label><input id="cidrValue" value="192.168.1.0/24">';
-   else if(slug==='cron-builder')controls.innerHTML='<h3>Expressão cron</h3><div class="generator-grid"><div>'+field('cronMin','Minuto','*','text')+'</div><div>'+field('cronHour','Hora','*','text')+'</div><div>'+field('cronDay','Dia','*','text')+'</div><div>'+field('cronMonth','Mês','*','text')+'</div><div>'+field('cronWeek','Semana','*','text')+'</div></div>';
-   else if(slug==='gitignore-generator')controls.innerHTML='<h3>Ambientes</h3><label>Separe por vírgula</label><input id="gitLanguages" value="node,windows" placeholder="node,python,java,windows">';
-   else if(slug==='work-hours-calculator')controls.innerHTML='<h3>Jornada</h3><div class="generator-grid"><div>'+field('workStart','Entrada','08:00','time')+'</div><div>'+field('workEnd','Saída','17:00','time')+'</div></div>'+field('workBreak','Intervalo (minutos)',60);
-   else if(slug==='color-contrast')controls.innerHTML='<h3>Contraste</h3><div class="generator-grid"><div><label>Cor A</label><input id="colorA" type="text" value="#000000"></div><div><label>Cor B</label><input id="colorB" type="text" value="#ffffff"></div></div>';
-   else if(slug==='css-gradient-generator')controls.innerHTML='<h3>Gradiente CSS</h3><div class="generator-grid"><div><label>Cor A</label><input id="gradientA" type="text" value="#e5322d"></div><div><label>Cor B</label><input id="gradientB" type="text" value="#222222"></div></div><label>Tipo</label><select id="gradientType"><option value="linear">Linear</option><option value="radial">Radial</option></select><label>Ângulo</label><input id="gradientAngle" type="number" value="90">';
-   else if(slug==='cpf-validator')controls.innerHTML='<h3>Validar CPF</h3><label for="cpfValue">CPF</label><input id="cpfValue" type="text" inputmode="numeric" placeholder="000.000.000-00">';
-   else if(slug==='cnpj-validator')controls.innerHTML='<h3>Validar CNPJ</h3><label for="cnpjValue">CNPJ</label><input id="cnpjValue" type="text" inputmode="numeric" placeholder="00.000.000/0001-00">';
-   else if(slug==='cpf-generator')controls.innerHTML='<h3>Gerar CPF para testes</h3><div class="generator-grid"><div>'+field('cpfCount','Quantidade',1,'number','min="1" max="100"')+'</div></div><div class="generator-checks"><label><input id="cpfMask" type="checkbox" checked> Com pontuação</label></div><p class="generator-help">Números sintéticos para testes. Não correspondem a uma consulta de CPF real.</p>';
-   else if(slug==='cnpj-generator')controls.innerHTML='<h3>Gerar CNPJ para testes</h3><div class="generator-grid"><div>'+field('cnpjCount','Quantidade',1,'number','min="1" max="100"')+'</div></div><div class="generator-checks"><label><input id="cnpjMask" type="checkbox" checked> Com pontuação</label></div><p class="generator-help">Números sintéticos para testes. Não correspondem a uma empresa real.</p>';
-   else if(slug==='cep-generator')controls.innerHTML='<h3>Gerar CEP para testes</h3><div class="generator-grid"><div>'+field('cepCount','Quantidade',1,'number','min="1" max="100"')+'</div></div><div class="generator-checks"><label><input id="cepMask" type="checkbox" checked> Com hífen</label></div><p class="generator-help">O formato é válido, mas o CEP gerado não consulta endereço real.</p>';
-   else if(slug==='cpf-validator')controls.innerHTML='<h3>Validar CPF</h3><label for="cpfValue">CPF</label><input id="cpfValue" type="text" inputmode="numeric" placeholder="000.000.000-00">';
-   else if(slug==='cnpj-validator')controls.innerHTML='<h3>Validar CNPJ</h3><label for="cnpjValue">CNPJ</label><input id="cnpjValue" type="text" inputmode="numeric" placeholder="00.000.000/0001-00">';
-   else if(slug==='password-generator')controls.innerHTML='<h3>Configurar senha</h3><div class="generator-grid">'+field('passwordLength','Tamanho',20,'number','min="4" max="128"')+field('passwordCount','Quantidade',1,'number','min="1" max="50"')+'</div><div class="generator-checks"><label><input id="pwUpper" type="checkbox" checked> Maiúsculas</label><label><input id="pwLower" type="checkbox" checked> Minúsculas</label><label><input id="pwNumbers" type="checkbox" checked> Números</label><label><input id="pwSymbols" type="checkbox" checked> Símbolos</label></div>';
-   else if(slug==='random-password-batch')controls.innerHTML='<h3>Configurar lote</h3><div class="generator-grid">'+field('batchLength','Tamanho',20,'number','min="4" max="128"')+field('batchCount','Quantidade',10,'number','min="1" max="100"')+'</div><div class="generator-checks"><label><input id="batchSymbols" type="checkbox" checked> Incluir símbolos</label></div>';
-   else if(slug==='uuid-generator')controls.innerHTML='<h3>Gerar UUID</h3><div class="generator-grid">'+field('uuidCount','Quantidade',1,'number','min="1" max="100"')+'</div><p class="generator-help">Gera UUIDs v4 aleatórios.</p>';
-   else if(slug==='lorem-ipsum-generator')controls.innerHTML='<h3>Configurar texto</h3><div class="generator-grid">'+field('loremParagraphs','Parágrafos',3,'number','min="1" max="20"')+field('loremSentences','Frases por parágrafo',5,'number','min="1" max="20"')+'</div>';
-   else if(slug==='qr-code-generator')controls.innerHTML='<h3>Conteúdo do QR Code</h3><label for="qrContent">Texto ou URL</label><textarea id="qrContent" rows="4" placeholder="https://exemplo.com"></textarea><label for="qrSize">Tamanho</label><select id="qrSize"><option value="200">200 × 200</option><option value="280" selected>280 × 280</option><option value="400">400 × 400</option></select>';
-   else if(slug==='random-number-generator')controls.innerHTML='<h3>Configurar números</h3><div class="generator-grid">'+field('randomMin','Mínimo',1)+field('randomMax','Máximo',100)+field('randomCount','Quantidade',1,'number','min="1" max="100"')+'</div>';
-   else if(slug==='dice-roller')controls.innerHTML='<h3>Configurar dados</h3><div class="generator-grid">'+field('diceSides','Lados',6,'number','min="2" max="1000"')+field('diceCount','Quantidade',1,'number','min="1" max="100")+'</div>';
-   else if(slug==='random-choice-picker'){controls.innerHTML='<h3>Opções</h3><label for="choiceOptions">Uma opção por linha</label><textarea id="choiceOptions" rows="6" placeholder="Opção 1\nOpção 2\nOpção 3"></textarea>';handler=()=>{const a=document.getElementById('choiceOptions').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!a.length)throw new Error('Informe pelo menos uma opção.');return a[Math.floor(Math.random()*a.length)]}}
-   else if(slug==='color-palette-generator')controls.innerHTML='<h3>Configurar paleta</h3><div class="generator-grid">'+field('paletteCount','Quantidade de cores',5,'number','min="1" max="20"')+'</div>';
-   else if(slug==='ascii-table')controls.innerHTML='<h3>Tabela ASCII</h3><p class="generator-help">Gera os 128 caracteres ASCII padrão.</p>';
-   box.insertBefore(controls,action);
-   action.textContent=slug==='cpf-validator'?'Validar CPF':slug==='cnpj-validator'?'Validar CNPJ':slug==='currency-converter'?'Converter':slug==='salary-pj-clt'?'Comparar':slug==='yaml-json'?'Converter':slug==='text-diff'?'Comparar textos':slug==='markdown-editor'?'Visualizar Markdown':slug==='cidr-calculator'?'Calcular CIDR':slug==='cron-builder'?'Gerar cron':slug==='work-hours-calculator'?'Calcular jornada':slug==='case-code-converter'?'Converter case':slug==='color-contrast'?'Verificar contraste':slug==='cpf-generator'?'Gerar CPF':slug==='cnpj-generator'?'Gerar CNPJ':slug==='cep-generator'?'Gerar CEP':slug==='cpf-validator'?'Validar CPF':slug==='cnpj-validator'?'Validar CNPJ':slug==='qr-code-generator'?'Gerar QR Code':slug==='password-generator'?'Gerar senha':slug==='random-password-batch'?'Gerar lote':slug==='uuid-generator'?'Gerar UUID':slug==='lorem-ipsum-generator'?'Gerar texto':slug==='random-number-generator'?'Gerar números':slug==='dice-roller'?'Rolar dados':slug==='random-choice-picker'?'Escolher opção':slug==='color-palette-generator'?'Gerar paleta':'Gerar tabela';
- }
  action.textContent='Run Tool';action.onclick=async()=>{await run(handler);addExportButtons()};
  addExportButtons();
 }
