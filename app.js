@@ -181,7 +181,9 @@ function exportPdf(){
 }
 function addExportButtons(){
  const box=document.getElementById('tool');
- if(!box||document.getElementById('export-actions')||document.getElementById('fileInput'))return;
+ const currentSlug=(location.pathname.match(/\/tools\/([^/]+)\.html/)||[])[1]||'';
+ const noExport=['uuid-generator','password-generator','random-password-batch','lorem-ipsum-generator','qr-code-generator','random-number-generator','dice-roller','random-choice-picker','color-palette-generator','ascii-table','password-strength-checker'];
+ if(!box||noExport.includes(currentSlug)||document.getElementById('export-actions')||document.getElementById('fileInput'))return;
  const actions=document.createElement('div'); actions.id='export-actions'; actions.className='export-actions';
  actions.innerHTML='<button type="button" class="btn secondary" id="exportPdf">Download PDF</button><button type="button" class="btn secondary" id="exportWord">Download Word</button>';
  box.appendChild(actions);
@@ -272,10 +274,10 @@ function setupTool(slug){
  'unix-timestamp':()=>new Date(Number(getText())*1000).toString(),
  'date-to-timestamp':()=>Math.floor(new Date(getText()).getTime()/1000),
  'timezone-converter':()=>{const [date,from,to]=getText().trim().split(/\s+/);return new Intl.DateTimeFormat('en-US',{timeZone:to||'UTC',dateStyle:'full',timeStyle:'long'}).format(new Date(date))},
- 'random-number-generator':()=>{const [min=1,max=100]=parseNums(getText());return String(Math.floor(Math.random()*(max-min+1))+min)},
+ 'random-number-generator':()=>{const min=Number(document.getElementById('randomMin')?.value||1),max=Number(document.getElementById('randomMax')?.value||100),count=Math.max(1,Math.min(100,Number(document.getElementById('randomCount')?.value)||1));if(max<min)throw new Error('O valor máximo deve ser maior ou igual ao mínimo.');return Array.from({length:count},()=>String(Math.floor(Math.random()*(max-min+1))+min)).join('\n')},
  'random-choice-picker':()=>{const a=getText().split(/\r?\n/).filter(Boolean);return a[Math.floor(Math.random()*a.length)]||''},
  'dice-roller':()=>{const [sides=6,count=1]=parseNums(getText());return Array.from({length:count},()=>Math.floor(Math.random()*sides)+1).join(', ')},
- 'color-palette-generator':()=>Array.from({length:5},()=>'#'+crypto.getRandomValues(new Uint8Array(3)).reduce((s,n)=>s+n.toString(16).padStart(2,'0'),'')).join('\n')
+ 'color-palette-generator':()=>{const count=Math.max(1,Math.min(20,Number(document.getElementById('paletteCount')?.value)||5));return Array.from({length:count},()=>'#'+crypto.getRandomValues(new Uint8Array(3)).reduce((s,n)=>s+n.toString(16).padStart(2,'0'),'')).join('\n')}
  };
  function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b)[a,b]=[b,a%b];return a||1}
  const fileHandlers=['jpg-to-pdf','pdf-to-jpg','pdf-to-png','delete-pdf-pages','extract-pdf-pages','crop-pdf','watermark-pdf','number-pdf-pages','organize-pdf','word-to-pdf','pdf-to-word','word-to-text','word-to-html','excel-to-csv','excel-to-json','csv-to-excel','excel-to-pdf','html-to-pdf','image-info','image-to-data-url','image-to-base64','image-color-picker','image-cropper','image-resizer','image-compressor','jpg-to-png','png-to-jpg','webp-to-jpg','jpg-to-webp','png-to-webp','webp-to-png','image-dimensions','svg-to-data-url','pdf-page-counter','pdf-metadata','pdf-to-text','merge-pdf','split-pdf','rotate-pdf','compress-pdf'];
@@ -449,19 +451,37 @@ function setupTool(slug){
    return;
  }
  let handler=textTools[slug]||dev[slug]||calc[slug];
- if(slug==='uuid-generator'){handler=()=>crypto.randomUUID()}
- if(slug==='password-generator'){handler=()=>randomPassword(20)}
- if(slug==='random-password-batch'){handler=()=>Array.from({length:10},()=>randomPassword(20)).join('\n')}
+ if(slug==='uuid-generator'){handler=()=>{const count=Math.max(1,Math.min(100,Number(document.getElementById('uuidCount')?.value)||1));return Array.from({length:count},()=>crypto.randomUUID()).join('\n')}}
+ if(slug==='password-generator'){handler=()=>{const len=Math.max(4,Math.min(128,Number(document.getElementById('passwordLength')?.value)||20)),count=Math.max(1,Math.min(50,Number(document.getElementById('passwordCount')?.value)||1));let chars='';if(document.getElementById('pwUpper')?.checked)chars+='ABCDEFGHJKLMNPQRSTUVWXYZ';if(document.getElementById('pwLower')?.checked)chars+='abcdefghijkmnopqrstuvwxyz';if(document.getElementById('pwNumbers')?.checked)chars+='23456789';if(document.getElementById('pwSymbols')?.checked)chars+='!@#$%^&*_-+=';if(!chars)throw new Error('Selecione pelo menos um conjunto de caracteres.');return Array.from({length:count},()=>{const a=new Uint32Array(len);crypto.getRandomValues(a);return [...a].map(n=>chars[n%chars.length]).join('')}).join('\n')}}
+ if(slug==='random-password-batch'){handler=()=>{const len=Math.max(4,Math.min(128,Number(document.getElementById('batchLength')?.value)||20)),count=Math.max(1,Math.min(100,Number(document.getElementById('batchCount')?.value)||10)),symbols=document.getElementById('batchSymbols')?.checked!==false,chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'+(symbols?'!@#$%^&*_-+=':'');return Array.from({length:count},()=>{const a=new Uint32Array(len);crypto.getRandomValues(a);return [...a].map(n=>chars[n%chars.length]).join('')}).join('\n')}}
  if(slug==='url-shortener-helper'){handler=async()=>{const u=getText().trim();if(!/^https?:\/\//i.test(u))throw new Error('Enter a complete URL starting with http:// or https://');const r=await fetch('https://is.gd/create.php?format=simple&url='+encodeURIComponent(u));if(!r.ok)throw new Error('Shortener service unavailable.');return esc((await r.text()).trim())}}
  if(slug==='password-strength-checker'){handler=()=>{const v=getText(),score=(v.length>=12)+(v.length>=16)+(/[a-z]/.test(v))+( /[A-Z]/.test(v))+( /\d/.test(v))+( /[^A-Za-z0-9]/.test(v));return 'Score: '+score+'/6<br>Length: '+v.length+'<br>'+ (score>=5?'Strong characteristics':'Add length, numbers, upper/lowercase and symbols.')}}
  if(slug==='hash-generator')handler=async()=>{const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(getText()));return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}
- if(slug==='lorem-ipsum-generator')handler=()=>('Lorem ipsum dolor sit amet, consectetur adipiscing elit. '.repeat(12)).trim()
- if(slug==='qr-code-generator')handler=()=>{const v=encodeURIComponent(getText().trim());return '<img alt="QR code" style="max-width:280px" src="https://api.qrserver.com/v1/create-qr-code/?size=280x280&data='+v+'"><br><small>QR image is generated by an external QR service.</small>'}
+ if(slug==='lorem-ipsum-generator')handler=()=>{const paragraphs=Math.max(1,Math.min(20,Number(document.getElementById('loremParagraphs')?.value)||3)),sentences=Math.max(1,Math.min(20,Number(document.getElementById('loremSentences')?.value)||5)),base='Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent commodo, nisl vel tincidunt luctus, sapien arcu facilisis lorem, vitae feugiat sem justo non massa.';return Array.from({length:paragraphs},()=>Array.from({length:sentences},(_,i)=>base.split('. ')[i%2]||base).join(' ')).join('\n\n')}
+ if(slug==='qr-code-generator')handler=()=>{const v=document.getElementById('qrContent')?.value?.trim()||'';if(!v)throw new Error('Digite um texto ou URL para gerar o QR Code.');const size=document.getElementById('qrSize')?.value||'280';return '<img alt="QR code" style="max-width:'+size+'px;width:100%;height:auto" src="https://api.qrserver.com/v1/create-qr-code/?size='+size+'x'+size+'&data='+encodeURIComponent(v)+'"><br><small>QR Code gerado para o conteúdo informado.</small>'}
  if(slug==='text-to-pdf'||slug==='markdown-to-pdf')handler=async()=>{const {PDFDocument,rgb,StandardFonts}=await pdfLib();const doc=await PDFDocument.create();let page=doc.addPage([595,842]);const font=await doc.embedFont(StandardFonts.Helvetica);const lines=getText().replace(/\r/g,'').split(/\n/);let y=800;for(const line of lines){if(y<50){page=doc.addPage([595,842]);y=800}page.drawText(line.slice(0,95),{x:40,y,size:11,font,color:rgb(0.1,0.1,0.1)});y-=18}const blob=new Blob([await doc.save()],{type:'application/pdf'});setResult('PDF created successfully.');addDownload(blob,'globaltools-document.pdf');return ''}
  if(slug==='pdf-tools')handler=()=> 'PDF utilities are available as dedicated tools: page counter, metadata, PDF to text, merge, split, rotate and compress.'
  if(!handler)handler=()=>getText()
  input.placeholder='Enter or paste your data...';
  if(['uuid-generator','password-generator','random-password-batch','lorem-ipsum-generator','qr-code-generator','dice-roller','random-number-generator','random-choice-picker','color-palette-generator','ascii-table'].includes(slug))input.placeholder=slug==='random-choice-picker'?'One option per line':slug==='dice-roller'?'Enter: sides count (e.g. 6 2)':'Enter data or parameters...';
+ const generatorSlugs=['uuid-generator','password-generator','random-password-batch','lorem-ipsum-generator','qr-code-generator','random-number-generator','dice-roller','random-choice-picker','color-palette-generator','ascii-table'];
+ if(generatorSlugs.includes(slug)){
+   input.style.display='none';
+   const controls=document.createElement('div');controls.id='generatorControls';controls.className='generator-controls';
+   const field=(id,label,value,type='number',extra='')=>'<label for="'+id+'">'+label+'</label><input id="'+id+'" type="'+type+'" value="'+value+'" '+extra+'>';
+   if(slug==='password-generator')controls.innerHTML='<h3>Configurar senha</h3><div class="generator-grid">'+field('passwordLength','Tamanho',20,'number','min="4" max="128"')+field('passwordCount','Quantidade',1,'number','min="1" max="50"')+'</div><div class="generator-checks"><label><input id="pwUpper" type="checkbox" checked> Maiúsculas</label><label><input id="pwLower" type="checkbox" checked> Minúsculas</label><label><input id="pwNumbers" type="checkbox" checked> Números</label><label><input id="pwSymbols" type="checkbox" checked> Símbolos</label></div>';
+   else if(slug==='random-password-batch')controls.innerHTML='<h3>Configurar lote</h3><div class="generator-grid">'+field('batchLength','Tamanho',20,'number','min="4" max="128"')+field('batchCount','Quantidade',10,'number','min="1" max="100"')+'</div><div class="generator-checks"><label><input id="batchSymbols" type="checkbox" checked> Incluir símbolos</label></div>';
+   else if(slug==='uuid-generator')controls.innerHTML='<h3>Gerar UUID</h3><div class="generator-grid">'+field('uuidCount','Quantidade',1,'number','min="1" max="100"')+'</div><p class="generator-help">Gera UUIDs v4 aleatórios.</p>';
+   else if(slug==='lorem-ipsum-generator')controls.innerHTML='<h3>Configurar texto</h3><div class="generator-grid">'+field('loremParagraphs','Parágrafos',3,'number','min="1" max="20"')+field('loremSentences','Frases por parágrafo',5,'number','min="1" max="20"')+'</div>';
+   else if(slug==='qr-code-generator')controls.innerHTML='<h3>Conteúdo do QR Code</h3><label for="qrContent">Texto ou URL</label><textarea id="qrContent" rows="4" placeholder="https://exemplo.com"></textarea><label for="qrSize">Tamanho</label><select id="qrSize"><option value="200">200 × 200</option><option value="280" selected>280 × 280</option><option value="400">400 × 400</option></select>';
+   else if(slug==='random-number-generator')controls.innerHTML='<h3>Configurar números</h3><div class="generator-grid">'+field('randomMin','Mínimo',1)+field('randomMax','Máximo',100)+field('randomCount','Quantidade',1,'number','min="1" max="100"')+'</div>';
+   else if(slug==='dice-roller')controls.innerHTML='<h3>Configurar dados</h3><div class="generator-grid">'+field('diceSides','Lados',6,'number','min="2" max="1000"')+field('diceCount','Quantidade',1,'number','min="1" max="100")+'</div>';
+   else if(slug==='random-choice-picker'){controls.innerHTML='<h3>Opções</h3><label for="choiceOptions">Uma opção por linha</label><textarea id="choiceOptions" rows="6" placeholder="Opção 1\nOpção 2\nOpção 3"></textarea>';handler=()=>{const a=document.getElementById('choiceOptions').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!a.length)throw new Error('Informe pelo menos uma opção.');return a[Math.floor(Math.random()*a.length)]}}
+   else if(slug==='color-palette-generator')controls.innerHTML='<h3>Configurar paleta</h3><div class="generator-grid">'+field('paletteCount','Quantidade de cores',5,'number','min="1" max="20"')+'</div>';
+   else if(slug==='ascii-table')controls.innerHTML='<h3>Tabela ASCII</h3><p class="generator-help">Gera os 128 caracteres ASCII padrão.</p>';
+   box.insertBefore(controls,action);
+   action.textContent=slug==='qr-code-generator'?'Gerar QR Code':slug==='password-generator'?'Gerar senha':slug==='random-password-batch'?'Gerar lote':slug==='uuid-generator'?'Gerar UUID':slug==='lorem-ipsum-generator'?'Gerar texto':slug==='random-number-generator'?'Gerar números':slug==='dice-roller'?'Rolar dados':slug==='random-choice-picker'?'Escolher opção':slug==='color-palette-generator'?'Gerar paleta':'Gerar tabela';
+ }
  action.textContent='Run Tool';action.onclick=async()=>{await run(handler);addExportButtons()};
  addExportButtons();
 }
