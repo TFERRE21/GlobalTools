@@ -179,8 +179,9 @@ function exportPdf(){
  w.document.close(); w.focus(); setTimeout(()=>w.print(),300);
 }
 function addExportButtons(){
- const box=document.getElementById('tool'); if(!box||document.getElementById('export-actions'))return;
- const actions=document.createElement('div'); actions.id='export-actions'; actions.className='export-actions'; actions.hidden=true;
+ const box=document.getElementById('tool');
+ if(!box||document.getElementById('export-actions')||document.getElementById('fileInput'))return;
+ const actions=document.createElement('div'); actions.id='export-actions'; actions.className='export-actions';
  actions.innerHTML='<button type="button" class="btn secondary" id="exportPdf">Download PDF</button><button type="button" class="btn secondary" id="exportWord">Download Word</button>';
  box.appendChild(actions);
  document.getElementById('exportPdf').onclick=exportPdf;
@@ -300,11 +301,17 @@ function setupTool(slug){
            showProgress(20+(i/total)*70,'Extraindo página '+i+' de '+total+'...');
          }
          showProgress(95,'Gerando documento Word...');
-         const html='<!doctype html><html><head><meta charset="utf-8"><title>Converted PDF</title></head><body><h1>Converted PDF</h1><p>'+esc(text).replace(/\\n/g,'</p><p>')+'</p></body></html>';
-         const blob=new Blob([html],{type:'application/msword'});
+         if(!window.JSZip)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+         const escXml=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+         const paragraphs=text.split(/\\n\\s*\\n/).filter(p=>p.trim()).map(p=>'<w:p><w:r><w:t xml:space="preserve">'+escXml(p.trim())+'</w:t></w:r></w:p>').join('');
+         const docx=new window.JSZip();
+         docx.file('[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>');
+         docx.folder('_rels').file('.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
+         docx.file('word/document.xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+paragraphs+'<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr></w:body></w:document>');
+         const blob=await docx.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
          showProgress(100,'Conversão concluída!');
-         setResult('Documento Word criado com sucesso.');
-         addDownload(blob,'converted.doc');return;
+         setResult('Documento Word (.docx) criado com sucesso. Clique em Download.');
+         addDownload(blob,'converted.docx');return;
        }
        const m=await mammothLib(),r=await m.convertToHtml({arrayBuffer:await f.arrayBuffer()});
        if(slug==='word-to-text')return esc(r.value.replace(/<[^>]+>/g,' ').replace(/\\s+/g,' ').trim());
