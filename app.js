@@ -149,7 +149,103 @@ function toolGroup(t){
  return t.cat||'tools';
 }
 let currentLanguage='en';
-function card(t){const g=toolGroup(t);return '<a class="tool-card" data-group="'+g+'" href="/tools/'+t.slug+'.html"><h3>'+t.name+'</h3><p>'+t.desc+'</p><span class="tool-tag">'+g.toUpperCase()+' →</span></a>'}
+const cardTranslations={
+  pt:{
+    'word-counter':['Contador de Palavras','Conte palavras, caracteres, frases e parágrafos.'],
+    'character-counter':['Contador de Caracteres','Conte caracteres com e sem espaços.'],
+    'case-converter':['Conversor de Maiúsculas e Minúsculas','Converta texto para maiúsculas, minúsculas, título e frase.'],
+    'remove-duplicate-lines':['Remover Linhas Duplicadas','Limpe o texto removendo linhas repetidas.'],
+    'json-formatter':['Formatador JSON','Formate e valide JSON instantaneamente.'],
+    'json-minifier':['Minificador JSON','Minifique JSON para uma saída compacta.'],
+    'base64-encoder':['Codificador Base64','Codifique texto para Base64 no navegador.'],
+    'base64-decoder':['Decodificador Base64','Decodifique texto Base64 com segurança no navegador.'],
+    'url-encoder':['Codificador de URL','Codifique texto para uso em URLs.'],
+    'url-decoder':['Decodificador de URL','Decodifique URLs com percent-encoding.'],
+    'uuid-generator':['Gerador de UUID','Gere identificadores UUID v4 aleatórios.'],
+    'password-generator':['Gerador de Senhas','Gere senhas aleatórias fortes.'],
+    'qr-code-generator':['Gerador de QR Code','Crie um QR Code a partir de texto ou URL.'],
+    'lorem-ipsum-generator':['Gerador de Lorem Ipsum','Gere texto de preenchimento para designs.'],
+    'percentage-calculator':['Calculadora de Porcentagem','Calcule porcentagens rapidamente.'],
+    'age-calculator':['Calculadora de Idade','Calcule a idade a partir da data de nascimento.'],
+    'unix-timestamp':['Conversor de Timestamp Unix','Converta timestamps Unix em datas legíveis.'],
+    'color-converter':['Conversor de Cores','Converta cores HEX para RGB e vice-versa.'],
+    'image-info':['Informações da Imagem','Veja dimensões e tamanho do arquivo de uma imagem.'],
+    'image-to-data-url':['Imagem para Data URL','Converta uma imagem em Data URL.'],
+    'pdf-tools':['Ferramentas PDF','Utilitários PDF e ferramentas de documentos no navegador.'],
+    'compress-pdf':['Comprimir PDF','Reduza o tamanho do PDF no navegador.'],
+    'compress-file':['Comprimir Arquivo','Comprima PDF, imagens e arquivos no navegador.'],
+    'merge-files':['Juntar Arquivos','Junte vários arquivos PDF em um único documento.'],
+    'edit-pdf':['Editar PDF','Adicione texto a um PDF e gere uma nova versão.']
+  },
+  es:{
+    'word-counter':['Contador de Palabras','Cuenta palabras, caracteres, frases y párrafos.'],
+    'character-counter':['Contador de Caracteres','Cuenta caracteres con y sin espacios.'],
+    'case-converter':['Conversor de Mayúsculas y Minúsculas','Convierte texto a mayúsculas, minúsculas, título y frase.'],
+    'remove-duplicate-lines':['Eliminar Líneas Duplicadas','Limpia el texto eliminando líneas repetidas.'],
+    'json-formatter':['Formateador JSON','Formatea y valida JSON al instante.'],
+    'json-minifier':['Minificador JSON','Minifica JSON para obtener una salida compacta.'],
+    'base64-encoder':['Codificador Base64','Codifica texto a Base64 en tu navegador.'],
+    'base64-decoder':['Decodificador Base64','Decodifica texto Base64 de forma segura en tu navegador.'],
+    'url-encoder':['Codificador de URL','Codifica texto para usarlo en URLs.'],
+    'url-decoder':['Decodificador de URL','Decodifica URLs con percent-encoding.'],
+    'uuid-generator':['Generador de UUID','Genera identificadores UUID v4 aleatorios.'],
+    'password-generator':['Generador de Contraseñas','Genera contraseñas aleatorias seguras.'],
+    'qr-code-generator':['Generador de QR Code','Crea un código QR a partir de texto o una URL.'],
+    'lorem-ipsum-generator':['Generador de Lorem Ipsum','Genera texto de relleno para diseños.'],
+    'percentage-calculator':['Calculadora de Porcentajes','Calcula porcentajes rápidamente.'],
+    'age-calculator':['Calculadora de Edad','Calcula la edad a partir de la fecha de nacimiento.'],
+    'unix-timestamp':['Conversor de Timestamp Unix','Convierte timestamps Unix en fechas legibles.'],
+    'color-converter':['Conversor de Colores','Convierte colores HEX a RGB y viceversa.'],
+    'image-info':['Información de Imagen','Consulta dimensiones y tamaño del archivo.'],
+    'image-to-data-url':['Imagen a Data URL','Convierte una imagen en Data URL.'],
+    'pdf-tools':['Herramientas PDF','Utilidades PDF y herramientas de documentos en el navegador.'],
+    'compress-pdf':['Comprimir PDF','Reduce el tamaño del PDF en tu navegador.'],
+    'compress-file':['Comprimir Archivo','Comprime PDF, imágenes y archivos en el navegador.'],
+    'merge-files':['Unir Archivos','Une varios archivos PDF en un solo documento.'],
+    'edit-pdf':['Editar PDF','Añade texto a un PDF y genera una nueva versión.']
+  },
+  fr:{
+    'word-counter':['Compteur de mots','Comptez les mots, caractères, phrases et paragraphes.'],
+    'character-counter':['Compteur de caractères','Comptez les caractères avec ou sans espaces.'],
+    'case-converter':['Convertisseur de casse','Convertissez le texte en majuscules, minuscules, titre ou phrase.'],
+    'remove-duplicate-lines':['Supprimer les lignes en double','Nettoyez le texte en supprimant les lignes répétées.'],
+    'json-formatter':['Formateur JSON','Formatez et validez JSON instantanément.'],
+    'json-minifier':['Minificateur JSON','Minifiez JSON pour obtenir une sortie compacte.'],
+    'base64-encoder':['Encodeur Base64','Encodez du texte en Base64 dans votre navigateur.'],
+    'base64-decoder':['Décodeur Base64','Décodez du texte Base64 en toute sécurité dans votre navigateur.'],
+    'url-encoder':['Encodeur URL','Encodez du texte pour l’utiliser dans les URL.'],
+    'url-decoder':['Décodeur URL','Décodez les URL avec encodage percent.'],
+    'uuid-generator':['Générateur UUID','Générez des identifiants UUID v4 aléatoires.'],
+    'password-generator':['Générateur de mots de passe','Générez des mots de passe aléatoires robustes.'],
+    'qr-code-generator':['Générateur de QR Code','Créez un QR Code à partir d’un texte ou d’une URL.'],
+    'lorem-ipsum-generator':['Générateur Lorem Ipsum','Générez du texte de remplissage pour vos designs.'],
+    'percentage-calculator':['Calculatrice de pourcentage','Calculez rapidement les pourcentages.'],
+    'age-calculator':['Calculateur d’âge','Calculez l’âge à partir de la date de naissance.'],
+    'unix-timestamp':['Convertisseur de timestamp Unix','Convertissez les timestamps Unix en dates lisibles.'],
+    'color-converter':['Convertisseur de couleurs','Convertissez les couleurs HEX en RGB et inversement.'],
+    'image-info':['Informations sur l’image','Consultez les dimensions et la taille du fichier.'],
+    'image-to-data-url':['Image vers Data URL','Convertissez une image en Data URL.'],
+    'pdf-tools':['Outils PDF','Utilitaires PDF et outils documentaires dans le navigateur.'],
+    'compress-pdf':['Compresser un PDF','Réduisez la taille d’un PDF dans votre navigateur.'],
+    'compress-file':['Compresser un fichier','Compressez des PDF, images et fichiers dans le navigateur.'],
+    'merge-files':['Fusionner des fichiers','Fusionnez plusieurs fichiers PDF en un seul document.'],
+    'edit-pdf':['Modifier un PDF','Ajoutez du texte à un PDF et générez une nouvelle version.']
+  }
+};
+const categoryLabels={
+  en:{pdf:'PDF',documents:'DOCUMENTS',image:'IMAGES',text:'TEXT',developer:'DEVELOPER',generators:'GENERATORS',converters:'CONVERTERS',calculators:'CALCULATORS',security:'SECURITY','date-time':'DATE & TIME','web-seo':'WEB / SEO',network:'NETWORK',tools:'TOOLS'},
+  pt:{pdf:'PDF',documents:'DOCUMENTOS',image:'IMAGENS',text:'TEXTO',developer:'DESENVOLVEDOR',generators:'GERADORES',converters:'CONVERSORES',calculators:'CALCULADORAS',security:'SEGURANÇA','date-time':'DATA E HORA','web-seo':'WEB / SEO',network:'REDE',tools:'FERRAMENTAS'},
+  es:{pdf:'PDF',documents:'DOCUMENTOS',image:'IMÁGENES',text:'TEXTO',developer:'DESARROLLADOR',generators:'GENERADORES',converters:'CONVERTIDORES',calculators:'CALCULADORAS',security:'SEGURIDAD','date-time':'FECHA Y HORA','web-seo':'WEB / SEO',network:'RED',tools:'HERRAMIENTAS'},
+  fr:{pdf:'PDF',documents:'DOCUMENTS',image:'IMAGES',text:'TEXTE',developer:'DÉVELOPPEUR',generators:'GÉNÉRATEURS',converters:'CONVERTISSEURS',calculators:'CALCULATRICES',security:'SÉCURITÉ','date-time':'DATE ET HEURE','web-seo':'WEB / SEO',network:'RÉSEAU',tools:'OUTILS'}
+};
+function card(t){
+ const g=toolGroup(t);
+ const tr=(cardTranslations[currentLanguage]||{})[t.slug];
+ const name=tr?.[0]||t.name;
+ const desc=tr?.[1]||t.desc;
+ const label=(categoryLabels[currentLanguage]||categoryLabels.en)[g]||g.toUpperCase();
+ return '<a class="tool-card" data-group="'+g+'" href="/tools/'+t.slug+'.html"><h3>'+name+'</h3><p>'+desc+'</p><span class="tool-tag">'+label+' →</span></a>'
+}
 function renderHome(list=tools){const el=document.getElementById('tool-grid');if(el)el.innerHTML=list.map(card).join('')}
 function setupCategoryTabs(){
  document.querySelectorAll('.category-tab').forEach(tab=>tab.addEventListener('click',()=>{
@@ -536,6 +632,12 @@ function applyLanguage(lang){
  const input=document.getElementById("input");if(input)input.placeholder=lang==="pt"?"Digite ou cole seus dados...":lang==="es"?"Introduce o pega tus datos...":lang==="fr"?"Saisissez ou collez vos données...":"Enter or paste your data...";
  const action=document.getElementById("action");if(action&&!document.getElementById("fileInput"))action.textContent=tt.runTool||"Run Tool";
  if(typeof applyToolLocale==='function')applyToolLocale(lang);
+ const grid=document.getElementById('tool-grid');
+ if(grid){
+   const q=document.getElementById('search')?.value?.toLowerCase().trim()||'';
+   const filtered=q?tools.filter(t=>(t.name+' '+t.desc+' '+t.cat+' '+toolGroup(t)).toLowerCase().includes(q):tools;
+   renderHome(filtered);
+ }
  localStorage.setItem("globaltools-language-v2",lang)
 }
 function setupLanguage(){const select=document.getElementById("languageSelect");if(!select)return;const saved=localStorage.getItem("globaltools-language-v2")||"en";select.value=saved;applyLanguage(saved);select.addEventListener("change",()=>applyLanguage(select.value))}
