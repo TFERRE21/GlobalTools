@@ -148,6 +148,7 @@ function toolGroup(t){
  if(t.cat==='text'||/text|character|line|case|space|sort|duplicate|reading/.test(s))return 'text';
  return t.cat||'tools';
 }
+let currentLanguage='en';
 function card(t){const g=toolGroup(t);return '<a class="tool-card" data-group="'+g+'" href="/tools/'+t.slug+'.html"><h3>'+t.name+'</h3><p>'+t.desc+'</p><span class="tool-tag">'+g.toUpperCase()+' →</span></a>'}
 function renderHome(list=tools){const el=document.getElementById('tool-grid');if(el)el.innerHTML=list.map(card).join('')}
 function setupCategoryTabs(){
@@ -520,6 +521,7 @@ const translations={
 
 function toolTextTranslations(lang){return ({en:{home:'Home',chooseFiles:'Choose files',dropTitle:'Select files',dropHint:'or drag and drop files here',chooseRun:'Choose file',runTool:'Run Tool',resultPlaceholder:'Your result will appear here.',privateCard:'Private & secure',privateCardText:'Your files are processed in your browser whenever possible.',freeCard:'Free to use',freeCardText:'No account required for the core tools.',formatsCard:'Multiple formats',formatsCardText:'PDF, Word, Excel, images and more.',aboutTool:'About this tool',howTo:'How to use',howToText:'Enter your content or choose a file, process it, then download your result.',toolKicker:'GLOBALTOOLS • ONLINE TOOLS'},pt:{home:'Início',chooseFiles:'Escolha os arquivos',dropTitle:'Selecionar arquivos',dropHint:'ou arraste e solte os arquivos aqui',chooseRun:'Escolher arquivo',runTool:'Executar ferramenta',resultPlaceholder:'Seu resultado aparecerá aqui.',privateCard:'Privado e seguro',privateCardText:'Seus arquivos são processados no navegador sempre que possível.',freeCard:'Grátis',freeCardText:'Não é necessário cadastro para as ferramentas principais.',formatsCard:'Vários formatos',formatsCardText:'PDF, Word, Excel, imagens e muito mais.',aboutTool:'Sobre esta ferramenta',howTo:'Como usar',howToText:'Digite seu conteúdo ou escolha um arquivo, processe e baixe o resultado.',toolKicker:'GLOBALTOOLS • FERRAMENTAS ONLINE'},es:{home:'Inicio',chooseFiles:'Elige los archivos',dropTitle:'Seleccionar archivos',dropHint:'o arrastra y suelta los archivos aquí',chooseRun:'Elegir archivo',runTool:'Ejecutar herramienta',resultPlaceholder:'Tu resultado aparecerá aquí.',privateCard:'Privado y seguro',privateCardText:'Tus archivos se procesan en el navegador siempre que sea posible.',freeCard:'Gratis',freeCardText:'No se requiere cuenta para las herramientas principales.',formatsCard:'Varios formatos',formatsCardText:'PDF, Word, Excel, imágenes y más.',aboutTool:'Acerca de esta herramienta',howTo:'Cómo usar',howToText:'Escribe tu contenido o elige un archivo, procesa y descarga el resultado.',toolKicker:'GLOBALTOOLS • HERRAMIENTAS ONLINE'},fr:{home:'Accueil',chooseFiles:'Choisir les fichiers',dropTitle:'Sélectionner les fichiers',dropHint:'ou glissez-déposez les fichiers ici',chooseRun:'Choisir un fichier',runTool:'Exécuter l’outil',resultPlaceholder:'Votre résultat apparaîtra ici.',privateCard:'Privé et sécurisé',privateCardText:'Vos fichiers sont traités dans le navigateur lorsque cela est possible.',freeCard:'Gratuit',freeCardText:'Aucun compte requis pour les outils principaux.',formatsCard:'Plusieurs formats',formatsCardText:'PDF, Word, Excel, images et plus.',aboutTool:'À propos de cet outil',howTo:'Comment utiliser',howToText:'Saisissez votre contenu ou choisissez un fichier, traitez-le puis téléchargez le résultat.',toolKicker:'GLOBALTOOLS • OUTILS EN LIGNE'}})[lang]||{}}
 function applyLanguage(lang){
+ currentLanguage=lang;
  const t=translations[lang]||translations.en,tt=toolTextTranslations(lang);
  document.documentElement.lang=lang==="pt"?"pt-BR":lang;
  document.querySelectorAll("[data-i18n]").forEach(el=>{const key=el.dataset.i18n;const value=t[key]??tt[key];if(value!==undefined)el.textContent=value});
@@ -533,7 +535,7 @@ function applyLanguage(lang){
  const s=document.getElementById("search");if(s&&t.search)s.placeholder=t.search;
  const input=document.getElementById("input");if(input)input.placeholder=lang==="pt"?"Digite ou cole seus dados...":lang==="es"?"Introduce o pega tus datos...":lang==="fr"?"Saisissez ou collez vos données...":"Enter or paste your data...";
  const action=document.getElementById("action");if(action&&!document.getElementById("fileInput"))action.textContent=tt.runTool||"Run Tool";
- applyToolLocale(lang);
+ if(typeof applyToolLocale==='function')applyToolLocale(lang);
  localStorage.setItem("globaltools-language-v2",lang)
 }
 function setupLanguage(){const select=document.getElementById("languageSelect");if(!select)return;const saved=localStorage.getItem("globaltools-language-v2")||"en";select.value=saved;applyLanguage(saved);select.addEventListener("change",()=>applyLanguage(select.value))}
