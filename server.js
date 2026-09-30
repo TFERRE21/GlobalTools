@@ -33,7 +33,7 @@ const server = http.createServer((req, res) => {
     if (match) {
       const name = match[1], desc = match[2];
       const safe = v => String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-      const allTools = [...app.matchAll(/\\{slug:"([^"]+)",name:"([^"]+)",desc:"([^"]+)",cat:"([^"]+)"\\}/g)]
+      const allTools = [...app.matchAll(/\{slug:"([^"]+)",name:"([^"]+)",desc:"([^"]+)",cat:"([^"]+)"\}/g)]
         .map(m => ({slug:m[1],name:m[2],desc:m[3],cat:m[4]}));
       const current = allTools.find(t => t.slug === slug) || {slug,name,desc,cat:"tools"};
       const related = allTools.filter(t => t.slug !== slug && t.cat === current.cat).slice(0,4);
