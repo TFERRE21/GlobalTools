@@ -1,6 +1,6 @@
-# GlobalTools
+# Oolivo
 
-GlobalTools is a free, global collection of fast online utilities.
+Oolivo is a free, global collection of fast online utilities.
 
 ## Vision
 Build a large, SEO-friendly platform of browser-based tools for PDF, images, text, developers, generators and everyday tasks.
