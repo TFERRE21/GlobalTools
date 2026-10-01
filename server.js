@@ -36,7 +36,7 @@ const server = http.createServer((req, res) => {
 
   // Accept clean URLs without .html and redirect them to the canonical .html URL.
   // This prevents 404s when users or search tools omit the file extension.
-  const cleanToolMatch = urlPath.match(/^\\/tools\\/([a-z0-9-]+)\\/?$/i);
+  const cleanToolMatch = urlPath.match(/^\/tools\/([a-z0-9-]+)\/?$/i);
   if (cleanToolMatch) {
     const target = "/tools/" + cleanToolMatch[1] + ".html";
     res.writeHead(301, {"Location": target, "Cache-Control": "no-cache"});
