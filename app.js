@@ -540,3 +540,28 @@ function applyLanguage(lang){
 }
 function setupLanguage(){const select=document.getElementById("languageSelect");if(!select)return;const saved=localStorage.getItem("globaltools-language-v2")||"pt";select.value=saved;applyLanguage(saved);select.addEventListener("change",()=>applyLanguage(select.value))}
 setupLanguage();
+
+
+// Oolivo PWA: register the service worker and expose the browser install prompt.
+(function(){
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function(){ navigator.serviceWorker.register("/sw.js",{scope:"/"}).catch(function(){}); });
+  }
+  let deferredInstallPrompt = null;
+  window.addEventListener("beforeinstallprompt", function(event){
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    document.dispatchEvent(new CustomEvent("oolivo:installavailable"));
+  });
+  window.addEventListener("appinstalled", function(){
+    deferredInstallPrompt = null;
+    document.dispatchEvent(new CustomEvent("oolivo:installed"));
+  });
+  window.oolivoInstall = async function(){
+    if(!deferredInstallPrompt) return false;
+    deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    return choice && choice.outcome === "accepted";
+  };
+})();
