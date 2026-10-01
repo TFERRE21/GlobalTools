@@ -22,7 +22,7 @@ const types = {
 const server = http.createServer((req, res) => {
   let urlPath = decodeURIComponent((req.url || "/").split("?")[0]);
   if (urlPath === "/") urlPath = "/index.html";
-  if (urlPath === "/ads.txt") { res.writeHead(200, {"Content-Type":"text/plain; charset=utf-8","Cache-Control":"no-cache"}); return res.end("google.com, pub-6472882150880001, DIRECT, f08c47fec0942fa0" + String.fromCharCode(10)); }
+  if (urlPath === "/ads.txt" || urlPath === "/ads.txt/") {\n    const body = "google.com, pub-6472882150880001, DIRECT, f08c47fec0942fa0\\n";\n    res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8", "Content-Length": Buffer.byteLength(body), "Cache-Control": "public, max-age=300", "X-Content-Type-Options": "nosniff", "Access-Control-Allow-Origin": "*" });\n    return res.end(body);\n  }
 
   // Accept clean URLs without .html and redirect them to the canonical .html URL.
   // This prevents 404s when users or search tools omit the file extension.
