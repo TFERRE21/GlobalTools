@@ -297,7 +297,7 @@ function setupTool(slug){
  'leap-year-checker':()=>{const y=Number(getText());return ((y%4===0&&y%100!==0)||y%400===0)?y+' is a leap year.':y+' is not a leap year.'},
  'week-number':()=>{const d=new Date(getText());if(isNaN(d))throw new Error('Enter a valid date.');const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));t.setUTCDate(t.getUTCDate()+4-(t.getUTCDay()||7));const y=new Date(Date.UTC(t.getUTCFullYear(),0,1));return 'ISO week: '+Math.ceil((((t-y)/86400000)+1)/7)},
  'time-duration':()=>{const [a,b]=getText().trim().split(/\s+/).map(x=>new Date('1970-01-01T'+x));return Math.abs(b-a)/60000+' minutes'},
- 'age-calculator':()=>{const d=new Date(getText()),n=new Date();let age=n.getFullYear()-d.getFullYear();if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))age--;return 'Age: '+age+' years'},
+ 'age-calculator':()=>{const d=new Date(getText()),n=new Date();if(isNaN(d))throw new Error('Informe uma data de nascimento válida.');let age=n.getFullYear()-d.getFullYear();if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))age--;return 'Idade: '+age+' anos'},
  'timestamp-to-date':()=>new Date(Number(getText())*1000).toString(),
  'unix-timestamp':()=>new Date(Number(getText())*1000).toString(),
  'date-to-timestamp':()=>Math.floor(new Date(getText()).getTime()/1000),
@@ -538,5 +538,5 @@ function applyLanguage(lang){
  if(typeof applyToolLocale==='function')applyToolLocale(lang);
  localStorage.setItem("globaltools-language-v2",lang)
 }
-function setupLanguage(){const select=document.getElementById("languageSelect");if(!select)return;const saved=localStorage.getItem("globaltools-language-v2")||"en";select.value=saved;applyLanguage(saved);select.addEventListener("change",()=>applyLanguage(select.value))}
+function setupLanguage(){const select=document.getElementById("languageSelect");if(!select)return;const saved=localStorage.getItem("globaltools-language-v2")||"pt";select.value=saved;applyLanguage(saved);select.addEventListener("change",()=>applyLanguage(select.value))}
 setupLanguage();
