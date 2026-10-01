@@ -22,7 +22,7 @@ const types = {
 const server = http.createServer((req, res) => {
   let urlPath = decodeURIComponent((req.url || "/").split("?")[0]);
   if (urlPath === "/") urlPath = "/index.html";
-  if (urlPath === "/ads.txt") { res.writeHead(200, {"Content-Type":"text/plain; charset=utf-8","Cache-Control":"no-cache"}); return res.end("google.com, pub-6472882150880001, DIRECT, f08c47fec0942fa0\n"); }\n
+  if (urlPath === "/ads.txt") { res.writeHead(200, {"Content-Type":"text/plain; charset=utf-8","Cache-Control":"no-cache"}); return res.end("google.com, pub-6472882150880001, DIRECT, f08c47fec0942fa0\\n"); }\n
   // Tool pages are generated from the central tool catalog so every tool
   // always loads the same functional browser engine from /app.js.
   const toolMatch = urlPath.match(/^\/tools\/([a-z0-9-]+)\.html$/i);
@@ -76,7 +76,7 @@ const server = http.createServer((req, res) => {
   const ext = path.extname(finalPath).toLowerCase();
   if (ext === ".html") {
     let html = fs.readFileSync(finalPath, "utf8");
-    if (!html.includes("G-DM7CKZRD30")) html = html.replace(/<head>/i, "<head><script async src="https://www.googletagmanager.com/gtag/js?id=G-DM7CKZRD30"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-DM7CKZRD30");</script>");
+    if (!html.includes("G-DM7CKZRD30")) html = html.replace(/<head>/i, `<head><script async src="https://www.googletagmanager.com/gtag/js?id=G-DM7CKZRD30"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-DM7CKZRD30");</script>`);
     res.writeHead(200, {"Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"});
     return res.end(html);
   }
