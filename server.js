@@ -22,7 +22,8 @@ const types = {
 const server = http.createServer((req, res) => {
   let urlPath = decodeURIComponent((req.url || "/").split("?")[0]);
   if (urlPath === "/") urlPath = "/index.html";
-  if (urlPath === "/ads.txt") { res.writeHead(200, {"Content-Type":"text/plain; charset=utf-8","Cache-Control":"no-cache"}); return res.end("google.com, pub-6472882150880001, DIRECT, f08c47fec0942fa0\\n"); }\n
+  if (urlPath === "/ads.txt") { res.writeHead(200, {"Content-Type":"text/plain; charset=utf-8","Cache-Control":"no-cache"}); return res.end("google.com, pub-6472882150880001, DIRECT, f08c47fec0942fa0\\n"); }
+
   // Tool pages are generated from the central tool catalog so every tool
   // always loads the same functional browser engine from /app.js.
   const toolMatch = urlPath.match(/^\/tools\/([a-z0-9-]+)\.html$/i);
