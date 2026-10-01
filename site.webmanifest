@@ -1,0 +1,19 @@
+{
+  "name": "Oolivo — Ferramentas Online",
+  "short_name": "Oolivo",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f7f8",
+  "theme_color": "#e5322d",
+  "description": "Ferramentas online gratuitas para PDF, documentos, imagens, texto e muito mais.",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
