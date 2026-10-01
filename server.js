@@ -24,6 +24,23 @@ const server = http.createServer((req, res) => {
   if (urlPath === "/") urlPath = "/index.html";
   if (urlPath === "/ads.txt") { res.writeHead(200, {"Content-Type":"text/plain; charset=utf-8","Cache-Control":"no-cache"}); return res.end("google.com, pub-6472882150880001, DIRECT, f08c47fec0942fa0" + String.fromCharCode(10)); }
 
+  // Accept clean URLs without .html and redirect them to the canonical .html URL.
+  // This prevents 404s when users or search tools omit the file extension.
+  const cleanToolMatch = urlPath.match(/^\\/tools\\/([a-z0-9-]+)\\/?$/i);
+  if (cleanToolMatch) {
+    const target = "/tools/" + cleanToolMatch[1] + ".html";
+    res.writeHead(301, {"Location": target, "Cache-Control": "no-cache"});
+    return res.end();
+  }
+  if (urlPath === "/privacy" || urlPath === "/privacy/") {
+    res.writeHead(301, {"Location": "/privacy.html", "Cache-Control": "no-cache"});
+    return res.end();
+  }
+  if (urlPath === "/terms" || urlPath === "/terms/") {
+    res.writeHead(301, {"Location": "/terms.html", "Cache-Control": "no-cache"});
+    return res.end();
+  }
+
   // Tool pages are generated from the central tool catalog so every tool
   // always loads the same functional browser engine from /app.js.
   const toolMatch = urlPath.match(/^\/tools\/([a-z0-9-]+)\.html$/i);
