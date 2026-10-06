@@ -530,8 +530,8 @@ function applyLanguage(lang){
      const parts=rule.split(":");const attr=parts[0],key=parts.slice(1).join(":");const value=t[key];if(attr&&value!==undefined)el.setAttribute(attr,value)
    })
  });
- document.title=t.pageTitle||document.title;
- const meta=document.querySelector('meta[name="description"]');if(meta&&t.metaDescription)meta.setAttribute("content",t.metaDescription);
+ if(location.pathname==="/"||location.pathname==="/index.html"){document.title=t.pageTitle||document.title;}
+ const meta=document.querySelector('meta[name="description"]');if(meta&&t.metaDescription&&(location.pathname==="/"||location.pathname==="/index.html"))meta.setAttribute("content",t.metaDescription);
  const s=document.getElementById("search");if(s&&t.search)s.placeholder=t.search;
  const input=document.getElementById("input");if(input)input.placeholder=lang==="pt"?"Digite ou cole seus dados...":lang==="es"?"Introduce o pega tus datos...":lang==="fr"?"Saisissez ou collez vos données...":"Enter or paste your data...";
  const action=document.getElementById("action");if(action&&!document.getElementById("fileInput"))action.textContent=tt.runTool||"Run Tool";
