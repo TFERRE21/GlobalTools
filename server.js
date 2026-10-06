@@ -115,7 +115,15 @@ const server = http.createServer((req, res) => {
         '<script type="application/ld+json">'+appSchema+'</script><script type="application/ld+json">'+faqSchema+'</script>',
         '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472882150880001" crossorigin="anonymous"></script>',
         '<script async src="https://www.googletagmanager.com/gtag/js?id=G-DM7CKZRD30"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-DM7CKZRD30");</script>',
-        '<link rel="stylesheet" href="/styles.css?v=20261006-1"><script defer src="/app.js?v=20261006-1"></script></head>',
+        '<link rel="stylesheet" href="/styles.css?v=20261006-1"><script defer src="/app.js?v=20261006-1"></script><!-- Google Ads tag -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-17240722145"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'AW-17240722145');
+</script>
+</head>',
         '<body><header class="site-header"><a class="brand" href="/"><span class="brand-mark">O</span>Oolivo</a><nav class="main-nav"><a href="/">Ferramentas</a><a href="/#categories">Categorias</a><a href="/sobre.html">Sobre</a><a href="/contato.html">Contato</a><a href="/privacy.html">Privacidade</a><label class="language-switcher"><span>🌐</span><select id="languageSelect"><option value="pt">Português</option><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option></select></label></nav></header>',
         '<main class="tool-page"><div class="breadcrumbs"><a href="/">Início</a> / '+safe(name)+'</div><section class="tool-hero"><div class="tool-kicker">OOLIVO • FERRAMENTA ONLINE</div><h1>'+safe(name)+'</h1><p class="intro">'+safe(desc)+'</p></section>',
         '<div class="tool-workspace"><div id="tool" class="tool-box"><div id="dropZone" class="upload-visual file-upload-visual"><div class="upload-icon">↥</div><h2>Escolha os arquivos</h2><p>ou arraste e solte os arquivos aqui</p></div><textarea id="input" aria-label="'+safe(name)+'" placeholder="Digite ou cole seus dados..."></textarea><button id="action" class="btn primary-action">Executar ferramenta</button><div id="result" class="result">Seu resultado aparecerá aqui.</div></div>',
