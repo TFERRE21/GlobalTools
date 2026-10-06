@@ -46,13 +46,16 @@ const server = http.createServer((req, res) => {
     res.writeHead(301, {"Location": "/privacy.html", "Cache-Control": "no-cache"});
     return res.end();
   }
+  if (urlPath === "/sobre" || urlPath === "/sobre/") { res.writeHead(301, {"Location": "/sobre.html", "Cache-Control": "no-cache"}); return res.end(); }
+  if (urlPath === "/contato" || urlPath === "/contato/") { res.writeHead(301, {"Location": "/contato.html", "Cache-Control": "no-cache"}); return res.end(); }
   if (urlPath === "/terms" || urlPath === "/terms/") {
     res.writeHead(301, {"Location": "/terms.html", "Cache-Control": "no-cache"});
     return res.end();
   }
 
-  // Tool pages are generated from the central tool catalog so every tool
-  // always loads the same functional browser engine from /app.js.
+
+  // Server-side tool pages: useful explanatory content is rendered in the HTML
+  // so users and search engines do not depend on client-side JavaScript.
   const toolMatch = urlPath.match(/^\/tools\/([a-z0-9-]+)\.html$/i);
   if (toolMatch) {
     const slug = toolMatch[1];
@@ -61,27 +64,68 @@ const server = http.createServer((req, res) => {
     if (match) {
       const name = match[1], desc = match[2];
       const safe = v => String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-      const allTools = [...app.matchAll(/\{slug:"([^"]+)",name:"([^"]+)",desc:"([^"]+)",cat:"([^"]+)"\}/g)]
-        .map(m => ({slug:m[1],name:m[2],desc:m[3],cat:m[4]}));
+      const allTools = [...app.matchAll(/\{slug:"([^"]+)",name:"([^"]+)",desc:"([^"]+)",cat:"([^"]+)"\}/g)].map(m => ({slug:m[1],name:m[2],desc:m[3],cat:m[4]}));
       const current = allTools.find(t => t.slug === slug) || {slug,name,desc,cat:"tools"};
-      const related = allTools.filter(t => t.slug !== slug && t.cat === current.cat).slice(0,4);
+      const related = allTools.filter(t => t.slug !== slug && t.cat === current.cat).slice(0,6);
       const relatedHtml = related.map(t => '<a class="related-tool" href="/tools/'+t.slug+'.html"><strong>'+safe(t.name)+'</strong><span>'+safe(t.desc)+'</span></a>').join('');
-      const pageUrl = '/tools/'+slug+'.html';
-      const title = safe(name)+' — Free Online Tool | Oolivo';
-      const description = safe(desc)+' Free, fast and browser-based with Oolivo.';
-      const jsonLd = JSON.stringify({
-        "@context":"https://schema.org",
-        "@type":"WebPage",
-        "name":name+" — Oolivo",
-        "description":desc,
-        "url":pageUrl,
-        "isPartOf":{"@type":"WebSite","name":"Oolivo","url":"/"},
-        "breadcrumb":{"@type":"BreadcrumbList","itemListElement":[
-          {"@type":"ListItem","position":1,"name":"Oolivo","item":"/"},
-          {"@type":"ListItem","position":2,"name":name,"item":pageUrl}
-        ]}
-      }).replace(/</g,'\\u003c');
-      const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><meta name="description" content="${description}"><meta name="robots" content="index,follow"><link rel="canonical" href="${pageUrl}"><meta property="og:type" content="website"><meta property="og:title" content="${title}"><meta property="og:description" content="${description}"><meta property="og:url" content="${pageUrl}"><meta property="og:site_name" content="Oolivo"><meta name="twitter:card" content="summary"><script type="application/ld+json">${jsonLd}</script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472882150880001" crossorigin="anonymous"></script><script async src="https://www.googletagmanager.com/gtag/js?id=G-DM7CKZRD30"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-DM7CKZRD30");</script><link rel="stylesheet" href="/styles.css?v=20260930-31"><script defer src="/app.js?v=20260930-31"></script></head><body><header class="site-header"><a class="brand" href="/"><span class="brand-mark">O</span>Oolivo</a><nav class="main-nav"><a href="/" data-i18n="navTools">Tools</a><a href="/#categories" data-i18n="navCategories">Categories</a><a href="/privacy.html" data-i18n="navPrivacy">Privacy</a><label class="language-switcher"><span>🌐</span><select id="languageSelect"><option value="en">English</option><option value="pt">Português</option><option value="es">Español</option><option value="fr">Français</option></select></label></nav></header><main class="tool-page"><div class="breadcrumbs"><a href="/" data-i18n="home">Home</a> / <span id="toolBreadcrumb">${safe(name)}</span></div><section class="tool-hero"><div class="tool-kicker" data-i18n="toolKicker">OOLIVO • ONLINE TOOLS</div><h1 id="toolTitle" data-tool-name="${slug}">${safe(name)}</h1><p id="toolIntro" class="intro" data-tool-desc="${slug}">${safe(desc)}</p></section><div class="tool-workspace"><div id="tool" class="tool-box"><div id="dropZone" class="upload-visual file-upload-visual" data-i18n="dropTitle"><div class="upload-icon">↥</div><h2 data-i18n="chooseFiles">Escolha os arquivos</h2><p data-i18n="dropHint">ou arraste e solte os arquivos aqui</p></div><textarea id="input" aria-label="${safe(name)} input" placeholder="Digite ou cole seus dados..."></textarea><button id="action" class="btn primary-action" data-i18n="runTool">Executar ferramenta</button><div id="result" class="result" data-i18n="resultPlaceholder">Seu resultado aparecerá aqui.</div></div><aside class="tool-side"><div class="side-card"><strong data-i18n="privateCard">Privado e seguro</strong><p data-i18n="privateCardText">Seus arquivos são processados no navegador sempre que possível.</p></div><div class="side-card"><strong data-i18n="freeCard">Grátis</strong><p data-i18n="freeCardText">Não é necessário cadastro para as ferramentas principais.</p></div><div class="side-card"><strong data-i18n="formatsCard">Vários formatos</strong><p data-i18n="formatsCardText">PDF, Word, Excel, imagens e muito mais.</p></div></aside></div><section class="info"><h2 data-i18n="aboutTool">Sobre esta ferramenta</h2><p id="toolAbout" data-tool-desc="${slug}">${safe(desc)} O Oolivo oferece ferramentas práticas para arquivos, documentos e texto.</p><h2 data-i18n="howTo">Como usar</h2><p data-i18n="howToText">Digite seu conteúdo ou escolha um arquivo, processe e baixe o resultado.</p><h2>Frequently asked questions</h2><div class="faq"><h3>What is ${safe(name)}?</h3><p>${safe(desc)} It is available online without installing software.</p><h3>Is ${safe(name)} free?</h3><p>Yes. Oolivo provides this browser-based tool for free.</p><h3>Do I need to install anything?</h3><p>No. The tool is designed to run directly in a modern web browser.</p></div>${related.length ? '<h2>Related tools</h2><div class="related-tools">'+relatedHtml+'</div>' : ''}</section></main><footer><div class="brand">Oolivo</div><p>Free online tools for everyone.</p><div><a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a></div></footer></body></html>`;      res.writeHead(200, {"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-cache"});
+
+      const groups = {
+        text:["Esta ferramenta ajuda a trabalhar com texto diretamente no navegador.","Insira ou cole o texto no campo indicado.","Revise as opções disponíveis.","Execute a ferramenta e confira o resultado.","Caracteres especiais, espaços e quebras de linha podem influenciar a saída."],
+        developer:["Esta ferramenta atende uma tarefa comum de desenvolvimento, como formatação, validação, codificação ou transformação de dados.","Cole os dados ou código no campo de entrada.","Comece com um exemplo curto para validar o formato.","Execute e revise o resultado antes de usar em produção.","Nunca cole chaves privadas, senhas ou tokens reais sem compreender o processamento."],
+        pdf:["Esta ferramenta foi criada para uma operação específica com documentos PDF.","Selecione o PDF ou informe os dados solicitados.","Execute o processamento e aguarde a conclusão.","Abra o arquivo gerado e confirme o resultado.","PDFs com fontes, imagens, formulários ou criptografia podem apresentar limitações."],
+        documents:["Esta ferramenta ajuda a converter ou organizar documentos e dados de escritório.","Selecione o arquivo compatível.","Confira os formatos de entrada e saída.","Execute a operação e abra o arquivo gerado para conferir.","Conversões podem alterar elementos avançados de formatação."],
+        image:["Esta ferramenta trabalha com imagens para conversão, análise, redimensionamento ou compressão.","Selecione a imagem compatível.","Ajuste os parâmetros, se disponíveis.","Execute e confira formato, dimensões e qualidade.","Conversão e compressão podem alterar qualidade ou metadados."],
+        generators:["Esta ferramenta gera um novo resultado a partir de parâmetros informados pelo usuário.","Defina os parâmetros desejados.","Execute a geração.","Revise o resultado antes de utilizá-lo.","Para credenciais reais, utilize práticas de segurança adequadas e não reutilize senhas."],
+        converters:["Esta ferramenta converte um valor ou conteúdo de um formato para outro.","Informe o conteúdo de entrada.","Confira o formato esperado.","Execute a conversão e compare o resultado.","Conversões podem depender de padrões, precisão e formato de entrada."],
+        calculators:["Esta calculadora executa uma operação matemática a partir dos valores informados.","Informe os valores solicitados.","Confira unidades e separadores.","Execute o cálculo e revise a fórmula.","Para decisões financeiras, fiscais ou profissionais, confirme o resultado com uma fonte qualificada."],
+        "date-time":["Esta ferramenta ajuda a calcular ou interpretar datas, horários, intervalos ou timestamps.","Informe a data ou hora no formato indicado.","Execute a operação.","Confira fuso horário e convenção utilizados.","Fusos e formatos diferentes podem produzir resultados diferentes."],
+        security:["Esta ferramenta executa uma operação relacionada a segurança, análise, hash ou decodificação.","Use dados de teste sempre que possível.","Execute a operação.","Interprete o resultado antes de tomar uma decisão de segurança.","Decodificar ou analisar um dado não significa validar sua autenticidade ou segurança."]
+      };
+      const g=groups[current.cat]||["Esta ferramenta oferece uma função digital específica para uma tarefa comum.","Informe os dados ou selecione o arquivo solicitado.","Execute a ferramenta seguindo as instruções.","Revise o resultado antes de utilizá-lo.","O resultado pode depender do formato da entrada, navegador, bibliotecas ou serviços utilizados."];
+
+      const special={
+        "age-calculator":["A Calculadora de Idade calcula anos completos a partir da data de nascimento.","Exemplo: se o aniversário ainda não ocorreu no ano atual, um ano é subtraído do resultado.","O cálculo usa a data do dispositivo; necessidades oficiais podem exigir regras específicas."],
+        "percentage-calculator":["A Calculadora de Porcentagem mostra quanto uma porcentagem representa de determinado valor.","Exemplo: 15% de 200 = 200 × 15 ÷ 100 = 30.","Para aumentos e descontos, confirme qual é a base sobre a qual o percentual deve ser aplicado."],
+        "discount-calculator":["A Calculadora de Desconto informa o valor descontado e o preço final.","Exemplo: R$ 200 com 15% de desconto resulta em R$ 30 de desconto e R$ 170 de preço final.","Frete, impostos e condições comerciais podem alterar o valor efetivamente pago."],
+        "tip-calculator":["A Calculadora de Gorjeta estima a gorjeta, o total e o valor por pessoa.","Exemplo: R$ 100 com 10% gera R$ 10 de gorjeta e R$ 110 de total.","Confirme a política do estabelecimento e se a gorjeta já foi incluída na conta."],
+        "password-generator":["O Gerador de Senhas cria combinações aleatórias para ajudar na criação de senhas longas e variadas.","Gere uma senha, confira o comprimento e use uma combinação diferente em cada serviço.","Para contas importantes, considere um gerenciador de senhas e autenticação multifator."],
+        "jwt-decoder":["O JWT Decoder permite visualizar o header e o payload de um JSON Web Token. Isso não valida a assinatura do token.","Um JWT normalmente possui as partes header.payload.signature.","Tokens podem conter informações legíveis; não cole tokens reais sem compreender os riscos."],
+        "hash-generator":["O gerador calcula um hash SHA-256 para o texto informado.","A mesma entrada produz o mesmo hash; pequenas alterações produzem uma saída diferente.","Hash não é criptografia reversível e não substitui funções apropriadas para armazenamento de senhas."],
+        "qr-code-generator":["O Gerador de QR Code cria uma imagem a partir de texto ou endereço informado.","Cole um endereço completo, como https://example.com, e gere o código para testar.","Esta funcionalidade pode usar um serviço externo para gerar a imagem; não inclua informações secretas."]
+      };
+      const sp=special[slug];
+      const purpose=sp?sp[0]:g[0], example=sp?sp[1]:"Comece com uma entrada curta e não sensível para conferir o comportamento antes de processar conteúdo importante.", notes=sp?sp[2]:g[4];
+      const steps = [g[1],g[2],g[3]].map((x,i)=>'<li>'+safe(x)+'</li>').join('');
+      const faq=[
+        ["O que é "+name+"?",desc+" A ferramenta está disponível online para realizar essa tarefa sem instalar um programa específico."],
+        ["Como usar "+name+"?","Informe os dados ou selecione o arquivo solicitado, execute a ferramenta e confira o resultado."],
+        ["Preciso criar uma conta?","Não. As funções principais do Oolivo foram projetadas para uso sem cadastro."],
+        ["Meus dados ficam no servidor?","Quando o processamento local é tecnicamente possível, a operação ocorre no navegador. Algumas funcionalidades dependem de bibliotecas ou serviços externos."]
+      ];
+      const faqHtml=faq.map(x=>'<div><h3>'+safe(x[0])+'</h3><p>'+safe(x[1])+'</p></div>').join('');
+      const faqSchema=JSON.stringify({"@context":"https://schema.org","@type":"FAQPage","mainEntity":faq.map(x=>({"@type":"Question","name":x[0],"acceptedAnswer":{"@type":"Answer","text":x[1]}}))}).replace(/</g,'\\u003c');
+      const appSchema=JSON.stringify({"@context":"https://schema.org","@type":"WebApplication","name":name+" — Oolivo","applicationCategory":"UtilitiesApplication","operatingSystem":"Web Browser","description":desc,"url":"https://oolivo.com.br/tools/"+slug+".html","isAccessibleForFree":true,"publisher":{"@type":"Organization","name":"Oolivo","url":"https://oolivo.com.br/"},"offers":{"@type":"Offer","price":"0","priceCurrency":"BRL"}}).replace(/</g,'\\u003c');
+      const pageUrl="https://oolivo.com.br/tools/"+slug+".html";
+      const html=[
+        '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">',
+        '<title>'+safe(name)+' — Ferramenta Online Grátis | Oolivo</title>',
+        '<meta name="description" content="'+safe(desc)+' Saiba como usar, veja um exemplo e conheça as limitações no Oolivo.">',
+        '<meta name="robots" content="index,follow"><link rel="canonical" href="'+pageUrl+'">',
+        '<meta property="og:type" content="website"><meta property="og:title" content="'+safe(name)+' — Oolivo"><meta property="og:description" content="'+safe(desc)+'"><meta property="og:url" content="'+pageUrl+'"><meta property="og:site_name" content="Oolivo"><meta name="twitter:card" content="summary">',
+        '<script type="application/ld+json">'+appSchema+'</script><script type="application/ld+json">'+faqSchema+'</script>',
+        '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472882150880001" crossorigin="anonymous"></script>',
+        '<script async src="https://www.googletagmanager.com/gtag/js?id=G-DM7CKZRD30"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-DM7CKZRD30");</script>',
+        '<link rel="stylesheet" href="/styles.css?v=20261006-1"><script defer src="/app.js?v=20261006-1"></script></head>',
+        '<body><header class="site-header"><a class="brand" href="/"><span class="brand-mark">O</span>Oolivo</a><nav class="main-nav"><a href="/">Ferramentas</a><a href="/#categories">Categorias</a><a href="/sobre.html">Sobre</a><a href="/contato.html">Contato</a><a href="/privacy.html">Privacidade</a><label class="language-switcher"><span>🌐</span><select id="languageSelect"><option value="pt">Português</option><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option></select></label></nav></header>',
+        '<main class="tool-page"><div class="breadcrumbs"><a href="/">Início</a> / '+safe(name)+'</div><section class="tool-hero"><div class="tool-kicker">OOLIVO • FERRAMENTA ONLINE</div><h1>'+safe(name)+'</h1><p class="intro">'+safe(desc)+'</p></section>',
+        '<div class="tool-workspace"><div id="tool" class="tool-box"><div id="dropZone" class="upload-visual file-upload-visual"><div class="upload-icon">↥</div><h2>Escolha os arquivos</h2><p>ou arraste e solte os arquivos aqui</p></div><textarea id="input" aria-label="'+safe(name)+'" placeholder="Digite ou cole seus dados..."></textarea><button id="action" class="btn primary-action">Executar ferramenta</button><div id="result" class="result">Seu resultado aparecerá aqui.</div></div>',
+        '<aside class="tool-side"><div class="side-card"><strong>Privado quando possível</strong><p>O processamento ocorre no navegador sempre que a tecnologia utilizada permite.</p></div><div class="side-card"><strong>Grátis</strong><p>As funções principais não exigem cadastro.</p></div><div class="side-card"><strong>Orientações claras</strong><p>Leia exemplos e limitações antes de usar o resultado em uma atividade importante.</p></div></aside></div>',
+        '<section class="info"><h2>Sobre '+safe(name)+'</h2><p>'+safe(purpose)+'</p><h2>Como usar</h2><ol>'+steps+'</ol><h2>Exemplo prático</h2><p>'+safe(example)+'</p><h2>Limitações e cuidados</h2><p>'+safe(notes)+'</p><h2>Perguntas frequentes</h2><div class="faq">'+faqHtml+'</div>',
+        related.length?'<h2>Ferramentas relacionadas</h2><div class="related-tools">'+relatedHtml+'</div>':'',
+        '<h2>Privacidade e processamento</h2><p>O Oolivo prioriza processamento no navegador quando isso é tecnicamente possível. Para saber mais sobre cookies, publicidade, Analytics e serviços externos, consulte a <a href="/privacy.html">Política de Privacidade</a>. Para dúvidas ou relatos de erros, use a <a href="/contato.html">página de contato</a>.</p></section></main>',
+        '<footer class="site-footer"><div><div class="brand"><span class="brand-mark">O</span>Oolivo</div><p>Ferramentas online gratuitas para todos.</p></div><div class="footer-links"><a href="/sobre.html">Sobre</a><a href="/contato.html">Contato</a><a href="/privacy.html">Privacidade</a><a href="/terms.html">Termos</a></div></footer></body></html>'
+      ].join('');
+      res.writeHead(200, {"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-cache, no-store, must-revalidate"});
       return res.end(html);
     }
   }
