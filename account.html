@@ -367,7 +367,53 @@ function bind(){
   on("exportTx","click",()=>{const h="date,description,type,amount,category,account,status\n",rows=DATA.transactions.map(x=>[x.date,x.description,x.type,x.amount,x.category,x.account,x.status].map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\n");download("globaltools-transactions.csv",h+rows,"text/csv")});
   window.addEventListener("error",e=>{console.error("[GlobalTools] JavaScript error",e.error||e.message);const n=$("dashNotice");if(n){n.classList.add("error");n.textContent="O painel encontrou um erro de interface. Recarregue a página e tente novamente."}});
 }
-async function init(){const savedTheme=localStorage.getItem("gt_theme")||"dark";applyTheme(savedTheme);bind();const sid=new URLSearchParams(location.search).get("session_id");$("who").textContent=sid?"Confirmando sua compra e preparando seu ambiente...":"Validando seu acesso...";let x;if(sid){const a=await api("/api/activate-session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({session_id:sid})});if(!a.r.ok||!a.j.ok){$("who").textContent=a.j.error||"Não foi possível validar a compra.";return}x=await api("/api/me")}else x=await api("/api/me");if(!x.j.authenticated){$("who").textContent="Sua sessão não foi reconhecida. Acesse novamente pela confirmação da compra.";return}ME=x.j.user;const d=await api("/api/finance/data");if(!d.r.ok){$("who").textContent=d.j.error||"Não foi possível carregar seus dados.";return}DATA=baseData(d.j.data);const preferred=localStorage.getItem("gt_language")||"English";DATA.settings.language=preferred;if(DATA.settings.theme)applyTheme(localStorage.getItem("gt_theme")||DATA.settings.theme);$("who").textContent=ME.email+" • Plano "+(ME.planLabel||ME.plan);renderAll();applyLanguage(preferred)}
+async function init(){
+  const savedTheme=localStorage.getItem("gt_theme")||"dark";
+  applyTheme(savedTheme);
+  bind();
+  const sid=new URLSearchParams(location.search).get("session_id");
+  try{
+    /*
+      Primeiro tenta a sessão atual. Isso evita bloquear o painel em toda abertura
+      por uma nova consulta ao Stripe quando o usuário já está autenticado.
+    */
+    $("who").textContent="Validando seu acesso...";
+    let x=await api("/api/me");
+    if(!x.j.authenticated && sid){
+      $("who").textContent="Confirmando sua compra e preparando seu ambiente...";
+      const a=await api("/api/activate-session",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({session_id:sid})
+      });
+      if(!a.r.ok||!a.j.ok){
+        $("who").textContent=a.j.error||"Não foi possível validar a compra.";
+        return;
+      }
+      x=await api("/api/me");
+    }
+    if(!x.j.authenticated){
+      $("who").textContent="Sua sessão não foi reconhecida. Acesse novamente pela confirmação da compra.";
+      return;
+    }
+    ME=x.j.user;
+    const d=await api("/api/finance/data");
+    if(!d.r.ok){
+      $("who").textContent=d.j.error||"Não foi possível carregar seus dados.";
+      return;
+    }
+    DATA=baseData(d.j.data);
+    const preferred=localStorage.getItem("gt_language")||DATA.settings.language||"English";
+    DATA.settings.language=preferred;
+    if(DATA.settings.theme)applyTheme(localStorage.getItem("gt_theme")||DATA.settings.theme);
+    $("who").textContent=ME.email+" • Plano "+(ME.planLabel||ME.plan);
+    renderAll();
+    applyLanguage(preferred);
+  }catch(err){
+    console.error("[GlobalTools init]",err);
+    $("who").textContent="Erro ao carregar o painel. Recarregue a página.";
+  }
+}
 init();
 </script>
 </body>
