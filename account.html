@@ -9,8 +9,8 @@
 :root{--bg:#080a0d;--panel:#11151b;--panel2:#171c23;--line:#29313b;--text:#f4f7fb;--muted:#9ca6b5;--green:#32d583;--red:#ff6672;--blue:#62a8ff;--gold:#f4c95d;--input:#0c1015}
 body.light{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f9fb;--line:#d9e0e8;--text:#17202b;--muted:#687384;--green:#159a5b;--red:#d63b4b;--blue:#2878d0;--gold:#a97800;--input:#fff}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:14px Arial,sans-serif}
-/* Click safety: keep dashboard controls above any accidental overlay */
-.layout{position:relative;z-index:1}.sidebar{z-index:10000!important;pointer-events:auto!important}.main{position:relative;z-index:1;pointer-events:auto!important}.nav,.nav button,.topbar,.actions,.panel,.toolbar{pointer-events:auto!important}.nav button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+/* Click safety: dashboard must stay above support/injected layers; support remains above the dashboard only in its own corner. */
+.layout{position:relative;z-index:auto}.sidebar{z-index:10001!important;pointer-events:auto!important}.main{position:relative;z-index:10000!important;pointer-events:auto!important}.nav,.nav button,.topbar,.actions,.panel,.toolbar,.period-tabs,.period-tabs button,.main button,.main select,.main input,.main textarea{pointer-events:auto!important}.nav button,.main button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}.gt-chat{z-index:20000!important}.gt-modal{z-index:30000!important}
 body{background:radial-gradient(circle at top right,rgba(50,213,131,.06),transparent 32%),var(--bg)}
 button,input,select,textarea{font:inherit}button{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:9px;padding:9px 13px;font-weight:700;cursor:pointer}button:hover{filter:brightness(1.08)}button:disabled{opacity:.5;cursor:not-allowed}
 .btn-green{background:var(--green);color:#06140d;border-color:var(--green)}.btn-danger{background:transparent;color:var(--red);border-color:var(--red)}.btn-small{padding:6px 9px;font-size:12px}.icon-btn{padding:8px 10px}
@@ -147,14 +147,45 @@ button,input,select,textarea{font:inherit}button{border:1px solid var(--line);ba
   document.querySelectorAll(".nav button[data-page]").forEach(function(b){
     b.onclick=function(e){e.preventDefault();e.stopPropagation();activate(b);};
   });
-  /* If an invisible layer sits over a control, recover the control underneath it. */
+  /* Directly bind every dashboard control as a safety net. */
+  function bindDirect(id,fn){
+    var el=document.getElementById(id);
+    if(el)el.onclick=function(e){e.preventDefault();fn(e);};
+  }
+  bindDirect("newTx",function(){if(typeof window.openTx==="function")window.openTx()});
+  bindDirect("newTx2",function(){if(typeof window.openTx==="function")window.openTx()});
+  bindDirect("addAccount",function(){if(typeof window.addAccount==="function")window.addAccount()});
+  bindDirect("addCard",function(){if(typeof window.addCard==="function")window.addCard()});
+  bindDirect("addBudget",function(){if(typeof window.addBudget==="function")window.addBudget()});
+  bindDirect("addBill",function(){if(typeof window.addBill==="function")window.addBill()});
+  bindDirect("addGoal",function(){if(typeof window.addGoal==="function")window.addGoal()});
+  bindDirect("addDebt",function(){if(typeof window.addDebt==="function")window.addDebt()});
+  bindDirect("addInvestment",function(){if(typeof window.addInvestment==="function")window.addInvestment()});
+  bindDirect("addProject",function(){if(typeof window.addProject==="function")window.addProject()});
+  bindDirect("addContact",function(){if(typeof window.addContact==="function")window.addContact()});
+  bindDirect("themeBtn",function(){if(typeof window.applyTheme==="function"){var t=document.body.classList.contains("light")?"dark":"light";window.applyTheme(t);if(window.DATA&&window.DATA.settings){window.DATA.settings.theme=t;if(typeof window.saveData==="function")window.saveData(true)}if(typeof window.renderAll==="function")window.renderAll()}});
+  bindDirect("logout",function(){if(typeof window.api==="function"){window.api("/api/logout",{method:"POST"}).then(function(){location.href="/login.html"})}});
+  document.querySelectorAll("#periodTabs button").forEach(function(b){
+    b.onclick=function(e){
+      e.preventDefault();
+      document.querySelectorAll("#periodTabs button").forEach(function(x){x.classList.toggle("active",x===b)});
+      if(typeof window.renderDashboard==="function"){
+        var p=b.getAttribute("data-period");
+        try{window.DASH_PERIOD=p}catch(_){}
+        window.renderDashboard();
+      }
+    };
+  });
+  /* If a transparent/injected layer ever captures the pointer, activate the dashboard control underneath it. */
   document.addEventListener("pointerup",function(e){
     if(e.button!==0)return;
-    var t=e.target;
-    if(t&&t.closest&&t.closest("button,input,select,textarea,a"))return;
     var els=document.elementsFromPoint(e.clientX,e.clientY)||[];
-    var b=els.find(function(x){return x.matches&&x.matches(".nav button[data-page]")});
-    if(b){e.preventDefault();e.stopPropagation();activate(b);}
+    var target=els.find(function(x){
+      return x&&x.matches&&x.matches(".main button,.main select,.main input,.main textarea");
+    });
+    if(target && target!==e.target && !target.disabled){
+      try{target.click()}catch(err){console.error("[GlobalTools click bridge]",err)}
+    }
   },true);
 })();
 </script>
