@@ -28,8 +28,26 @@ const server = http.createServer((req, res) => {
 
   const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
   const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
-  const FINANCE_PRICE_ID = "price_1UNtd1CCSBhBJictrnKiKQto";
-  const PRODUCT_SLUG = "small-business-finance-dashboard";
+  const PRODUCT_CATALOG = {
+    "small-business-finance-dashboard": {
+      priceId: "price_1UNtd1CCSBhBJictrnKiKQto",
+      file: "GlobalTools-Small-Business-Finance-Dashboard-PRO.xlsx",
+      success: "small-business-finance-dashboard-success.html",
+      name: "Small Business Finance Dashboard"
+    },
+    "cash-flow-planner": {
+      priceId: "price_1UNukZCCSBhBJictAsKlFS7p",
+      file: "GlobalTools-Cash-Flow-Planner-PRO.xlsx",
+      success: "cash-flow-planner-success.html",
+      name: "Cash Flow Planner"
+    },
+    "freelancer-business-kit": {
+      priceId: "price_1UNukfCCSBhBJictKaTTlJtq",
+      file: "GlobalTools-Freelancer-Business-Kit-PRO.xlsx",
+      success: "freelancer-business-kit-success.html",
+      name: "Freelancer Business Kit"
+    }
+  };
   const PUBLIC_SITE_URL = (process.env.PUBLIC_SITE_URL || "").replace(/\/$/, "");
 
   function stripeRequest(method, stripePath, body, callback) {
@@ -101,23 +119,33 @@ const server = http.createServer((req, res) => {
   }
 
   if (urlPath === "/api/create-checkout-session" && req.method === "POST") {
-    const success = siteUrl(req) + "/products/small-business-finance-dashboard-success.html?session_id={CHECKOUT_SESSION_ID}";
-    const cancel = siteUrl(req) + "/products/small-business-finance-dashboard.html?checkout=cancelled";
-    const body = [
-      "mode=payment",
-      "line_items[0][price]=" + formEncode(FINANCE_PRICE_ID),
-      "line_items[0][quantity]=1",
-      "success_url=" + formEncode(success),
-      "cancel_url=" + formEncode(cancel),
-      "metadata[product_slug]=" + formEncode(PRODUCT_SLUG)
-    ].join("&");
-    return stripeRequest("POST", "/v1/checkout/sessions", body, (err, session) => {
-      if (err) {
-        res.writeHead(500, {"Content-Type":"application/json; charset=utf-8"});
-        return res.end(JSON.stringify({error:"Unable to start checkout.", detail:err.message}));
+    return readBody(req, (bodyErr, rawBody) => {
+      let payload = {};
+      try { payload = rawBody ? JSON.parse(rawBody) : {}; } catch {}
+      const slug = String(payload.product_slug || "small-business-finance-dashboard");
+      const product = PRODUCT_CATALOG[slug];
+      if (!product) {
+        res.writeHead(400, {"Content-Type":"application/json; charset=utf-8"});
+        return res.end(JSON.stringify({error:"Unknown product."}));
       }
-      res.writeHead(200, {"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"});
-      res.end(JSON.stringify({url:session.url}));
+      const success = siteUrl(req) + "/products/" + product.success + "?session_id={CHECKOUT_SESSION_ID}";
+      const cancel = siteUrl(req) + "/products/" + slug + ".html?checkout=cancelled";
+      const body = [
+        "mode=payment",
+        "line_items[0][price]=" + formEncode(product.priceId),
+        "line_items[0][quantity]=1",
+        "success_url=" + formEncode(success),
+        "cancel_url=" + formEncode(cancel),
+        "metadata[product_slug]=" + formEncode(slug)
+      ].join("&");
+      return stripeRequest("POST", "/v1/checkout/sessions", body, (err, session) => {
+        if (err) {
+          res.writeHead(500, {"Content-Type":"application/json; charset=utf-8"});
+          return res.end(JSON.stringify({error:"Unable to start checkout.", detail:err.message}));
+        }
+        res.writeHead(200, {"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"});
+        res.end(JSON.stringify({url:session.url}));
+      });
     });
   }
 
@@ -129,13 +157,14 @@ const server = http.createServer((req, res) => {
       return res.end("Invalid checkout session.");
     }
     return stripeRequest("GET", "/v1/checkout/sessions/" + encodeURIComponent(sessionId), null, (err, session) => {
-      const valid = !err && session && session.payment_status === "paid" &&
-        session.metadata && session.metadata.product_slug === PRODUCT_SLUG;
+      const slug = session && session.metadata && session.metadata.product_slug;
+      const product = slug && PRODUCT_CATALOG[slug];
+      const valid = !err && session && session.payment_status === "paid" && !!product;
       if (!valid) {
         res.writeHead(403, {"Content-Type":"text/plain; charset=utf-8","Cache-Control":"no-store"});
         return res.end("Payment not confirmed.");
       }
-      const filePath = path.join(root, "products", "GlobalTools-Small-Business-Finance-Dashboard-PRO.xlsx");
+      const filePath = path.join(root, "products", product.file);
       if (!fs.existsSync(filePath)) {
         res.writeHead(503, {"Content-Type":"text/plain; charset=utf-8","Cache-Control":"no-store"});
         return res.end("The PRO workbook is still being prepared. Please try again in a moment.");
@@ -143,7 +172,7 @@ const server = http.createServer((req, res) => {
       const data = fs.readFileSync(filePath);
       res.writeHead(200, {
         "Content-Type":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Content-Disposition":"attachment; filename=\"GlobalTools-Small-Business-Finance-Dashboard-PRO.xlsx\"",
+        "Content-Disposition":"attachment; filename=\"" + product.file + "\"",
         "Content-Length":data.length,
         "Cache-Control":"private, no-store"
       });
