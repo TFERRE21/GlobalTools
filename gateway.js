@@ -86,11 +86,21 @@ function readUsers() {
   ensureData();
   try { return JSON.parse(fs.readFileSync(USERS_FILE, "utf8")); } catch { return []; }
 }
-function writeUsers(users) {
+function writeJsonDurable(file, value) {
   ensureData();
-  const tmp = USERS_FILE + ".tmp";
-  fs.writeFileSync(tmp, JSON.stringify(users, null, 2));
-  fs.renameSync(tmp, USERS_FILE);
+  const dir = path.dirname(file);
+  fs.mkdirSync(dir, { recursive: true });
+  const serialized = JSON.stringify(value, null, 2);
+  const tmp = file + ".tmp";
+  const backup = file + ".bak";
+  fs.writeFileSync(tmp, serialized, { encoding: "utf8", flush: true });
+  if (fs.existsSync(file)) {
+    try { fs.copyFileSync(file, backup); } catch (err) { console.warn("Backup failed:", err.message); }
+  }
+  fs.renameSync(tmp, file);
+}
+function writeUsers(users) {
+  writeJsonDurable(USERS_FILE, users);
 }
 function hashPassword(password, salt) {
   return crypto.scryptSync(password, salt, 64).toString("hex");
@@ -123,8 +133,7 @@ function readSessions() {
   try { return JSON.parse(fs.readFileSync(SESSIONS_FILE, "utf8")); } catch { return {}; }
 }
 function writeSessions(s) {
-  ensureData();
-  fs.writeFileSync(SESSIONS_FILE, JSON.stringify(s, null, 2));
+  writeJsonDurable(SESSIONS_FILE, s);
 }
 function setSession(res, userId) {
   const sessions = readSessions();
@@ -185,7 +194,7 @@ function readFinance(userId) {
 function writeFinance(userId, data) {
   const safe = data && typeof data === "object" ? data : {};
   safe.updatedAt = new Date().toISOString();
-  fs.writeFileSync(financeFile(userId), JSON.stringify(safe, null, 2));
+  writeJsonDurable(financeFile(userId), safe);
 }
 function stripeRequest(method, stripePath, form, callback) {
   if (!STRIPE_SECRET_KEY) return callback(new Error("STRIPE_SECRET_KEY não configurada"));
@@ -247,6 +256,7 @@ function upsertUser(email, plan, productSlug, forceNewPassword = false, generate
     u.passwordSalt = crypto.randomBytes(16).toString("hex");
     u.passwordHash = hashPassword(generatedPassword, u.passwordSalt);
     u.passwordDeliveredAt = new Date().toISOString();
+    u.credentialsVersion = Number(u.credentialsVersion || 0) + 1;
   }
   if (productSlug && !u.products.includes(productSlug)) u.products.push(productSlug);
   u.updatedAt = new Date().toISOString();
@@ -457,7 +467,7 @@ const gateway = http.createServer(async (req, res) => {
         const slug = session.metadata?.product_slug;
         const email = sanitizeEmail(session.customer_details?.email || session.customer_email);
         if ((session.payment_status !== "paid" && Number(session.amount_total || 0) !== 0) || !PRODUCTS[slug] || !email) return json(res, 403, { ok: false, error: "Pagamento não confirmado ou produto inválido." });
-        const created = upsertUser(email, planForProduct(slug), slug, true, true);
+        const created = upsertUser(email, planForProduct(slug), slug, false, true);
         setSession(res, created.user.id);
         if (created.generatedPassword) {
           return sendAccessEmail(email, created.generatedPassword, PLANS[created.user.plan]?.label || created.user.plan, PRODUCTS[slug], (sent, emailError, emailStatus, attachmentIncluded) => {
