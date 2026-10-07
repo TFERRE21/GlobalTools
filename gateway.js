@@ -9,8 +9,10 @@ const ROOT = __dirname;
 const PORT = Number(process.env.PORT || 3000);
 const CORE_PORT = Number(process.env.CORE_PORT || (PORT === 3000 ? 3001 : PORT + 1));
 const PUBLIC_SITE_URL = (process.env.PUBLIC_SITE_URL || "").replace(/\/$/, "");
-const DATA_DIR = process.env.GLOBALTOOLS_DATA_DIR || process.env.DATA_DIR || path.join(ROOT, "data");
-const USERS_FILE = path.join(DATA_DIR, "users.json");
+const APP_DATA_DIR = path.join(ROOT, "data");
+let DATA_DIR = process.env.GLOBALTOOLS_DATA_DIR || process.env.DATA_DIR || "/var/lib/globaltools";
+let USERS_FILE = path.join(DATA_DIR, "users.json");
+let SESSIONS_FILE = path.join(DATA_DIR, "sessions.json");
 const FINANCE_PREFIX = "finance-";
 const SESSION_COOKIE = "gt_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
@@ -48,9 +50,37 @@ const UPGRADE_PRICES = {
   unlimited: "price_1UNwSPCCSBhBJictPWOPluRi"
 };
 
+function setDataDir(dir) {
+  DATA_DIR = dir;
+  USERS_FILE = path.join(DATA_DIR, "users.json");
+  SESSIONS_FILE = path.join(DATA_DIR, "sessions.json");
+}
 function ensureData() {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  if (!fs.existsSync(USERS_FILE)) fs.writeFileSync(USERS_FILE, "[]");
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  } catch (err) {
+    console.warn("Persistent data directory unavailable, using app data directory:", err.message);
+    setDataDir(APP_DATA_DIR);
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+  if (!fs.existsSync(USERS_FILE)) {
+    const oldUsers = path.join(APP_DATA_DIR, "users.json");
+    if (DATA_DIR !== APP_DATA_DIR && fs.existsSync(oldUsers)) fs.copyFileSync(oldUsers, USERS_FILE);
+    else fs.writeFileSync(USERS_FILE, "[]");
+  }
+  if (!fs.existsSync(SESSIONS_FILE)) {
+    const oldSessions = path.join(APP_DATA_DIR, "sessions.json");
+    if (DATA_DIR !== APP_DATA_DIR && fs.existsSync(oldSessions)) fs.copyFileSync(oldSessions, SESSIONS_FILE);
+    else fs.writeFileSync(SESSIONS_FILE, "{}");
+  }
+  if (DATA_DIR !== APP_DATA_DIR && fs.existsSync(APP_DATA_DIR)) {
+    for (const name of fs.readdirSync(APP_DATA_DIR)) {
+      if (name.startsWith(FINANCE_PREFIX) && name.endsWith(".json")) {
+        const src = path.join(APP_DATA_DIR, name), dst = path.join(DATA_DIR, name);
+        if (!fs.existsSync(dst)) fs.copyFileSync(src, dst);
+      }
+    }
+  }
 }
 function readUsers() {
   ensureData();
@@ -88,7 +118,6 @@ function userFromRequest(req) {
   const users = readUsers();
   return users.find(u => u.id === s.userId) || null;
 }
-const SESSIONS_FILE = path.join(DATA_DIR, "sessions.json");
 function readSessions() {
   ensureData();
   try { return JSON.parse(fs.readFileSync(SESSIONS_FILE, "utf8")); } catch { return {}; }
