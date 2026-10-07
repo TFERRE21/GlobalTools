@@ -1,1 +1,93 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Small Business Finance Dashboard | GlobalTools</title><meta name="description" content="Professional small business finance dashboard for revenue, expenses, profit, cash flow and monthly goals."><link rel="stylesheet" href="/styles.css?v=20261007-02"><style>.finance-page{background:#f6f7f9}.finance-hero{padding:55px 20px 35px;background:#111827;color:#fff}.finance-wrap{max-width:1180px;margin:auto}.finance-hero h1{font-size:42px;margin:8px 0}.finance-hero p{color:#cbd5e1;max-width:700px}.finance-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}.finance-actions button{border:0;border-radius:8px;padding:11px 17px;font-weight:700;cursor:pointer}.finance-actions .primary{background:#fff;color:#111827}.finance-actions .secondary{background:#374151;color:#fff}.finance-main{max-width:1180px;margin:30px auto;padding:0 20px}.finance-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.finance-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px}.finance-card small{color:#6b7280}.finance-card strong{display:block;font-size:28px;margin-top:8px}.finance-layout{display:grid;grid-template-columns:1.4fr .8fr;gap:18px;margin-top:18px}.finance-panel{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px}.finance-panel h2{margin-top:0}.finance-table{width:100%;border-collapse:collapse}.finance-table th,.finance-table td{padding:10px;border-bottom:1px solid #eee;text-align:left}.finance-table input,.finance-table select{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px}.finance-form{display:grid;grid-template-columns:1fr 1fr;gap:10px}.finance-form label{font-size:12px;font-weight:700}.finance-form input,.finance-form select{width:100%;box-sizing:border-box;padding:10px;margin-top:4px;border:1px solid #ddd;border-radius:7px}.finance-form .full{grid-column:1/-1}.finance-btn{background:#111827;color:#fff;border:0;border-radius:7px;padding:10px 14px;cursor:pointer;font-weight:700}.finance-chart{height:210px;display:flex;align-items:flex-end;gap:10px;padding-top:15px}.bar{flex:1;background:#111827;border-radius:5px 5px 0 0;min-height:5px;position:relative}.bar span{position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-size:11px;color:#6b7280}.note{font-size:12px;color:#6b7280;margin-top:18px}@media(max-width:800px){.finance-grid{grid-template-columns:1fr 1fr}.finance-layout{grid-template-columns:1fr}}@media(max-width:480px){.finance-grid{grid-template-columns:1fr}.finance-form{grid-template-columns:1fr}.finance-form .full{grid-column:auto}}</style></head><body class="finance-page"><header class="site-header global-header"><a class="brand" href="/"><span class="brand-mark">G</span><span>GlobalTools</span></a><nav class="main-nav"><a href="/">Tools</a><a href="/store.html">Store</a></nav></header><section class="finance-hero"><div class="finance-wrap"><div class="eyebrow">GLOBALTOOLS BUSINESS PRODUCT</div><h1>Small Business Finance Dashboard</h1><p>Track revenue, expenses, profit, cash flow and financial goals in one simple dashboard.</p><div class="finance-actions"><button class="primary" onclick="window.print()">Print / Save PDF</button><button class="secondary" onclick="downloadCSV()">Export CSV</button></div></div></section><main class="finance-main"><section class="finance-grid"><div class="finance-card"><small>Revenue</small><strong id="revenue">$0.00</strong></div><div class="finance-card"><small>Expenses</small><strong id="expenses">$0.00</strong></div><div class="finance-card"><small>Profit</small><strong id="profit">$0.00</strong></div><div class="finance-card"><small>Margin</small><strong id="margin">0%</strong></div></section><div class="finance-layout"><section class="finance-panel"><h2>Transactions</h2><form id="txForm" class="finance-form"><label>Description<input id="desc" required placeholder="Client payment"></label><label>Type<select id="type"><option value="income">Income</option><option value="expense">Expense</option></select></label><label>Category<input id="category" placeholder="Sales"></label><label>Amount<input id="amount" type="number" min="0" step=".01" required placeholder="1000"></label><button class="finance-btn full">Add transaction</button></form><table class="finance-table"><thead><tr><th>Description</th><th>Type</th><th>Category</th><th>Amount</th></tr></thead><tbody id="txBody"></tbody></table></section><section class="finance-panel"><h2>Monthly performance</h2><div class="finance-chart" id="chart"></div><p class="note">Your entries are stored locally in this browser. Nothing is sent to a server by this demo.</p></section></div></main><script>let tx=JSON.parse(localStorage.getItem('gt-finance-tx')||'[]');const money=n=>new Intl.NumberFormat(undefined,{style:'currency',currency:'USD'}).format(n);function render(){let inc=tx.filter(x=>x.type==='income').reduce((a,x)=>a+x.amount,0),exp=tx.filter(x=>x.type==='expense').reduce((a,x)=>a+x.amount,0),p=inc-exp;document.getElementById('revenue').textContent=money(inc);document.getElementById('expenses').textContent=money(exp);document.getElementById('profit').textContent=money(p);document.getElementById('margin').textContent=(inc?(p/inc*100):0).toFixed(1)+'%';document.getElementById('txBody').innerHTML=tx.slice().reverse().map(x=>'<tr><td>'+x.desc.replace(/</g,'&lt;')+'</td><td>'+x.type+'</td><td>'+x.category+'</td><td>'+money(x.amount)+'</td></tr>').join('');let vals=tx.reduce((m,x)=>{m[x.category]=(m[x.category]||0)+(x.type==='income'?x.amount:-x.amount);return m},{});let arr=Object.entries(vals).slice(0,8),max=Math.max(1,...arr.map(x=>Math.abs(x[1])));document.getElementById('chart').innerHTML=arr.map(x=>'<div class="bar" style="height:'+Math.max(5,Math.abs(x[1])/max*170)+'px"><span>'+x[0]+'</span></div>').join('');localStorage.setItem('gt-finance-tx',JSON.stringify(tx))}document.getElementById('txForm').addEventListener('submit',e=>{e.preventDefault();tx.push({desc:desc.value,type:type.value,category:category.value||'Other',amount:Number(amount.value)});e.target.reset();render()});function downloadCSV(){const rows=[['Description','Type','Category','Amount'],...tx.map(x=>[x.desc,x.type,x.category,x.amount])];const blob=new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='globaltools-finance.csv';a.click()}render();</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Small Business Finance Dashboard — GlobalTools</title>
+<meta name="description" content="A simple professional finance dashboard for small businesses. Track revenue, expenses, profit and margins in one browser-based workspace.">
+<link rel="stylesheet" href="/styles.css?v=20261007-03">
+<style>
+.product-page{background:#f7f8fa;color:#111827}.product-wrap{max-width:1120px;margin:auto;padding:0 20px}
+.product-hero{background:linear-gradient(135deg,#111827,#1f2937);color:#fff;padding:70px 0}.product-hero-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:45px;align-items:center}.product-kicker{font-size:12px;font-weight:800;letter-spacing:.12em;color:#93c5fd}.product-hero h1{font-size:52px;line-height:1.02;margin:12px 0 18px}.product-hero p{font-size:19px;line-height:1.6;color:#d1d5db;max-width:680px}.product-bullets{display:grid;gap:10px;margin:24px 0}.product-bullets span{color:#e5e7eb}.product-bullets b{color:#fff}.price-card{background:#fff;color:#111827;border-radius:18px;padding:28px;box-shadow:0 20px 55px #0005}.price-card .label{font-size:12px;font-weight:800;color:#6b7280}.price{font-size:42px;font-weight:900;margin:6px 0}.price-card p{color:#6b7280;font-size:14px}.buy-btn{display:block;text-align:center;background:#111827;color:#fff;text-decoration:none;border-radius:9px;padding:14px;font-weight:800;margin-top:18px}.preview-btn{display:inline-block;border:1px solid #4b5563;color:#fff;text-decoration:none;border-radius:9px;padding:12px 17px;font-weight:700;margin-top:10px}.section{padding:60px 0}.section h2{font-size:32px;margin:0 0 12px}.muted{color:#6b7280;line-height:1.6}.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:28px}.feature{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:24px}.feature strong{display:block;font-size:18px;margin-bottom:8px}.demo{background:#fff;border:1px solid #e5e7eb;border-radius:18px;overflow:hidden;box-shadow:0 12px 30px #1118270d}.demo-top{background:#111827;color:#fff;padding:16px 20px;font-weight:800}.demo-body{padding:20px}.demo-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.demo-kpi{background:#f3f4f6;border-radius:10px;padding:16px}.demo-kpi small{color:#6b7280}.demo-kpi b{display:block;font-size:22px;margin-top:5px}.faq{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:25px}.faq article{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px}.faq h3{margin-top:0}.cta{background:#111827;color:#fff;border-radius:18px;padding:45px;text-align:center}.cta h2{margin-bottom:10px}.cta p{color:#cbd5e1}.cta .buy-btn{display:inline-block;background:#fff;color:#111827;min-width:190px}.trust{font-size:12px;color:#6b7280;text-align:center;margin-top:14px}
+@media(max-width:800px){.product-hero-grid{grid-template-columns:1fr}.product-hero h1{font-size:40px}.feature-grid,.faq{grid-template-columns:1fr}.demo-kpis{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.product-hero{padding:48px 0}.product-hero h1{font-size:34px}.section{padding:42px 0}.demo-kpis{grid-template-columns:1fr}}
+@media print{.site-header,.price-card,.preview-btn,.cta{display:none!important}.product-hero{background:#fff;color:#111}.product-hero p,.product-bullets span{color:#374151}}
+</style>
+</head>
+<body class="product-page">
+<header class="site-header global-header">
+<a class="brand" href="/"><span class="brand-mark">G</span><span>GlobalTools</span></a>
+<nav class="main-nav"><a href="/">Tools</a><a href="/store.html">Store</a></nav>
+</header>
+
+<section class="product-hero"><div class="product-wrap product-hero-grid">
+<div>
+<div class="product-kicker">GLOBALTOOLS DIGITAL PRODUCT</div>
+<h1>Small Business Finance Dashboard</h1>
+<p>See your business numbers clearly. Track income, expenses, profit and margins in one simple workspace designed for small businesses and freelancers.</p>
+<div class="product-bullets">
+<span>✓ <b>Revenue and expense tracking</b></span>
+<span>✓ <b>Profit and margin overview</b></span>
+<span>✓ <b>CSV export and PDF printing</b></span>
+<span>✓ <b>Works directly in your browser</b></span>
+</div>
+<a class="preview-btn" href="#preview">See the dashboard ↓</a>
+</div>
+<div class="price-card">
+<div class="label">ONE-TIME PURCHASE</div>
+<div class="price">US$ 14.90</div>
+<p>Professional finance template for small businesses, freelancers and independent professionals.</p>
+<a class="buy-btn" href="#checkout">Get the dashboard</a>
+<div class="trust">Secure checkout will be connected before launch.</div>
+</div>
+</div></section>
+
+<section class="section"><div class="product-wrap">
+<h2>Everything you need to understand your numbers</h2>
+<p class="muted">Designed to be simple enough for everyday use while giving you the core indicators needed to make better decisions.</p>
+<div class="feature-grid">
+<div class="feature"><strong>📊 Financial overview</strong><span class="muted">Revenue, expenses, profit and margin are visible at a glance.</span></div>
+<div class="feature"><strong>💰 Transaction control</strong><span class="muted">Record income and expenses by description, type and category.</span></div>
+<div class="feature"><strong>📈 Performance view</strong><span class="muted">Visualize the financial result by category and identify where money is going.</span></div>
+<div class="feature"><strong>📥 Export your data</strong><span class="muted">Export transactions to CSV for backup, analysis or another spreadsheet.</span></div>
+<div class="feature"><strong>🖨️ PDF-ready</strong><span class="muted">Print the dashboard or save it as PDF directly from the browser.</span></div>
+<div class="feature"><strong>🔒 Local-first demo</strong><span class="muted">The current preview stores demo entries locally in your browser.</span></div>
+</div>
+</div></section>
+
+<section class="section" id="preview"><div class="product-wrap">
+<h2>Preview the dashboard</h2><p class="muted">The live preview below shows the core experience you will use to organize your finances.</p>
+<div class="demo"><div class="demo-top">Small Business Finance Dashboard</div><div class="demo-body">
+<div class="demo-kpis">
+<div class="demo-kpi"><small>Revenue</small><b>$12,450</b></div>
+<div class="demo-kpi"><small>Expenses</small><b>$7,180</b></div>
+<div class="demo-kpi"><small>Profit</small><b>$5,270</b></div>
+<div class="demo-kpi"><small>Margin</small><b>42.3%</b></div>
+</div>
+</div></div>
+</div></section>
+
+<section class="section"><div class="product-wrap">
+<h2>Who is it for?</h2>
+<div class="feature-grid">
+<div class="feature"><strong>Small business owners</strong><span class="muted">Get a quick view of business performance without complex software.</span></div>
+<div class="feature"><strong>Freelancers</strong><span class="muted">Separate client income and operating expenses in a simple workflow.</span></div>
+<div class="feature"><strong>Side businesses</strong><span class="muted">Start tracking financial performance before moving to a larger system.</span></div>
+</div>
+</div></section>
+
+<section class="section"><div class="product-wrap">
+<h2>Frequently asked questions</h2>
+<div class="faq">
+<article><h3>Is this a subscription?</h3><p class="muted">No. The planned product is a one-time purchase.</p></article>
+<article><h3>Does it work on mobile?</h3><p class="muted">Yes. The dashboard is designed to adapt to desktop and mobile screens.</p></article>
+<article><h3>Do I need accounting software?</h3><p class="muted">No. It is a lightweight management tool and is not a replacement for accounting or tax software.</p></article>
+<article><h3>Will I receive the file immediately?</h3><p class="muted">Automatic delivery will be enabled with checkout before the product is officially launched.</p></article>
+</div>
+</div></section>
+
+<section class="section" id="checkout"><div class="product-wrap"><div class="cta">
+<h2>Ready to organize your business finances?</h2>
+<p>Get the GlobalTools Small Business Finance Dashboard and start with a clearer view of your numbers.</p>
+<a class="buy-btn" href="/store.html">Back to Store</a>
+</div></div></section>
+</body></html>
