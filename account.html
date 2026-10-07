@@ -147,47 +147,9 @@ button,input,select,textarea{font:inherit}button{border:1px solid var(--line);ba
   document.querySelectorAll(".nav button[data-page]").forEach(function(b){
     b.onclick=function(e){e.preventDefault();e.stopPropagation();activate(b);};
   });
-  /* Directly bind every dashboard control as a safety net. */
-  function bindDirect(id,fn){
-    var el=document.getElementById(id);
-    if(el)el.onclick=function(e){e.preventDefault();fn(e);};
-  }
-  bindDirect("newTx",function(){if(typeof window.openTx==="function")window.openTx()});
-  bindDirect("newTx2",function(){if(typeof window.openTx==="function")window.openTx()});
-  bindDirect("addAccount",function(){if(typeof window.addAccount==="function")window.addAccount()});
-  bindDirect("addCard",function(){if(typeof window.addCard==="function")window.addCard()});
-  bindDirect("addBudget",function(){if(typeof window.addBudget==="function")window.addBudget()});
-  bindDirect("addBill",function(){if(typeof window.addBill==="function")window.addBill()});
-  bindDirect("addGoal",function(){if(typeof window.addGoal==="function")window.addGoal()});
-  bindDirect("addDebt",function(){if(typeof window.addDebt==="function")window.addDebt()});
-  bindDirect("addInvestment",function(){if(typeof window.addInvestment==="function")window.addInvestment()});
-  bindDirect("addProject",function(){if(typeof window.addProject==="function")window.addProject()});
-  bindDirect("addContact",function(){if(typeof window.addContact==="function")window.addContact()});
-  bindDirect("themeBtn",function(){if(typeof window.applyTheme==="function"){var t=document.body.classList.contains("light")?"dark":"light";window.applyTheme(t);if(window.DATA&&window.DATA.settings){window.DATA.settings.theme=t;if(typeof window.saveData==="function")window.saveData(true)}if(typeof window.renderAll==="function")window.renderAll()}});
-  bindDirect("logout",function(){if(typeof window.api==="function"){window.api("/api/logout",{method:"POST"}).then(function(){location.href="/login.html"})}});
-  document.querySelectorAll("#periodTabs button").forEach(function(b){
-    b.onclick=function(e){
-      e.preventDefault();
-      document.querySelectorAll("#periodTabs button").forEach(function(x){x.classList.toggle("active",x===b)});
-      if(typeof window.renderDashboard==="function"){
-        var p=b.getAttribute("data-period");
-        try{window.DASH_PERIOD=p}catch(_){}
-        window.renderDashboard();
-      }
-    };
-  });
-  /* If a transparent/injected layer ever captures the pointer, activate the dashboard control underneath it. */
-  document.addEventListener("pointerup",function(e){
-    if(e.button!==0)return;
-    var els=document.elementsFromPoint(e.clientX,e.clientY)||[];
-    var target=els.find(function(x){
-      return x&&x.matches&&x.matches(".main button,.main select,.main input,.main textarea");
-    });
-    if(target && target!==e.target && !target.disabled){
-      try{target.click()}catch(err){console.error("[GlobalTools click bridge]",err)}
-    }
-  },true);
-})();
+  /* Dashboard controls are bound by the main runtime below. Do not shadow those handlers here. */
+  /* Navigation only: content controls use their own runtime handlers. */
+)();
 </script>
 <script>
 let ME=null,DATA=null,currentModalSave=null;
@@ -368,9 +330,15 @@ function bind(){
   window.addEventListener("error",e=>{console.error("[GlobalTools] JavaScript error",e.error||e.message);const n=$("dashNotice");if(n){n.classList.add("error");n.textContent="O painel encontrou um erro de interface. Recarregue a página e tente novamente."}});
 }
 async function init(){
-  const savedTheme=localStorage.getItem("gt_theme")||"dark";
+  const savedTheme="light";
+  localStorage.setItem("gt_theme","light");
   applyTheme(savedTheme);
+  /* Start the UI with a local empty model so controls never depend on API latency. */
+  DATA=baseData({});
+  DATA.settings.theme="light";
   bind();
+  renderAll();
+  applyLanguage(DATA.settings.language);
   const sid=new URLSearchParams(location.search).get("session_id");
   try{
     /*
@@ -393,13 +361,13 @@ async function init(){
       x=await api("/api/me");
     }
     if(!x.j.authenticated){
-      $("who").textContent="Sua sessão não foi reconhecida. Acesse novamente pela confirmação da compra.";
+      $("who").textContent="Modo local — sessão não reconhecida. Faça login para salvar seus dados.";
       return;
     }
     ME=x.j.user;
     const d=await api("/api/finance/data");
     if(!d.r.ok){
-      $("who").textContent=d.j.error||"Não foi possível carregar seus dados.";
+      $("who").textContent=d.j.error||"Dados online indisponíveis — modo local ativo.";
       return;
     }
     DATA=baseData(d.j.data);
@@ -411,7 +379,7 @@ async function init(){
     applyLanguage(preferred);
   }catch(err){
     console.error("[GlobalTools init]",err);
-    $("who").textContent="Erro ao carregar o painel. Recarregue a página.";
+    $("who").textContent="Dados online indisponíveis — modo local ativo.";
   }
 }
 init();
