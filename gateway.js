@@ -16,6 +16,8 @@ const SESSION_COOKIE = "gt_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "GlobalTools <noreply@oolivo.com.br>";
 
 const PRODUCTS = {
   "small-business-finance-dashboard": {
@@ -196,14 +198,13 @@ function upsertUser(email, plan, productSlug) {
   const users = readUsers();
   let u = users.find(x => x.email === email);
   let generatedPassword = null;
+  const firstActivation = !u || !u.passwordDeliveredAt;
   if (!u) {
-    generatedPassword = newPassword();
-    const salt = crypto.randomBytes(16).toString("hex");
     u = {
       id: "usr_" + crypto.randomBytes(9).toString("hex"),
       email,
-      passwordSalt: salt,
-      passwordHash: hashPassword(generatedPassword, salt),
+      passwordSalt: "",
+      passwordHash: "",
       plan,
       products: [],
       createdAt: new Date().toISOString()
@@ -212,10 +213,34 @@ function upsertUser(email, plan, productSlug) {
   } else if (rank(plan) > rank(u.plan)) {
     u.plan = plan;
   }
+  if (firstActivation) {
+    generatedPassword = newPassword();
+    u.passwordSalt = crypto.randomBytes(16).toString("hex");
+    u.passwordHash = hashPassword(generatedPassword, u.passwordSalt);
+    u.passwordDeliveredAt = new Date().toISOString();
+  }
   if (productSlug && !u.products.includes(productSlug)) u.products.push(productSlug);
   u.updatedAt = new Date().toISOString();
   writeUsers(users);
   return { user: u, generatedPassword };
+}
+function sendAccessEmail(email, password, plan, callback) {
+  if (!RESEND_API_KEY) return callback(null, false);
+  const payload = JSON.stringify({
+    from: RESEND_FROM_EMAIL,
+    to: [email],
+    subject: "Seu acesso ao GlobalTools foi liberado",
+    html: "<div style='font-family:Arial,sans-serif;max-width:620px;margin:auto'><h1>GlobalTools</h1><p>Seu acesso ao painel financeiro foi liberado.</p><p><b>Plano:</b> " + plan + "</p><p><b>E-mail:</b> " + email + "</p><p><b>Senha inicial:</b> " + password + "</p><p><a href='https://oolivo.com.br/login.html'>Acessar meu painel</a></p><p style='color:#777'>Guarde sua senha e altere-a quando o recurso de troca de senha estiver disponível.</p></div>"
+  });
+  const r = https.request({
+    hostname: "api.resend.com",
+    path: "/emails",
+    method: "POST",
+    headers: {"Authorization":"Bearer " + RESEND_API_KEY,"Content-Type":"application/json","Content-Length":Buffer.byteLength(payload)}
+  }, rr => {
+    let raw=""; rr.on("data",x=>raw+=x); rr.on("end",()=>callback(rr.statusCode>=200&&rr.statusCode<300,null));
+  });
+  r.on("error",e=>callback(false,e)); r.write(payload); r.end();
 }
 function publicUser(u) {
   return { id: u.id, email: u.email, plan: u.plan, planLabel: PLANS[u.plan]?.label || u.plan, products: u.products, permissions: permissions(u.plan) };
@@ -277,10 +302,15 @@ const gateway = http.createServer(async (req, res) => {
         if (err) return json(res, 400, { ok: false, error: "Não foi possível validar o pagamento." });
         const slug = session.metadata?.product_slug;
         const email = sanitizeEmail(session.customer_details?.email || session.customer_email);
-        if (session.payment_status !== "paid" || !PRODUCTS[slug] || !email) return json(res, 403, { ok: false, error: "Pagamento não confirmado ou produto inválido." });
+        if ((session.payment_status !== "paid" && Number(session.amount_total || 0) !== 0) || !PRODUCTS[slug] || !email) return json(res, 403, { ok: false, error: "Pagamento não confirmado ou produto inválido." });
         const created = upsertUser(email, planForProduct(slug), slug);
         setSession(res, created.user.id);
-        return json(res, 200, { ok: true, user: publicUser(created.user), generatedPassword: created.generatedPassword, product: PRODUCTS[slug].name });
+        if (created.generatedPassword) {
+          return sendAccessEmail(email, created.generatedPassword, PLANS[created.user.plan]?.label || created.user.plan, (sent) => {
+            json(res, 200, { ok: true, user: publicUser(created.user), generatedPassword: created.generatedPassword, emailSent: !!sent, product: PRODUCTS[slug].name });
+          });
+        }
+        return json(res, 200, { ok: true, user: publicUser(created.user), generatedPassword: null, emailSent: false, product: PRODUCTS[slug].name });
       });
       return;
     }
