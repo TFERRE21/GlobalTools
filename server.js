@@ -192,7 +192,7 @@ const server = http.createServer((req, res) => {
         res.writeHead(400, {"Content-Type":"application/json; charset=utf-8"});
         return res.end(JSON.stringify({error:"Unknown product."}));
       }
-      const success = siteUrl(req) + "/products/" + product.success + "?session_id={CHECKOUT_SESSION_ID}";
+      const success = siteUrl(req) + "/account-success.html?session_id={CHECKOUT_SESSION_ID}";
       const cancel = siteUrl(req) + "/products/" + slug + ".html?checkout=cancelled";
       const body = [
         "mode=payment",
