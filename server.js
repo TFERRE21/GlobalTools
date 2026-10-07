@@ -165,7 +165,7 @@ const server = http.createServer((req, res) => {
       let payload = {};
       try { payload = rawBody ? JSON.parse(rawBody) : {}; } catch {}
       const name=String(payload.name||"").trim().slice(0,120), email=String(payload.email||"").trim().slice(0,180), priority=String(payload.priority||"normal").slice(0,20), message=String(payload.message||"").trim().slice(0,3000), page=String(payload.page||"").slice(0,500);
-      if(!name||!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)||!message){
+      if(!name||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||!message){
         res.writeHead(400,{"Content-Type":"application/json; charset=utf-8"});return res.end(JSON.stringify({error:"Name, valid email and message are required."}));
       }
       const ticketId="GT-"+Date.now().toString(36).toUpperCase()+"-"+crypto.randomBytes(2).toString("hex").toUpperCase();
