@@ -256,6 +256,14 @@ function upsertUser(email, plan, productSlug, forceNewPassword = false, generate
     u.passwordSalt = crypto.randomBytes(16).toString("hex");
     u.passwordHash = hashPassword(generatedPassword, u.passwordSalt);
     u.passwordDeliveredAt = new Date().toISOString();
+    u.passwordUpdatedAt = u.passwordDeliveredAt;
+    u.credentialsVersion = Number(u.credentialsVersion || 0) + 1;
+  } else if (!u.passwordSalt || !u.passwordHash) {
+    generatedPassword = newPassword();
+    u.passwordSalt = crypto.randomBytes(16).toString("hex");
+    u.passwordHash = hashPassword(generatedPassword, u.passwordSalt);
+    u.passwordDeliveredAt = new Date().toISOString();
+    u.passwordUpdatedAt = u.passwordDeliveredAt;
     u.credentialsVersion = Number(u.credentialsVersion || 0) + 1;
   }
   if (productSlug && !u.products.includes(productSlug)) u.products.push(productSlug);
@@ -412,7 +420,8 @@ const gateway = http.createServer(async (req, res) => {
       const email = sanitizeEmail(b.email);
       const password = String(b.password || "");
       const u = readUsers().find(x => x.email === email);
-      if (!u || !u.passwordSalt || hashPassword(password.trim(), u.passwordSalt) !== u.passwordHash) return json(res, 401, { ok: false, error: "E-mail ou senha inválidos." });
+      if (!u || !u.passwordSalt || !u.passwordHash) return json(res, 401, { ok: false, error: "Conta sem credenciais válidas. Reative o acesso pela confirmação da compra." });
+      if (hashPassword(password.trim(), u.passwordSalt) !== u.passwordHash) return json(res, 401, { ok: false, error: "E-mail ou senha inválidos." });
       setSession(res, u.id);
       return json(res, 200, { ok: true, user: publicUser(u) });
     }
@@ -433,6 +442,8 @@ const gateway = http.createServer(async (req, res) => {
       target.passwordSalt = crypto.randomBytes(16).toString("hex");
       target.passwordHash = hashPassword(newPassword, target.passwordSalt);
       target.passwordDeliveredAt = new Date().toISOString();
+      target.passwordUpdatedAt = target.passwordDeliveredAt;
+      target.credentialsVersion = Number(target.credentialsVersion || 0) + 1;
       target.updatedAt = new Date().toISOString();
       writeUsers(users);
       return json(res, 200, { ok: true });
