@@ -3,7 +3,7 @@ name: Build Finance Product
 on:
   push:
     paths:
-      - "scripts/build_finance_dashboard.*.py"
+      - "scripts/**"
       - ".github/workflows/build-finance-product.yml"
   workflow_dispatch:
 
