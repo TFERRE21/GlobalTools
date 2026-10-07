@@ -370,8 +370,7 @@ const gateway = http.createServer(async (req, res) => {
           const slug = obj.metadata?.product_slug;
           const email = sanitizeEmail(obj.customer_details?.email || obj.customer_email);
           if (email && PRODUCTS[slug] && (obj.payment_status === "paid" || Number(obj.amount_total || 0) === 0)) {
-            const created = upsertUser(email, planForProduct(slug), slug);
-            if (created.generatedPassword) sendAccessEmail(email, created.generatedPassword, PLANS[created.user.plan]?.label || created.user.plan, () => {});
+            upsertUser(email, planForProduct(slug), slug, false, false);
           }
           if (obj.mode === "subscription" && obj.metadata?.account_user_id && obj.metadata?.access_plan) {
             const users = readUsers(); const u = users.find(x => x.id === obj.metadata.account_user_id);
