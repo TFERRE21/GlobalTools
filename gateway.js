@@ -225,7 +225,7 @@ function upsertUser(email, plan, productSlug, forceNewPassword = false) {
   return { user: u, generatedPassword };
 }
 function sendAccessEmail(email, password, plan, callback) {
-  if (!RESEND_API_KEY) return callback(null, false);
+  if (!RESEND_API_KEY) return callback(false, new Error("RESEND_API_KEY não configurada"), 0);
   const payload = JSON.stringify({
     from: RESEND_FROM_EMAIL,
     to: [email],
@@ -238,9 +238,9 @@ function sendAccessEmail(email, password, plan, callback) {
     method: "POST",
     headers: {"Authorization":"Bearer " + RESEND_API_KEY,"Content-Type":"application/json","Content-Length":Buffer.byteLength(payload)}
   }, rr => {
-    let raw=""; rr.on("data",x=>raw+=x); rr.on("end",()=>callback(rr.statusCode>=200&&rr.statusCode<300,null));
+    let raw=""; rr.on("data",x=>raw+=x); rr.on("end",()=>callback(rr.statusCode>=200&&rr.statusCode<300, rr.statusCode>=200&&rr.statusCode<300 ? null : new Error(raw || "Resend HTTP " + rr.statusCode), rr.statusCode));
   });
-  r.on("error",e=>callback(false,e)); r.write(payload); r.end();
+  r.on("error",e=>callback(false,e,0)); r.write(payload); r.end();
 }
 function publicUser(u) {
   return { id: u.id, email: u.email, plan: u.plan, planLabel: PLANS[u.plan]?.label || u.plan, products: u.products, permissions: permissions(u.plan) };
@@ -306,8 +306,8 @@ const gateway = http.createServer(async (req, res) => {
         const created = upsertUser(email, planForProduct(slug), slug, Number(session.amount_total || 0) === 0);
         setSession(res, created.user.id);
         if (created.generatedPassword) {
-          return sendAccessEmail(email, created.generatedPassword, PLANS[created.user.plan]?.label || created.user.plan, (sent) => {
-            json(res, 200, { ok: true, user: publicUser(created.user), generatedPassword: created.generatedPassword, emailSent: !!sent, product: PRODUCTS[slug].name });
+          return sendAccessEmail(email, created.generatedPassword, PLANS[created.user.plan]?.label || created.user.plan, (sent, emailError, emailStatus) => {
+            json(res, 200, { ok: true, user: publicUser(created.user), generatedPassword: created.generatedPassword, emailSent: !!sent, emailStatus: emailStatus || 0, emailError: sent ? null : (emailError?.message || "Falha no envio do e-mail"), product: PRODUCTS[slug].name });
           });
         }
         return json(res, 200, { ok: true, user: publicUser(created.user), generatedPassword: null, emailSent: false, product: PRODUCTS[slug].name });
