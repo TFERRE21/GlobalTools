@@ -273,24 +273,67 @@ function sendAccessEmail(email, password, plan, product, callback) {
     }
   }
 
-  const productName = product?.name || "Produto digital";
+  const productName = product?.name || "Digital product";
+  const safeEmail = String(email).replace(/[<>&"]/g, "");
+  const safePassword = String(password).replace(/[<>&"]/g, "");
+  const safePlan = String(plan).replace(/[<>&"]/g, "");
+  const safeProduct = String(productName).replace(/[<>&"]/g, "");
+  const text =
+    "Welcome to Oolivo Finance\n\n" +
+    "Your purchase is confirmed and your Oolivo Finance account is ready.\n\n" +
+    "Product: " + safeProduct + "\n" +
+    "Plan: " + safePlan + "\n" +
+    "Email: " + safeEmail + "\n" +
+    "Initial password: " + safePassword + "\n\n" +
+    "Access your dashboard: https://oolivo.com.br/account.html\n\n" +
+    (attachmentIncluded ? "Your purchased spreadsheet is attached to this email.\n\n" : "") +
+    "For security, change your password after your first sign-in.\n\n" +
+    "Oolivo Finance\nFinancial tools for modern businesses.";
+
+  const html =
+    "<!doctype html><html><body style='margin:0;padding:0;background:#f4f7fb;font-family:Arial,Helvetica,sans-serif;color:#182230'>" +
+    "<div style='padding:36px 14px'>" +
+    "<table role='presentation' cellpadding='0' cellspacing='0' border='0' width='100%' style='max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #e4e9ef;border-radius:18px;overflow:hidden'>" +
+    "<tr><td style='padding:28px 34px;background:#0b1118'>" +
+    "<div style='font-size:25px;font-weight:800;letter-spacing:-.5px;color:#ffffff'>Oolivo<span style='color:#31d583'> Finance</span></div>" +
+    "<div style='margin-top:7px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#9eabb9'>Your financial workspace</div>" +
+    "</td></tr>" +
+    "<tr><td style='padding:38px 34px 24px'>" +
+    "<div style='display:inline-block;padding:7px 10px;border-radius:999px;background:#e9fbf2;color:#148451;font-size:12px;font-weight:700'>ACCESS READY</div>" +
+    "<h1 style='font-size:28px;line-height:1.2;margin:18px 0 10px;color:#111827'>Welcome to Oolivo Finance</h1>" +
+    "<p style='font-size:15px;line-height:1.65;margin:0;color:#566273'>Your purchase has been confirmed. Your account is ready and your digital product is attached to this email.</p>" +
+    "</td></tr>" +
+    "<tr><td style='padding:0 34px 8px'>" +
+    "<table role='presentation' cellpadding='0' cellspacing='0' border='0' width='100%' style='background:#f7f9fb;border:1px solid #e4e9ef;border-radius:14px'>" +
+    "<tr><td style='padding:20px 22px'>" +
+    "<div style='font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#7b8796'>Account details</div>" +
+    "<div style='margin-top:14px;font-size:14px;color:#3d4856'><b>Product</b><br>" + safeProduct + "</div>" +
+    "<div style='margin-top:13px;font-size:14px;color:#3d4856'><b>Plan</b><br>" + safePlan + "</div>" +
+    "<div style='margin-top:13px;font-size:14px;color:#3d4856'><b>Email</b><br>" + safeEmail + "</div>" +
+    "</td></tr></table>" +
+    "</td></tr>" +
+    "<tr><td style='padding:24px 34px 10px'>" +
+    "<div style='font-size:12px;color:#7b8796;text-transform:uppercase;letter-spacing:.08em'>Your initial password</div>" +
+    "<div style='margin-top:9px;padding:14px 16px;border:1px dashed #cbd5e1;border-radius:10px;background:#fff;font-family:Consolas,monospace;font-size:17px;font-weight:700;color:#111827;letter-spacing:.04em'>" + safePassword + "</div>" +
+    "<p style='font-size:12px;line-height:1.6;color:#7b8796;margin:9px 0 0'>This password is temporary. Change it from Settings after signing in.</p>" +
+    "</td></tr>" +
+    "<tr><td style='padding:22px 34px 30px;text-align:center'>" +
+    "<a href='https://oolivo.com.br/account.html' style='display:inline-block;padding:14px 25px;border-radius:10px;background:#21c879;color:#06140d;text-decoration:none;font-size:14px;font-weight:800'>Open Oolivo Finance</a>" +
+    "</td></tr>" +
+    "<tr><td style='padding:22px 34px;border-top:1px solid #edf0f3;background:#fbfcfd'>" +
+    "<p style='margin:0;font-size:13px;line-height:1.6;color:#566273'>" +
+    (attachmentIncluded ? "Your spreadsheet is attached and is also available from your account dashboard. " : "Your digital product is available from your account dashboard. ") +
+    "For your security, never share your password.</p>" +
+    "<p style='margin:14px 0 0;font-size:11px;line-height:1.6;color:#8a95a3'>Oolivo Finance · oolivo.com.br<br>This is an automated transactional email related to your purchase.</p>" +
+    "</td></tr></table>" +
+    "</div></body></html>";
+
   const payload = JSON.stringify({
-    from: RESEND_FROM_EMAIL,
+    from: "Oolivo <noreply@oolivo.com.br>",
     to: [email],
-    subject: "Seu acesso ao GlobalTools foi liberado",
-    html:
-      "<div style='font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#172033'>" +
-      "<h1 style='margin-bottom:8px'>GlobalTools</h1>" +
-      "<p>Seu acesso ao painel financeiro foi liberado com sucesso.</p>" +
-      "<p><b>Produto:</b> " + productName + "</p>" +
-      "<p><b>Plano:</b> " + plan + "</p>" +
-      "<p><b>E-mail:</b> " + email + "</p>" +
-      "<p><b>Senha inicial:</b> " + password + "</p>" +
-      "<p style='margin:24px 0'><a href='https://oolivo.com.br/account.html' style='display:inline-block;padding:12px 18px;background:#111827;color:#fff;text-decoration:none;border-radius:8px'>Acessar meu painel</a></p>" +
-      "<p>O arquivo da sua compra está anexado a este e-mail.</p>" +
-      "<p>Ao entrar no painel, você também poderá baixar novamente os produtos liberados.</p>" +
-      "<p style='color:#667085;font-size:13px'>Por segurança, altere sua senha após o primeiro acesso.</p>" +
-      "</div>",
+    subject: "Welcome to Oolivo Finance — Your access is ready",
+    text,
+    html,
     attachments
   });
 
