@@ -51,4 +51,4 @@ for i in range(91):
  r=3+i;s.cell(r,1,"=Settings!$B$11" if i==0 else f"=A{r-1}+1");s.cell(r,1).number_format=df;s.cell(r,2,"=SUM(Accounts!$D$3:$D$100)" if i==0 else f"=I{r-1}");s.cell(r,3,f'=SUMIFS(Transactions!$H:$H,Transactions!$A:$A,A{r},Transactions!$E:$E,"Income",Transactions!$F:$F,"<>Cancelled")');s.cell(r,4,f'=SUMIFS(Transactions!$H:$H,Transactions!$A:$A,A{r},Transactions!$E:$E,"Expense",Transactions!$F:$F,"<>Cancelled")');s.cell(r,5,f"=C{r}-D{r}");s.cell(r,6,f'=SUMIFS(Receivables!$G:$G,Receivables!$D:$D,A{r},Receivables!$H:$H,"<>Paid")');s.cell(r,7,f'=SUMIFS(Payables!$G:$G,Payables!$D:$D,A{r},Payables!$H:$H,"<>Paid")');s.cell(r,8,f'=F{r}-G{r}+(AVERAGE(\'Monthly Summary\'!$D$3:$D$14)/30)');s.cell(r,9,f"=B{r}+H{r}");s.cell(r,10,f"=MAX(0,Settings!$B$12-I{r})")
  for c in range(2,11):s.cell(r,c).number_format=cur
 table(s,"A2:J93","CashForecastTable");s.freeze_panes="A3";widths(s,10)
-s["L4"]=
+s["L4"]="Forecast KPIs";
