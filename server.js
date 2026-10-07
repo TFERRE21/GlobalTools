@@ -18,7 +18,8 @@ const types = {
   ".png": "image/png",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
-  ".webp": "image/webp"
+  ".webp": "image/webp",
+  ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 };
 
 const server = http.createServer((req, res) => {
@@ -134,15 +135,15 @@ const server = http.createServer((req, res) => {
         res.writeHead(403, {"Content-Type":"text/plain; charset=utf-8","Cache-Control":"no-store"});
         return res.end("Payment not confirmed.");
       }
-      const filePath = path.join(root, "products", "small-business-finance-dashboard.html");
+      const filePath = path.join(root, "products", "GlobalTools-Small-Business-Finance-Dashboard-PRO.xlsx");
       if (!fs.existsSync(filePath)) {
-        res.writeHead(404, {"Content-Type":"text/plain; charset=utf-8"});
-        return res.end("Product file not found.");
+        res.writeHead(503, {"Content-Type":"text/plain; charset=utf-8","Cache-Control":"no-store"});
+        return res.end("The PRO workbook is still being prepared. Please try again in a moment.");
       }
       const data = fs.readFileSync(filePath);
       res.writeHead(200, {
-        "Content-Type":"text/html; charset=utf-8",
-        "Content-Disposition":"attachment; filename=\"GlobalTools-Small-Business-Finance-Dashboard.html\"",
+        "Content-Type":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Disposition":"attachment; filename=\"GlobalTools-Small-Business-Finance-Dashboard-PRO.xlsx\"",
         "Content-Length":data.length,
         "Cache-Control":"private, no-store"
       });
