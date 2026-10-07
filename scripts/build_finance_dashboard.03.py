@@ -1,4 +1,4 @@
-"Forecast KPIs";s["L4"].font=Font(size=14,bold=True,color=navy)
+s["L4"].font=Font(size=14,bold=True,color=navy)
 for r,label,formula,fmt in [(5,"Starting Cash","=B3",cur),(6,"90-Day Ending Cash","=I93",cur),(7,"Lowest Cash","=MIN(I3:I93)",cur),(8,"Lowest Cash Date","=INDEX(A3:A93,MATCH(M7,I3:I93,0))",df),(9,"Reserve Target","=Settings!B12",cur),(10,"Days Below Reserve",'=COUNTIF(I3:I93,"<"&Settings!B12)',"0")]:s[f"L{r}"]=label;s[f"M{r}"]=formula;s[f"M{r}"].number_format=fmt
 chart=LineChart();chart.title="90-Day Projected Closing Cash";chart.y_axis.title="Cash";chart.x_axis.title="Date";chart.add_data(Reference(s,min_col=9,min_row=2,max_row=93),titles_from_data=True);chart.set_categories(Reference(s,min_col=1,min_row=3,max_row=93));chart.height=8;chart.width=15;s.add_chart(chart,"L13")
 # Goals
