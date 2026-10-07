@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Purchase complete — GlobalTools</title>
+<meta name="description" content="Your GlobalTools digital product purchase is complete.">
+<link rel="stylesheet" href="/styles.css?v=20261007-03">
+<style>
+.success-page{min-height:100vh;background:#f7f8fa}.success-card{max-width:720px;margin:80px auto;padding:48px 28px;text-align:center;background:#fff;border:1px solid #e5e7eb;border-radius:20px;box-shadow:0 18px 45px #1118270d}.success-icon{width:64px;height:64px;margin:0 auto 20px;border-radius:50%;display:grid;place-items:center;background:#dcfce7;color:#15803d;font-size:30px;font-weight:900}.success-card h1{font-size:38px;margin:10px 0}.success-card p{color:#64748b;line-height:1.6}.download-btn{display:inline-block;margin-top:20px;padding:14px 24px;border-radius:9px;background:#111827;color:#fff;text-decoration:none;font-weight:800}.status{margin-top:18px;font-size:13px;color:#64748b}.error{color:#b91c1c}
+</style>
+</head>
+<body class="success-page">
+<header class="site-header global-header"><a class="brand" href="/"><span class="brand-mark">G</span><span>GlobalTools</span></a><nav class="main-nav"><a href="/">Tools</a><a href="/store.html">Store</a></nav></header>
+<main class="success-card">
+<div class="success-icon">✓</div>
+<div class="eyebrow">PAYMENT CONFIRMED</div>
+<h1>Thank you for your purchase!</h1>
+<p>Your payment was confirmed. Your Small Business Finance Dashboard is ready.</p>
+<div id="action"></div>
+<div id="status" class="status">Verifying your payment…</div>
+</main>
+<script>
+(function(){
+  const params=new URLSearchParams(location.search);
+  const id=params.get("session_id");
+  const action=document.getElementById("action"), status=document.getElementById("status");
+  if(!id){status.textContent="Checkout session not found. Please contact support.";status.className="status error";return;}
+  const url="/api/download-finance?session_id="+encodeURIComponent(id);
+  action.innerHTML='<a class="download-btn" href="'+url+'">Download your dashboard</a>';
+  status.textContent="Your secure download is available below.";
+})();
+</script>
+</body></html>
