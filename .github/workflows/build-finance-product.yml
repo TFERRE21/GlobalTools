@@ -1,9 +1,9 @@
-name: Build Finance Product
+name: Build PRO Finance Product
 
 on:
   push:
     paths:
-      - "scripts/**"
+      - "scripts/build_finance_product.py"
       - ".github/workflows/build-finance-product.yml"
   workflow_dispatch:
 
@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -25,11 +27,8 @@ jobs:
       - name: Install workbook engine
         run: python -m pip install --upgrade openpyxl
 
-      - name: Assemble generator
-        run: cat scripts/build_finance_dashboard.01.py scripts/build_finance_dashboard.02.py scripts/build_finance_dashboard.03.py > /tmp/build_finance_dashboard.py
-
       - name: Generate PRO workbook
-        run: python /tmp/build_finance_dashboard.py
+        run: python scripts/build_finance_product.py
 
       - name: Commit generated product
         run: |
@@ -39,6 +38,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "Workbook is already up to date."
           else
-            git commit -m "Build PRO finance workbook"
+            git commit -m "Build PRO finance workbook [skip ci]"
             git push
           fi
