@@ -1,0 +1,10 @@
+[{
+  "id": "usr_test_globaltools_2026",
+  "email": "teste@globaltools.com.br",
+  "passwordSalt": "676c6f62616c746f6f6c732d746573742d73616c742d32303236",
+  "passwordHash": "1bcba419e7c876f053bfee2992387ab951eaba98e7152dc8e7c60bb68fb46fa3873452f8d5272392624183bacf1eba63e028ad3f5abf6bc5a0ae942acccedf2e",
+  "plan": "unlimited",
+  "products": ["small-business-finance-dashboard", "cash-flow-planner", "freelancer-business-kit"],
+  "createdAt": "2026-10-07T12:00:00.000Z",
+  "updatedAt": "2026-10-07T12:00:00.000Z"
+}]
