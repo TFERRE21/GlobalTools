@@ -412,6 +412,24 @@ const gateway = http.createServer(async (req, res) => {
       });
       return;
     }
+    if (url.pathname === "/account.html" && req.method === "GET" && url.searchParams.get("session_id")) {
+      const sessionId = String(url.searchParams.get("session_id") || "");
+      stripeRequest("GET", "/v1/checkout/sessions/" + encodeURIComponent(sessionId), null, (err, session) => {
+        if (!err) {
+          const slug = session.metadata?.product_slug;
+          const email = sanitizeEmail(session.customer_details?.email || session.customer_email);
+          const valid = (session.payment_status === "paid" || Number(session.amount_total || 0) === 0) && PRODUCTS[slug] && email;
+          if (valid) {
+            const created = upsertUser(email, planForProduct(slug), slug, false, false);
+            setSession(res, created.user.id);
+            url.searchParams.delete("session_id");
+            req.url = url.pathname + (url.search ? url.search : "");
+          }
+        }
+        return proxy(req, res);
+      });
+      return;
+    }
     if (url.pathname === "/login.html" || url.pathname === "/account.html" || url.pathname === "/account-success.html") {
       return proxy(req, res);
     }
