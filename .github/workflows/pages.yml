@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -23,25 +23,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install workbook engine
-        run: python -m pip install --upgrade openpyxl
-
-      - name: Build PRO finance workbook
-        run: |
-          cat scripts/build_finance_dashboard.01.py scripts/build_finance_dashboard.02.py scripts/build_finance_dashboard.03.py > /tmp/build_finance_dashboard.py
-          python /tmp/build_finance_dashboard.py
-
-      - name: Publish PRO workbook
-        uses: EndBug/add-and-commit@v9
-        with:
-          add: "products/GlobalTools-Small-Business-Finance-Dashboard-PRO.xlsx"
-          message: "Build PRO finance workbook"
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
