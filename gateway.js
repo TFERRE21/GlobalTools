@@ -319,6 +319,27 @@ const gateway = http.createServer(async (req, res) => {
       setSession(res, u.id);
       return json(res, 200, { ok: true, user: publicUser(u) });
     }
+    if (req.method === "POST" && url.pathname === "/api/change-password") {
+      const u = userFromRequest(req);
+      if (!u) return json(res, 401, { ok: false, error: "Faça login para alterar sua senha." });
+      const b = await body(req);
+      const currentPassword = String(b.current_password || "").trim();
+      const newPassword = String(b.new_password || "").trim();
+      if (!currentPassword || !newPassword) return json(res, 400, { ok: false, error: "Informe a senha atual e a nova senha." });
+      if (newPassword.length < 8) return json(res, 400, { ok: false, error: "A nova senha deve ter pelo menos 8 caracteres." });
+      if (!u.passwordSalt || hashPassword(currentPassword, u.passwordSalt) !== u.passwordHash) {
+        return json(res, 401, { ok: false, error: "A senha atual está incorreta." });
+      }
+      const users = readUsers();
+      const target = users.find(x => x.id === u.id);
+      if (!target) return json(res, 404, { ok: false, error: "Conta não encontrada." });
+      target.passwordSalt = crypto.randomBytes(16).toString("hex");
+      target.passwordHash = hashPassword(newPassword, target.passwordSalt);
+      target.passwordDeliveredAt = new Date().toISOString();
+      target.updatedAt = new Date().toISOString();
+      writeUsers(users);
+      return json(res, 200, { ok: true });
+    }
     if (req.method === "POST" && url.pathname === "/api/logout") {
       clearSession(req, res);
       return json(res, 200, { ok: true });
