@@ -9,7 +9,7 @@ const ROOT = __dirname;
 const PORT = Number(process.env.PORT || 3000);
 const CORE_PORT = Number(process.env.CORE_PORT || (PORT === 3000 ? 3001 : PORT + 1));
 const PUBLIC_SITE_URL = (process.env.PUBLIC_SITE_URL || "").replace(/\/$/, "");
-const DATA_DIR = path.join(ROOT, "data");
+const DATA_DIR = process.env.GLOBALTOOLS_DATA_DIR || process.env.DATA_DIR || path.join(ROOT, "data");
 const USERS_FILE = path.join(DATA_DIR, "users.json");
 const FINANCE_PREFIX = "finance-";
 const SESSION_COOKIE = "gt_session";
@@ -243,7 +243,7 @@ function sendAccessEmail(email, password, plan, callback) {
   r.on("error",e=>callback(false,e,0)); r.write(payload); r.end();
 }
 function publicUser(u) {
-  return { id: u.id, email: u.email, plan: u.plan, planLabel: PLANS[u.plan]?.label || u.plan, products: u.products, permissions: permissions(u.plan) };
+  return { id: u.id, email: u.email, plan: u.plan, planLabel: PLANS[u.plan]?.label || u.plan, products: u.products, subscriptionActive: !!u.subscriptionId, permissions: permissions(u.plan) };
 }
 function proxy(req, res) {
   const r = http.request({
@@ -342,6 +342,42 @@ const gateway = http.createServer(async (req, res) => {
       const b = await body(req);
       writeFinance(u.id, b.data);
       return json(res, 200, { ok: true, data: readFinance(u.id) });
+    }
+    if (req.method === "POST" && url.pathname === "/api/billing-portal") {
+      const u = userFromRequest(req);
+      if (!u) return json(res, 401, { ok: false, error: "Faça login para gerenciar seu plano." });
+      if (!u.stripeCustomerId) return json(res, 400, { ok: false, error: "Esta conta ainda não possui uma assinatura Stripe ativa." });
+      const site = PUBLIC_SITE_URL || "http://" + (req.headers.host || "localhost");
+      const form = [["customer", u.stripeCustomerId], ["return_url", site + "/account.html"]].map(([k,v]) => enc(k) + "=" + enc(v)).join("&");
+      stripeRequest("POST", "/v1/billing_portal/sessions", form, (err, session) => {
+        if (err) return json(res, 400, { ok: false, error: err.message });
+        json(res, 200, { ok: true, url: session.url });
+      });
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/api/confirm-upgrade") {
+      const u = userFromRequest(req);
+      if (!u) return json(res, 401, { ok: false, error: "Faça login para confirmar o plano." });
+      const b = await body(req);
+      const sessionId = String(b.session_id || "");
+      if (!sessionId) return json(res, 400, { ok: false, error: "Sessão de pagamento ausente." });
+      stripeRequest("GET", "/v1/checkout/sessions/" + encodeURIComponent(sessionId), null, (err, session) => {
+        if (err) return json(res, 400, { ok: false, error: "Não foi possível validar o pagamento." });
+        const meta = session.metadata || {};
+        const requested = String(meta.access_plan || "").toLowerCase();
+        const sameUser = String(meta.account_user_id || "") === String(u.id);
+        if (!sameUser || !UPGRADE_PRICES[requested] || session.mode !== "subscription" || session.payment_status !== "paid") return json(res, 403, { ok: false, error: "Upgrade não confirmado." });
+        const users = readUsers();
+        const target = users.find(x => x.id === u.id);
+        if (!target) return json(res, 404, { ok: false, error: "Conta não encontrada." });
+        target.plan = requested;
+        if (session.customer) target.stripeCustomerId = session.customer;
+        if (session.subscription) target.subscriptionId = session.subscription;
+        target.updatedAt = new Date().toISOString();
+        writeUsers(users);
+        return json(res, 200, { ok: true, user: publicUser(target) });
+      });
+      return;
     }
     if (req.method === "POST" && url.pathname === "/api/upgrade") {
       const u = userFromRequest(req);
