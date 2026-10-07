@@ -134,7 +134,8 @@ function toast(s){$("toast").textContent=s;$("toast").classList.add("show");setT
 async function saveData(silent=false){if(!DATA)return false;const x=await api("/api/finance/data",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({data:DATA})});if(!x.r.ok){toast(x.j.error||"Erro ao salvar");return false}if(!silent)toast("Dados salvos com sucesso");return true}
 function applyTheme(theme){document.body.classList.toggle("light",theme==="light");$("themeBtn").textContent=theme==="light"?"☾ Tema escuro":"☀ Tema claro";localStorage.setItem("gt_theme",theme);if(DATA&&DATA.settings)DATA.settings.theme=theme}
 function go(p){const page=$(p);if(!page){toast("Seção indisponível.");return}document.querySelectorAll(".nav button[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===p));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));page.classList.add("active");const b=document.querySelector('.nav button[data-page="'+p+'"]');$("pageTitle").textContent=b?b.textContent.replace(/^[^ ]+ /,""):"Dashboard";if(DATA)renderPage(p);applyLanguage(DATA?.settings?.language||"English")}
-function nav(){document.querySelectorAll(".nav button[data-page]").forEach(b=>b.onclick=()=>go(b.dataset.page))}
+function nav(){document.querySelectorAll(".nav button[data-page]").forEach(b=>{b.onclick=null;b.addEventListener("click",()=>go(b.dataset.page))})}
+document.addEventListener("click",e=>{const b=e.target.closest(".nav button[data-page]");if(!b)return;e.preventDefault();go(b.dataset.page)});
 function modal(title,html,save){$("modalTitle").textContent=title;$("modalBody").innerHTML=html;$("modal").classList.add("show");currentModalSave=save}
 $("modalClose").onclick=()=>$("modal").classList.remove("show");
 function input(n,l,t="text",v="",extra=""){return '<div class="field"><label>'+l+'</label><input id="m_'+n+'" type="'+t+'" value="'+esc(v)+'" '+extra+'></div>'}
