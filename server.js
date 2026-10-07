@@ -296,7 +296,8 @@ const server = http.createServer((req, res) => {
   const ext = path.extname(finalPath).toLowerCase();
   if (ext === ".html") {
     let html = fs.readFileSync(finalPath, "utf8");
-    if (!html.includes("G-DM7CKZRD30")) html = html.replace(/<head>/i, `<head><script async src="https://www.googletagmanager.com/gtag/js?id=G-DM7CKZRD30"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-DM7CKZRD30");</script>`);\n    if (!html.includes("/language.js")) html = html.replace(/<\\/head>/i, `<script defer src="/language.js?v=20261007-01"></script></head>`);
+    if (!html.includes("G-DM7CKZRD30")) html = html.replace(/<head>/i, `<head><script async src="https://www.googletagmanager.com/gtag/js?id=G-DM7CKZRD30"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-DM7CKZRD30");</script>`);
+    if (!html.includes("/language.js")) html = html.replace(/<\\/head>/i, `<script defer src="/language.js?v=20261007-01"></script></head>`);
     res.writeHead(200, {"Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"});
     return res.end(html);
   }
