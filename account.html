@@ -232,8 +232,43 @@ function renderDashboard(){
   $("dashNotice").textContent="Painel pronto. Use os botões para lançar, planejar, analisar e salvar seus dados.";
 }
 function renderTx(){const q=($("txSearch")?.value||"").toLowerCase(),f=$("txFilter")?.value||"all";let a=DATA.transactions.filter(x=>(f==="all"||x.type===f)&&(!q||String(x.description+" "+x.category).toLowerCase().includes(q))).sort((a,b)=>String(b.date).localeCompare(String(a.date)));$("txTable").innerHTML=a.map(x=>'<tr><td>'+esc(x.date)+'</td><td>'+esc(x.description)+'</td><td>'+esc(x.type)+'</td><td>'+esc(x.category)+'</td><td>'+esc(x.account)+'</td><td class="'+(x.type==="income"?"positive":x.type==="expense"?"negative":"")+'">'+money(x.amount,DATA.settings.currency)+'</td><td>'+esc(x.status||"confirmed")+'</td><td><button class="btn-small" onclick="editTx(\''+x.id+'\')">Editar</button> <button class="btn-small btn-danger" onclick="delItem(\'transactions\',\''+x.id+'\')">Excluir</button></td></tr>').join("")||'<tr><td colspan="8" class="empty">Nenhum lançamento.</td></tr>'}
-function openTx(existing=null){const x=existing||{};modal(existing?"Editar lançamento":"Novo lançamento",'<div class="form">'+input("date","Data","date",x.date||today())+input("description","Descrição","text",x.description||"")+select("type","Tipo",["income","expense","transfer"],x.type||"expense")+input("amount","Valor","number",x.amount||0,"step=0.01")+select("category","Categoria",catNames(),x.category||catNames()[0])+select("account","Conta",accountNames(),x.account||accountNames()[0])+select("status","Status",["confirmed","planned","pending"],x.status||"confirmed")+input("project","Projeto / centro","text",x.project||"")+'<div class="field wide"><label>Observações</label><textarea id="m_notes">'+esc(x.notes||"")+'</textarea></div></div><button class="btn-green" id="m_save">Salvar lançamento</button>',()=>{const v={id:x.id||uid("tx"),date:$("m_date").value,description:$("m_description").value,type:$("m_type").value,amount:Number($("m_amount").value||0),category:$("m_category").value,account:$("m_account").value,status:$("m_status").value,project:$("m_project").value,notes:$("m_notes").value};if(existing){const i=DATA.transactions.findIndex(z=>z.id===x.id);DATA.transactions[i]=v}else DATA.transactions.push(v);$("modal").classList.remove("show");saveData(true).then(()=>{renderAll();toast("Lançamento salvo")})});$("m_save").onclick=currentModalSave}
+function openTx(existing=null){
+  const x=existing||{};
+  const cat=catNames(),acc=accountNames(),projects=(DATA.projects||[]).map(p=>p.name);
+  const categoryField='<div class="field"><label>Categoria</label><div class="row"><select id="m_category" style="flex:1">'+cat.map(v=>'<option value="'+esc(v)+'" '+(v===(x.category||cat[0])?"selected":"")+'>'+esc(v)+'</option>').join("")+'</select><button type="button" class="btn-small" onclick="quickAddCategory()">+ Cadastrar</button></div></div>';
+  const accountField='<div class="field"><label>Conta</label><div class="row"><select id="m_account" style="flex:1">'+acc.map(v=>'<option value="'+esc(v)+'" '+(v===(x.account||acc[0])?"selected":"")+'>'+esc(v)+'</option>').join("")+'</select><button type="button" class="btn-small" onclick="quickAddAccount()">+ Cadastrar</button></div></div>';
+  const projectField='<div class="field"><label>Centro / projeto</label><div class="row"><select id="m_project" style="flex:1"><option value="">Sem projeto</option>'+projects.map(v=>'<option value="'+esc(v)+'" '+(v===(x.project||"")?"selected":"")+'>'+esc(v)+'</option>').join("")+'</select><button type="button" class="btn-small" onclick="quickAddProject()">+ Cadastrar</button></div></div>';
+  modal(existing?"Editar lançamento":"Novo lançamento",'<div class="form">'+input("date","Data","date",x.date||today())+input("description","Descrição","text",x.description||"")+select("type","Tipo",["income","expense","transfer"],x.type||"expense")+input("amount","Valor","number",x.amount||0,"step=0.01")+categoryField+accountField+select("status","Status",["confirmed","planned","pending"],x.status||"confirmed")+projectField+'<div class="field wide"><label>Observações</label><textarea id="m_notes">'+esc(x.notes||"")+'</textarea></div></div><button type="button" class="btn-green" id="m_save">Salvar lançamento</button>',()=>{const v={id:x.id||uid("tx"),date:$("m_date").value,description:$("m_description").value,type:$("m_type").value,amount:Number($("m_amount").value||0),category:$("m_category").value,account:$("m_account").value,status:$("m_status").value,project:$("m_project").value,notes:$("m_notes").value};if(existing){const i=DATA.transactions.findIndex(z=>z.id===x.id);DATA.transactions[i]=v}else DATA.transactions.push(v);$("modal").classList.remove("show");saveData(true).then(()=>{renderAll();toast("Lançamento salvo")})});$("m_save").onclick=currentModalSave}
 function editTx(id){const x=DATA.transactions.find(z=>z.id===id);if(x)openTx(x)}
+function quickAddCategory(){
+  const name=prompt("Nome da categoria:","");
+  if(!name||!name.trim())return;
+  const n=name.trim();
+  if(DATA.categories.some(x=>String(x).toLowerCase()===n.toLowerCase())){toast("Categoria já cadastrada");return}
+  DATA.categories.push(n);
+  saveData(true).then(()=>{renderAll();openTx();toast("Categoria cadastrada")});
+}
+function quickAddAccount(){
+  const name=prompt("Nome da conta:","");
+  if(!name||!name.trim())return;
+  const n=name.trim();
+  if(DATA.accounts.some(x=>String(x.name).toLowerCase()===n.toLowerCase())){toast("Conta já cadastrada");return}
+  const type=prompt("Tipo da conta:","Conta corrente")||"Conta corrente";
+  const currency=prompt("Moeda:","BRL")||DATA.settings.currency||"BRL";
+  const balance=Number(prompt("Saldo inicial:","0")||0);
+  DATA.accounts.push({id:uid("acc"),name:n,type,currency,balance});
+  saveData(true).then(()=>{renderAll();openTx();toast("Conta cadastrada")});
+}
+function quickAddProject(){
+  const name=prompt("Nome do projeto / centro de custo:","");
+  if(!name||!name.trim())return;
+  const n=name.trim();
+  if(DATA.projects.some(x=>String(x.name).toLowerCase()===n.toLowerCase())){toast("Projeto/centro já cadastrado");return}
+  const budget=Number(prompt("Orçamento do projeto:","0")||0);
+  const costCenter=prompt("Centro de custo:","Geral")||"Geral";
+  DATA.projects.push({id:uid("proj"),name:n,budget,costCenter});
+  saveData(true).then(()=>{renderAll();openTx();toast("Projeto/centro cadastrado")});
+}
 function renderAccounts(){const c=DATA.settings.currency;$("accountCards").innerHTML=DATA.accounts.map(a=>'<div class="kpi"><div class="label">'+esc(a.name)+'</div><div class="value">'+money(a.balance,a.currency||c)+'</div><div class="sub">'+esc(a.type)+'</div></div>').join("")||'<div class="empty">Cadastre uma conta.</div>';$("accountsTable").innerHTML=DATA.accounts.map(a=>'<tr><td>'+esc(a.name)+'</td><td>'+esc(a.type)+'</td><td>'+esc(a.currency)+'</td><td>'+money(a.balance,a.currency||c)+'</td><td><button class="btn-small" onclick="editAccount(\''+a.id+'\')">Editar</button> <button class="btn-small btn-danger" onclick="delItem(\'accounts\',\''+a.id+'\')">Excluir</button></td></tr>').join("")||'<tr><td colspan="5" class="empty">Nenhuma conta.</td></tr>'}
 function addAccount(existing=null){const x=existing||{};modal(existing?"Editar conta":"Nova conta",'<div class="form">'+input("name","Nome", "text",x.name||"")+select("type","Tipo",["Conta corrente","Poupança","Carteira","Investimento","Outro"],x.type||"Conta corrente")+select("currency","Moeda",["BRL","USD","EUR","GBP"],x.currency||DATA.settings.currency)+input("balance","Saldo","number",x.balance||0,"step=0.01")+'</div><button class="btn-green" id="m_save">Salvar</button>',()=>{const v={id:x.id||uid("acc"),name:$("m_name").value,type:$("m_type").value,currency:$("m_currency").value,balance:Number($("m_balance").value||0)};if(existing)DATA.accounts[DATA.accounts.findIndex(z=>z.id===x.id)]=v;else DATA.accounts.push(v);$("modal").classList.remove("show");saveData(true).then(()=>{renderAll();toast("Conta salva")})});$("m_save").onclick=currentModalSave}
 function editAccount(id){const x=DATA.accounts.find(z=>z.id===id);if(x)addAccount(x)}
