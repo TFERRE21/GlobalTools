@@ -12,7 +12,7 @@ body.light{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f9fb;--line:#d9e0e8;--text:#172
 body{background:radial-gradient(circle at top right,rgba(50,213,131,.06),transparent 32%),var(--bg)}
 button,input,select,textarea{font:inherit}button{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:9px;padding:9px 13px;font-weight:700;cursor:pointer}button:hover{filter:brightness(1.08)}button:disabled{opacity:.5;cursor:not-allowed}
 .btn-green{background:var(--green);color:#06140d;border-color:var(--green)}.btn-danger{background:transparent;color:var(--red);border-color:var(--red)}.btn-small{padding:6px 9px;font-size:12px}.icon-btn{padding:8px 10px}
-.layout{display:flex;min-height:100vh}.sidebar{width:250px;position:sticky;top:0;height:100vh;overflow:auto;background:var(--panel);border-right:1px solid var(--line);padding:18px 13px}.brand{font-size:21px;font-weight:900;margin:4px 8px 20px}.brand span{color:var(--green)}.nav .group{margin:17px 8px 6px;color:var(--muted);font-size:10px;text-transform:uppercase;font-weight:900;letter-spacing:.09em}.nav button{display:block;width:100%;border:0;background:transparent;text-align:left;color:var(--muted);margin:2px 0;padding:10px 11px}.nav button.active,.nav button:hover{background:var(--panel2);color:var(--text)}
+.layout{display:flex;min-height:100vh}.sidebar{width:250px;position:sticky;top:0;height:100vh;overflow:auto;background:var(--panel);border-right:1px solid var(--line);padding:18px 13px;z-index:100}.nav,.nav button,.topbar,.actions{position:relative;z-index:101}.nav button{pointer-events:auto}.modal:not(.show),.toast:not(.show){pointer-events:none}.brand{font-size:21px;font-weight:900;margin:4px 8px 20px}.brand span{color:var(--green)}.nav .group{margin:17px 8px 6px;color:var(--muted);font-size:10px;text-transform:uppercase;font-weight:900;letter-spacing:.09em}.nav button{display:block;width:100%;border:0;background:transparent;text-align:left;color:var(--muted);margin:2px 0;padding:10px 11px}.nav button.active,.nav button:hover{background:var(--panel2);color:var(--text)}
 .main{flex:1;min-width:0;max-width:1700px;margin:auto;padding:22px}.topbar{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:16px}.topbar h1{margin:0;font-size:25px}.user{color:var(--muted);margin-top:5px}.actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.page{display:none}.page.active{display:block}
 .notice{padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--muted);margin-bottom:12px}.notice.error{color:var(--red)}
 .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.kpi{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px}.kpi .label{font-size:11px;color:var(--muted)}.kpi .value{font-size:24px;font-weight:900;margin-top:7px}.kpi .sub{font-size:11px;color:var(--muted);margin-top:5px}.positive{color:var(--green)}.negative{color:var(--red)}.gold{color:var(--gold)}.blue{color:var(--blue)}
@@ -123,6 +123,30 @@ button,input,select,textarea{font:inherit}button{border:1px solid var(--line);ba
 </div>
 <div id="modal" class="modal"><div class="modalbox"><div class="modalhead"><h2 id="modalTitle">Novo registro</h2><button id="modalClose">Fechar</button></div><div id="modalBody"></div></div></div>
 <div id="toast" class="toast"></div>
+<script>
+(function(){
+  function routeClick(e){
+    var b=e.target&&e.target.closest?e.target.closest(".nav button[data-page]"):null;
+    if(!b)return;
+    e.preventDefault();
+    e.stopPropagation();
+    var p=b.getAttribute("data-page"), page=document.getElementById(p);
+    if(!page)return;
+    document.querySelectorAll(".nav button[data-page]").forEach(function(x){x.classList.toggle("active",x===b)});
+    document.querySelectorAll(".page").forEach(function(x){x.classList.remove("active")});
+    page.classList.add("active");
+    var title=document.getElementById("pageTitle");
+    if(title)title.textContent=b.textContent.replace(/^[^A-Za-zÀ-ÿ]+/,"").trim();
+    try{if(typeof DATA!=="undefined"&&DATA&&typeof renderPage==="function")renderPage(p)}catch(err){console.error("[GlobalTools navigation]",err)}
+    try{if(typeof applyLanguage==="function")applyLanguage((DATA&&DATA.settings&&DATA.settings.language)||"English")}catch(err){console.error("[GlobalTools language]",err)}
+  }
+  document.addEventListener("click",routeClick,true);
+  document.addEventListener("pointerup",function(e){
+    var b=e.target&&e.target.closest?e.target.closest(".nav button[data-page]"):null;
+    if(b && e.button===0){try{b.focus()}catch(_){}} 
+  },true);
+})();
+</script>
 <script>
 let ME=null,DATA=null,currentModalSave=null;
 const $=id=>document.getElementById(id), esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])), uid=p=>(p||"id")+"_"+Date.now().toString(36)+Math.random().toString(36).slice(2,7), today=()=>new Date().toISOString().slice(0,10), month=d=>String(d||"").slice(0,7);
