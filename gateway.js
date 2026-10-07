@@ -194,11 +194,11 @@ function verifyStripe(raw, sig) {
   return vs.some(v => { try { return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(v)); } catch { return false; } });
 }
 function planForProduct(slug) { return PRODUCTS[slug]?.plan || "starter"; }
-function upsertUser(email, plan, productSlug) {
+function upsertUser(email, plan, productSlug, forceNewPassword = false) {
   const users = readUsers();
   let u = users.find(x => x.email === email);
   let generatedPassword = null;
-  const firstActivation = !u || !u.passwordDeliveredAt;
+  const firstActivation = !u || !u.passwordDeliveredAt || forceNewPassword;
   if (!u) {
     u = {
       id: "usr_" + crypto.randomBytes(9).toString("hex"),
@@ -303,7 +303,7 @@ const gateway = http.createServer(async (req, res) => {
         const slug = session.metadata?.product_slug;
         const email = sanitizeEmail(session.customer_details?.email || session.customer_email);
         if ((session.payment_status !== "paid" && Number(session.amount_total || 0) !== 0) || !PRODUCTS[slug] || !email) return json(res, 403, { ok: false, error: "Pagamento não confirmado ou produto inválido." });
-        const created = upsertUser(email, planForProduct(slug), slug);
+        const created = upsertUser(email, planForProduct(slug), slug, Number(session.amount_total || 0) === 0);
         setSession(res, created.user.id);
         if (created.generatedPassword) {
           return sendAccessEmail(email, created.generatedPassword, PLANS[created.user.plan]?.label || created.user.plan, (sent) => {
@@ -369,7 +369,10 @@ const gateway = http.createServer(async (req, res) => {
         if (event.type === "checkout.session.completed") {
           const slug = obj.metadata?.product_slug;
           const email = sanitizeEmail(obj.customer_details?.email || obj.customer_email);
-          if (email && PRODUCTS[slug] && obj.payment_status === "paid") upsertUser(email, planForProduct(slug), slug);
+          if (email && PRODUCTS[slug] && (obj.payment_status === "paid" || Number(obj.amount_total || 0) === 0)) {
+            const created = upsertUser(email, planForProduct(slug), slug);
+            if (created.generatedPassword) sendAccessEmail(email, created.generatedPassword, PLANS[created.user.plan]?.label || created.user.plan, () => {});
+          }
           if (obj.mode === "subscription" && obj.metadata?.account_user_id && obj.metadata?.access_plan) {
             const users = readUsers(); const u = users.find(x => x.id === obj.metadata.account_user_id);
             if (u) { u.plan = obj.metadata.access_plan; u.stripeCustomerId = obj.customer; u.subscriptionId = obj.subscription; writeUsers(users); }
