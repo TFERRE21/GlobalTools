@@ -118,6 +118,70 @@ const server = http.createServer((req, res) => {
     });
   }
 
+  if (urlPath === "/api/support/chat" && req.method === "POST") {
+    return readBody(req, async (bodyErr, rawBody) => {
+      let payload = {};
+      try { payload = rawBody ? JSON.parse(rawBody) : {}; } catch {}
+      const message = String(payload.message || "").trim().slice(0, 1000);
+      const messages = Array.isArray(payload.messages) ? payload.messages.slice(-12).map(m => ({
+        role: m && m.role === "assistant" ? "assistant" : "user",
+        content: String((m && m.content) || "").slice(0, 1200)
+      })) : [];
+      if (!message) {
+        res.writeHead(400, {"Content-Type":"application/json; charset=utf-8"});
+        return res.end(JSON.stringify({error:"Message is required."}));
+      }
+      const fallback = () => {
+        const q = message.toLowerCase();
+        if (q.includes("compr") || q.includes("buy") || q.includes("produto") || q.includes("purchase")) return "You can open the Store and choose a product. Checkout is handled securely by Stripe. After confirmed payment, the PRO Excel download is available on the success page.";
+        if (q.includes("download") || q.includes("baix") || q.includes("arquivo")) return "If you already paid and the download failed, open a support ticket and include the product name and the email used at checkout. Never send card details.";
+        if (q.includes("pagamento") || q.includes("payment") || q.includes("stripe")) return "Payments are processed by Stripe. GlobalTools does not receive or store your full card number. If payment was completed but the product was not delivered, open a support ticket.";
+        if (q.includes("ferramenta") || q.includes("tool") || q.includes("erro") || q.includes("problem")) return "Tell me the name of the tool, what you were trying to do, your browser and what happened. You can also open a support ticket for follow-up.";
+        return "I can help with GlobalTools tools, purchases, payments and digital product downloads. If you need a person to follow up, use “Open a support ticket”.";
+      };
+      if (!process.env.OPENAI_API_KEY) {
+        res.writeHead(200, {"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"});
+        return res.end(JSON.stringify({ok:true,resposta:fallback()}));
+      }
+      const inputMessages = [
+        {role:"system",content:"You are the GlobalTools customer support assistant. Answer in the user's language. Be concise, friendly and practical. Help with free tools, digital products, Stripe checkout, Excel downloads and support tickets. Never ask for or request card numbers, passwords, API keys or other secrets. If a problem requires human follow-up, tell the user to open a support ticket. Do not invent refunds, purchases, account data or technical actions."},
+        ...messages,
+        {role:"user",content:message}
+      ];
+      const body = JSON.stringify({model:process.env.OPENAI_MODEL || "gpt-4o-mini",messages:inputMessages,temperature:0.2,max_tokens:350});
+      const aiReq=https.request({hostname:"api.openai.com",path:"/v1/chat/completions",method:"POST",headers:{"Authorization":"Bearer "+process.env.OPENAI_API_KEY,"Content-Type":"application/json","Content-Length":Buffer.byteLength(body)}},aiRes=>{
+        let raw="";aiRes.on("data",x=>raw+=x);aiRes.on("end",()=>{
+          try{const j=JSON.parse(raw);const text=j&&j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content;if(aiRes.statusCode>=200&&aiRes.statusCode<300&&text){res.writeHead(200,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"});return res.end(JSON.stringify({ok:true,resposta:text.trim()}));}}catch{}
+          res.writeHead(200,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"});res.end(JSON.stringify({ok:true,resposta:fallback()}));
+        });
+      });
+      aiReq.on("error",()=>{res.writeHead(200,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"});res.end(JSON.stringify({ok:true,resposta:fallback()}));});
+      aiReq.write(body);aiReq.end();
+    });
+  }
+
+  if (urlPath === "/api/support/ticket" && req.method === "POST") {
+    return readBody(req, (bodyErr, rawBody) => {
+      let payload = {};
+      try { payload = rawBody ? JSON.parse(rawBody) : {}; } catch {}
+      const name=String(payload.name||"").trim().slice(0,120), email=String(payload.email||"").trim().slice(0,180), priority=String(payload.priority||"normal").slice(0,20), message=String(payload.message||"").trim().slice(0,3000), page=String(payload.page||"").slice(0,500);
+      if(!name||!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)||!message){
+        res.writeHead(400,{"Content-Type":"application/json; charset=utf-8"});return res.end(JSON.stringify({error:"Name, valid email and message are required."}));
+      }
+      const ticketId="GT-"+Date.now().toString(36).toUpperCase()+"-"+crypto.randomBytes(2).toString("hex").toUpperCase();
+      const dir=path.join(root,"data");const file=path.join(dir,"support-tickets.json");
+      try{
+        fs.mkdirSync(dir,{recursive:true});
+        let tickets=[];if(fs.existsSync(file)){try{tickets=JSON.parse(fs.readFileSync(file,"utf8"))||[]}catch{}}
+        tickets.push({ticketId,createdAt:new Date().toISOString(),status:"open",name,email,priority,message,page});
+        fs.writeFileSync(file,JSON.stringify(tickets,null,2));
+      }catch(e){console.error("[support] ticket storage error",e.message)}
+      console.log("[support] ticket",ticketId,priority,email);
+      res.writeHead(200,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"});
+      res.end(JSON.stringify({ok:true,ticketId}));
+    });
+  }
+
   if (urlPath === "/api/create-checkout-session" && req.method === "POST") {
     return readBody(req, (bodyErr, rawBody) => {
       let payload = {};
@@ -300,7 +364,7 @@ const server = http.createServer((req, res) => {
         '<section class="info"><h2>Sobre '+safe(name)+'</h2><p>'+safe(purpose)+'</p><h2>Como usar</h2><ol>'+steps+'</ol><h2>Exemplo prático</h2><p>'+safe(example)+'</p><h2>Limitações e cuidados</h2><p>'+safe(notes)+'</p><h2>Perguntas frequentes</h2><div class="faq">'+faqHtml+'</div>',
         related.length?'<h2>Ferramentas relacionadas</h2><div class="related-tools">'+relatedHtml+'</div>':'',
         '<h2>Privacidade e processamento</h2><p>O Oolivo prioriza processamento no navegador quando isso é tecnicamente possível. Para saber mais sobre cookies, publicidade, Analytics e serviços externos, consulte a <a href="/privacy.html">Política de Privacidade</a>. Para dúvidas ou relatos de erros, use a <a href="/contato.html">página de contato</a>.</p></section></main>',
-        '<footer class="site-footer"><div><div class="brand"><span class="brand-mark">O</span>Oolivo</div><p>Ferramentas online gratuitas para todos.</p></div><div class="footer-links"><a href="/sobre.html">Sobre</a><a href="/contato.html">Contato</a><a href="/privacy.html">Privacidade</a><a href="/terms.html">Termos</a></div></footer></body></html>'
+        '<footer class="site-footer"><div><div class="brand"><span class="brand-mark">O</span>Oolivo</div><p>Ferramentas online gratuitas para todos.</p></div><div class="footer-links"><a href="/sobre.html">Sobre</a><a href="/contato.html">Contato</a><a href="/privacy.html">Privacidade</a><a href="/terms.html">Termos</a></div></footer><script src="/support.js?v=20261007-01"></script></body></html>'
       ].join('');
       res.writeHead(200, {"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-cache, no-store, must-revalidate"});
       return res.end(html);
@@ -326,7 +390,7 @@ const server = http.createServer((req, res) => {
   if (ext === ".html") {
     let html = fs.readFileSync(finalPath, "utf8");
     if (!html.includes("G-DM7CKZRD30")) html = html.replace(/<head>/i, `<head><script async src="https://www.googletagmanager.com/gtag/js?id=G-DM7CKZRD30"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-DM7CKZRD30");</script>`);
-    if (!html.includes("/language.js")) html = html.replace(/<\/head>/i, `<script defer src="/language.js?v=20261007-01"></script></head>`);
+    if (!html.includes("/language.js")) html = html.replace(/<\/head>/i, `<script defer src="/language.js?v=20261007-01"></script></head>`);\n    if (!html.includes("/support.js")) html = html.replace(/<\/body>/i, `<script defer src="/support.js?v=20261007-01"></script></body>`);
     res.writeHead(200, {"Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate"});
     return res.end(html);
   }
