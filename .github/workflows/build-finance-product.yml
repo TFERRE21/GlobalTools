@@ -1,0 +1,44 @@
+name: Build Finance Product
+
+on:
+  push:
+    paths:
+      - "scripts/build_finance_dashboard.*.py"
+      - ".github/workflows/build-finance-product.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install workbook engine
+        run: python -m pip install --upgrade openpyxl
+
+      - name: Assemble generator
+        run: cat scripts/build_finance_dashboard.01.py scripts/build_finance_dashboard.02.py scripts/build_finance_dashboard.03.py > /tmp/build_finance_dashboard.py
+
+      - name: Generate PRO workbook
+        run: python /tmp/build_finance_dashboard.py
+
+      - name: Commit generated product
+        run: |
+          git config user.name "GlobalTools Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add products/GlobalTools-Small-Business-Finance-Dashboard-PRO.xlsx
+          if git diff --cached --quiet; then
+            echo "Workbook is already up to date."
+          else
+            git commit -m "Build PRO finance workbook"
+            git push
+          fi
