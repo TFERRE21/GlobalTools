@@ -17,7 +17,7 @@ for r in [5,6,7]:s.cell(r,3).number_format=cur
 s["A13"]="Overall Financial Health Score";s["A13"].font=Font(size=16,bold=True,color=navy);s["B13"]="=ROUND(AVERAGE(D3:D10),0)";s["B13"].font=Font(size=24,bold=True,color=blue);s["C13"]='=IF(B13>=80,"HEALTHY",IF(B13>=60,"WATCH","ACTION REQUIRED"))';s["C13"].font=Font(size=14,bold=True)
 s["A15"]="Interpretation";s["B15"]="80–100 Healthy | 60–79 Watch | Below 60 Action Required";s.merge_cells("B15:F15");widths(s,6)
 # Dashboard
-s=d;title(s,"GlobalTools Finance Dashboard PRO","Executive financial view with cash forecast, goals and health indicators.")
+s=wb["Dashboard"];title(s,"GlobalTools Finance Dashboard PRO","Executive financial view with cash forecast, goals and health indicators.")
 for cell,label,formula,fmt,color in [("B4","Revenue YTD",'=SUMIFS(Transactions!$H:$H,Transactions!$E:$E,"Income",Transactions!$F:$F,"<>Cancelled")',cur,green),("D4","Expenses YTD",'=SUMIFS(Transactions!$H:$H,Transactions!$E:$E,"Expense",Transactions!$F:$F,"<>Cancelled")',cur,red),("F4","Net Profit","=B5-D5",cur,blue),("H4","Net Margin","=IFERROR(F5/B5,0)",pct,orange)]:
  c=s[cell].column;r=s[cell].row;s.cell(r,c,label);s.cell(r,c).font=Font(bold=True,color=white);s.cell(r,c).fill=PatternFill("solid",fgColor=color);s.merge_cells(start_row=r,start_column=c,end_row=r,end_column=c+1);s.cell(r+1,c,formula);s.cell(r+1,c).font=Font(size=16,bold=True,color=dark);s.cell(r+1,c).number_format=fmt;s.merge_cells(start_row=r+1,start_column=c,end_row=r+1,end_column=c+1)
 s["B8"]="Cash Balance";s["C8"]="=SUM(Accounts!D3:D100)";s["C8"].number_format=cur;s["D8"]="90-Day Ending Cash";s["E8"]="='Cash Flow & Forecast'!M6";s["E8"].number_format=cur;s["F8"]="Health Score";s["G8"]="='Financial Health'!B13";s["G8"].number_format="0"
