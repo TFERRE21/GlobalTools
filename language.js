@@ -1,5 +1,5 @@
 (function(){
-  const STORAGE_KEY="globaltools-language";
+  const STORAGE_KEY="globaltools-language-v2";
   const languages=[
     ["en","English"],["pt","Português"],["es","Español"],["fr","Français"]
   ];
@@ -77,6 +77,7 @@
   }
 
   function boot(){
+    if(typeof window.applyLanguage==="function") return;
     hideGoogleUi();
     ensureSwitcher();
     if(getLanguage()!=="en") loadTranslator();
