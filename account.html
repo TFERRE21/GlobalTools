@@ -284,9 +284,34 @@ function applyLanguage(lang){
   if($("pageTitle")){const active=document.querySelector(".nav button.active");if(active)$("pageTitle").textContent=active.textContent.trim().replace(/^[^A-Za-zÀ-ÿ]+/,"")}
 }
 function setLanguage(lang){if(!DATA)return;DATA.settings.language=lang;localStorage.setItem("gt_language",lang);renderAll();applyLanguage(lang);saveData(true);toast(lang==="English"?"Language changed":lang==="Português"?"Idioma alterado":lang==="Español"?"Idioma cambiado":"Langue modifiée")}
-function renderProducts(){const p=ME?.products||[];$("products").innerHTML=p.map(x=>'<div class="row" style="margin:8px 0"><span class="tag">'+esc(x)+'</span><button class="btn-small" onclick="location.href=\'/api/download-product?product='+encodeURIComponent(x)+'\'">Baixar Excel</button></div>').join("")||'<div class="empty">Nenhum produto liberado.</div>'}
-function renderAll(){renderDashboard();renderTx();renderAccounts();renderCards();renderBudget();renderBills();renderGoals();renderDebts();renderInvest();renderNet();renderReports();renderProjects();renderContacts();renderDocs();renderInsights();renderSettings();renderProducts()}
-function renderPage(p){const f={dashboard:renderDashboard,transactions:renderTx,accounts:renderAccounts,cards:renderCards,budget:renderBudget,bills:renderBills,goals:renderGoals,debts:renderDebts,investments:renderInvest,networth:renderNet,reports:renderReports,projects:renderProjects,contacts:renderContacts,documents:renderDocs,assistant:renderInsights,settings:()=>{renderSettings();renderProducts()}};if(f[p])f[p]()}
+function renderProducts(){
+  const el=$("products");
+  if(!el)return;
+  const p=ME?.products||[];
+  el.innerHTML=p.map(x=>'<div class="row" style="margin:8px 0"><span class="tag">'+esc(x)+'</span><button class="btn-small" onclick="location.href=\'/api/download-product?product='+encodeURIComponent(x)+'\'">Baixar Excel</button></div>').join("")||'<div class="empty">Nenhum produto liberado.</div>';
+}
+function safeRender(name,fn){
+  try{fn();return true}
+  catch(err){
+    console.error("[GlobalTools render:"+name+"]",err);
+    const n=$("dashNotice");
+    if(n){n.classList.add("error");n.textContent="Erro ao carregar "+name+". Os demais controles continuam disponíveis."}
+    return false;
+  }
+}
+function renderAll(){
+  [
+    ["dashboard",renderDashboard],["transactions",renderTx],["accounts",renderAccounts],["cards",renderCards],
+    ["budget",renderBudget],["bills",renderBills],["goals",renderGoals],["debts",renderDebts],
+    ["investments",renderInvest],["networth",renderNet],["reports",renderReports],["projects",renderProjects],
+    ["contacts",renderContacts],["documents",renderDocs],["insights",renderInsights],["settings",renderSettings],
+    ["products",renderProducts]
+  ].forEach(([name,fn])=>safeRender(name,fn));
+}
+function renderPage(p){
+  const f={dashboard:renderDashboard,transactions:renderTx,accounts:renderAccounts,cards:renderCards,budget:renderBudget,bills:renderBills,goals:renderGoals,debts:renderDebts,investments:renderInvest,networth:renderNet,reports:renderReports,projects:renderProjects,contacts:renderContacts,documents:renderDocs,assistant:renderInsights,settings:()=>{renderSettings();renderProducts()}};
+  if(f[p])safeRender(p,f[p]);
+}
 function delItem(key,id){if(!confirm("Excluir este registro?"))return;DATA[key]=DATA[key].filter(x=>x.id!==id);saveData(true).then(()=>{renderAll();toast("Registro excluído")})}
 function parseCSV(text){const lines=text.trim().split(/\r?\n/).filter(Boolean);if(!lines.length)return[];const sep=lines[0].includes(";")?";":",";const h=lines[0].split(sep).map(x=>x.trim().replace(/^"|"$/g,""));return lines.slice(1).map(line=>{const v=line.split(sep).map(x=>x.trim().replace(/^"|"$/g,"")),o={};h.forEach((k,i)=>o[k]=v[i]||"");return{id:uid("tx"),date:o.date||o.data||today(),description:o.description||o.descricao||"Importado",type:(o.type||o.tipo||"expense").toLowerCase(),amount:Number(String(o.amount||o.valor||"0").replace(",","."))||0,category:o.category||o.categoria||"Outros",account:o.account||o.conta||accountNames()[0],status:o.status||"confirmed"}})}
 function parseOFX(text){const out=[];text.split(/<STMTTRN>/i).slice(1).forEach(b=>{const get=t=>{const m=b.match(new RegExp("<"+t+">([^<\\r\\n]+)","i"));return m?m[1].trim():""},dt=get("DTPOSTED").slice(0,8),y=dt.slice(0,4),m=dt.slice(4,6),d=dt.slice(6,8),amt=Number(get("TRNAMT")||0);out.push({id:uid("tx"),date:y&&m&&d?y+"-"+m+"-"+d:today(),description:get("NAME")||get("MEMO")||"OFX",type:amt>=0?"income":"expense",amount:Math.abs(amt),category:"Outros",account:accountNames()[0],status:"confirmed"})});return out}
