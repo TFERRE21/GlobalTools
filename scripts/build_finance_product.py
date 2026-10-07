@@ -263,3 +263,34 @@ wb.properties.creator="GlobalTools"
 wb.properties.description="Professional finance workbook with dashboard, budget, P&L, receivables, payables, daily cash flow, 90-day forecast, goals and financial health."
 wb.save(OUT)
 print(OUT)
+
+
+def build_simple_workbook(path, title_text, subtitle, sheets):
+    book=Workbook()
+    first=book.active
+    first.title=sheets[0][0]
+    first["A1"]=title_text; first["A1"].font=Font(size=22,bold=True,color=WHITE); first["A1"].fill=PatternFill("solid",fgColor=NAVY)
+    first.merge_cells("A1:H1")
+    first["A2"]=subtitle; first.merge_cells("A2:H2"); first["A2"].font=Font(color=GRAY,italic=True)
+    for sheet_name, headers, rows in sheets:
+        ws=first if sheet_name==sheets[0][0] else book.create_sheet(sheet_name)
+        if sheet_name!=sheets[0][0]:
+            ws["A1"]=title_text; ws["A1"].font=Font(size=18,bold=True,color=WHITE); ws["A1"].fill=PatternFill("solid",fgColor=NAVY); ws.merge_cells("A1:H1")
+        for col,h in enumerate(headers,1):
+            ws.cell(3,col,h); ws.cell(3,col).font=Font(bold=True,color=WHITE); ws.cell(3,col).fill=PatternFill("solid",fgColor=BLUE); ws.cell(3,col).border=BORDER
+        for rr,row in enumerate(rows,4):
+            for cc,v in enumerate(row,1): ws.cell(rr,cc,v); ws.cell(rr,cc).border=BORDER
+        widths(ws,len(headers)); ws.freeze_panes="A4"; ws.sheet_view.showGridLines=False
+    book.save(path)
+
+build_simple_workbook("products/GlobalTools-Cash-Flow-Planner-PRO.xlsx","GlobalTools Cash Flow Planner PRO","Monthly planning, cash visibility and 90-day management.",
+[("Dashboard",["Metric","Jan","Feb","Mar","Apr","May","Jun"],[("Opening Cash",5000,0,0,0,0,0),("Cash In",0,0,0,0,0,0),("Cash Out",0,0,0,0,0,0),("Net Cash Flow","=B6-B7","=C6-C7","=D6-D7","=E6-E7","=F6-F7","=G6-G7"),("Closing Cash","=B5+B8","=C5+C8","=D5+D8","=E5+E8","=F5+F8","=G5+G8")]),
+ ("Transactions",["Date","Description","Type","Category","Amount","Notes"],[("2026-01-05","Example income","Income","Sales",0,""),("2026-01-08","Example expense","Expense","Operations",0,"")]),
+ ("Budget",["Category","Monthly Budget","Actual","Variance"],[("Sales",0,0,"=B4-C4"),("Payroll",0,0,"=B5-C5"),("Operations",0,0,"=B6-C6"),("Marketing",0,0,"=B7-C7"),("Taxes",0,0,"=B8-C8")])])
+
+build_simple_workbook("products/GlobalTools-Freelancer-Business-Kit-PRO.xlsx","GlobalTools Freelancer Business Kit PRO","Finance, pricing, clients and planning for independent professionals.",
+[("Dashboard",["Metric","Value"],[("Revenue",0),("Expenses",0),("Profit","=B4-B5"),("Margin","=IFERROR(B6/B4,0)"),("Outstanding Receivables",0),("Active Clients",0)]),
+ ("Finance",["Date","Description","Type","Category","Amount","Client"],[("2026-01-05","Example project","Income","Services",0,"Example Client")]),
+ ("Clients",["Client","Contact","Service","Rate","Status","Notes"],[("Example Client","","Consulting",0,"Active","")]),
+ ("Pricing Calculator",["Service","Cost","Hours","Markup %","Suggested Price"],[("Example service",0,1,0.30,"=B4*C4*(1+D4)")]),
+ ("Business Plan",["Area","Goal","Action","Deadline","Status"],[("Sales","Monthly target","Create prospect list","","Open")])])
