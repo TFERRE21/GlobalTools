@@ -194,11 +194,11 @@ function verifyStripe(raw, sig) {
   return vs.some(v => { try { return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(v)); } catch { return false; } });
 }
 function planForProduct(slug) { return PRODUCTS[slug]?.plan || "starter"; }
-function upsertUser(email, plan, productSlug, forceNewPassword = false) {
+function upsertUser(email, plan, productSlug, forceNewPassword = false, generatePassword = true) {
   const users = readUsers();
   let u = users.find(x => x.email === email);
   let generatedPassword = null;
-  const firstActivation = !u || !u.passwordDeliveredAt || forceNewPassword;
+  const firstActivation = generatePassword && (!u || !u.passwordDeliveredAt || forceNewPassword);
   if (!u) {
     u = {
       id: "usr_" + crypto.randomBytes(9).toString("hex"),
@@ -303,7 +303,7 @@ const gateway = http.createServer(async (req, res) => {
         const slug = session.metadata?.product_slug;
         const email = sanitizeEmail(session.customer_details?.email || session.customer_email);
         if ((session.payment_status !== "paid" && Number(session.amount_total || 0) !== 0) || !PRODUCTS[slug] || !email) return json(res, 403, { ok: false, error: "Pagamento não confirmado ou produto inválido." });
-        const created = upsertUser(email, planForProduct(slug), slug, Number(session.amount_total || 0) === 0);
+        const created = upsertUser(email, planForProduct(slug), slug, true, true);
         setSession(res, created.user.id);
         if (created.generatedPassword) {
           return sendAccessEmail(email, created.generatedPassword, PLANS[created.user.plan]?.label || created.user.plan, (sent, emailError, emailStatus) => {
