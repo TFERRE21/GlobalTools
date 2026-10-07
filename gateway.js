@@ -294,6 +294,23 @@ const gateway = http.createServer(async (req, res) => {
       clearSession(req, res);
       return json(res, 200, { ok: true });
     }
+    if (req.method === "POST" && url.pathname === "/api/activate-session") {
+      const b = await body(req);
+      const sessionId = String(b.session_id || "");
+      if (!sessionId) return json(res, 400, { ok: false, error: "Sessão de pagamento ausente." });
+      stripeRequest("GET", "/v1/checkout/sessions/" + encodeURIComponent(sessionId), null, (err, session) => {
+        if (err) return json(res, 400, { ok: false, error: "Não foi possível validar o pagamento." });
+        const slug = session.metadata?.product_slug;
+        const email = sanitizeEmail(session.customer_details?.email || session.customer_email);
+        if ((session.payment_status !== "paid" && Number(session.amount_total || 0) !== 0) || !PRODUCTS[slug] || !email) {
+          return json(res, 403, { ok: false, error: "Pagamento não confirmado ou produto inválido." });
+        }
+        const created = upsertUser(email, planForProduct(slug), slug, false, false);
+        setSession(res, created.user.id);
+        return json(res, 200, { ok: true, user: publicUser(created.user) });
+      });
+      return;
+    }
     if (req.method === "POST" && url.pathname === "/api/activate-account") {
       const b = await body(req);
       const sessionId = String(b.session_id || "");
