@@ -34,7 +34,7 @@ jobs:
         run: |
           git config user.name "GlobalTools Bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add products/GlobalTools-Small-Business-Finance-Dashboard-PRO.xlsx
+          git add products/GlobalTools-Small-Business-Finance-Dashboard-PRO.xlsx products/GlobalTools-Cash-Flow-Planner-PRO.xlsx products/GlobalTools-Freelancer-Business-Kit-PRO.xlsx
           if git diff --cached --quiet; then
             echo "Workbook is already up to date."
           else
