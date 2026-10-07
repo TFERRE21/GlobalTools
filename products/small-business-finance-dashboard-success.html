@@ -14,7 +14,7 @@
 <div class="success-icon">✓</div>
 <div class="eyebrow">PAYMENT CONFIRMED</div>
 <h1>Thank you for your purchase!</h1>
-<p>Your payment was confirmed. Your Small Business Finance Dashboard is ready.</p>
+<p>Your payment was confirmed. Your Small Business Finance Dashboard PRO Excel workbook is ready.</p>
 <div id="action"></div>
 <div id="status" class="status">Verifying your payment…</div>
 </main>
@@ -25,7 +25,7 @@
   const action=document.getElementById("action"), status=document.getElementById("status");
   if(!id){status.textContent="Checkout session not found. Please contact support.";status.className="status error";return;}
   const url="/api/download-finance?session_id="+encodeURIComponent(id);
-  action.innerHTML='<a class="download-btn" href="'+url+'">Download your dashboard</a>';
+  action.innerHTML='<a class="download-btn" href="'+url+'">Download your PRO Excel workbook</a>';
   status.textContent="Your secure download is available below.";
 })();
 </script>
