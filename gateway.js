@@ -253,23 +253,67 @@ function upsertUser(email, plan, productSlug, forceNewPassword = false, generate
   writeUsers(users);
   return { user: u, generatedPassword };
 }
-function sendAccessEmail(email, password, plan, callback) {
-  if (!RESEND_API_KEY) return callback(false, new Error("RESEND_API_KEY não configurada"), 0);
+function sendAccessEmail(email, password, plan, product, callback) {
+  if (!RESEND_API_KEY) return callback(false, new Error("RESEND_API_KEY não configurada"), 0, false);
+
+  const attachments = [];
+  let attachmentIncluded = false;
+  if (product && product.file) {
+    const workbookPath = path.join(ROOT, "products", product.file);
+    if (fs.existsSync(workbookPath)) {
+      const workbook = fs.readFileSync(workbookPath);
+      attachments.push({
+        filename: product.file,
+        content: workbook.toString("base64"),
+        contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      });
+      attachmentIncluded = true;
+    } else {
+      console.warn("[resend] Workbook not found:", workbookPath);
+    }
+  }
+
+  const productName = product?.name || "Produto digital";
   const payload = JSON.stringify({
     from: RESEND_FROM_EMAIL,
     to: [email],
     subject: "Seu acesso ao GlobalTools foi liberado",
-    html: "<div style='font-family:Arial,sans-serif;max-width:620px;margin:auto'><h1>GlobalTools</h1><p>Seu acesso ao painel financeiro foi liberado.</p><p><b>Plano:</b> " + plan + "</p><p><b>E-mail:</b> " + email + "</p><p><b>Senha inicial:</b> " + password + "</p><p><a href='https://oolivo.com.br/login.html'>Acessar meu painel</a></p><p style='color:#777'>Guarde sua senha e altere-a quando o recurso de troca de senha estiver disponível.</p></div>"
+    html:
+      "<div style='font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#172033'>" +
+      "<h1 style='margin-bottom:8px'>GlobalTools</h1>" +
+      "<p>Seu acesso ao painel financeiro foi liberado com sucesso.</p>" +
+      "<p><b>Produto:</b> " + productName + "</p>" +
+      "<p><b>Plano:</b> " + plan + "</p>" +
+      "<p><b>E-mail:</b> " + email + "</p>" +
+      "<p><b>Senha inicial:</b> " + password + "</p>" +
+      "<p style='margin:24px 0'><a href='https://oolivo.com.br/account.html' style='display:inline-block;padding:12px 18px;background:#111827;color:#fff;text-decoration:none;border-radius:8px'>Acessar meu painel</a></p>" +
+      "<p>O arquivo da sua compra está anexado a este e-mail.</p>" +
+      "<p>Ao entrar no painel, você também poderá baixar novamente os produtos liberados.</p>" +
+      "<p style='color:#667085;font-size:13px'>Por segurança, altere sua senha após o primeiro acesso.</p>" +
+      "</div>",
+    attachments
   });
+
   const r = https.request({
     hostname: "api.resend.com",
     path: "/emails",
     method: "POST",
-    headers: {"Authorization":"Bearer " + RESEND_API_KEY,"Content-Type":"application/json","Content-Length":Buffer.byteLength(payload)}
+    headers: {
+      "Authorization": "Bearer " + RESEND_API_KEY,
+      "Content-Type": "application/json",
+      "Content-Length": Buffer.byteLength(payload)
+    }
   }, rr => {
-    let raw=""; rr.on("data",x=>raw+=x); rr.on("end",()=>callback(rr.statusCode>=200&&rr.statusCode<300, rr.statusCode>=200&&rr.statusCode<300 ? null : new Error(raw || "Resend HTTP " + rr.statusCode), rr.statusCode));
+    let raw = "";
+    rr.on("data", x => raw += x);
+    rr.on("end", () => {
+      const ok = rr.statusCode >= 200 && rr.statusCode < 300;
+      callback(ok, ok ? null : new Error(raw || "Resend HTTP " + rr.statusCode), rr.statusCode, attachmentIncluded);
+    });
   });
-  r.on("error",e=>callback(false,e,0)); r.write(payload); r.end();
+  r.on("error", e => callback(false, e, 0, attachmentIncluded));
+  r.write(payload);
+  r.end();
 }
 function publicUser(u) {
   return { id: u.id, email: u.email, plan: u.plan, planLabel: PLANS[u.plan]?.label || u.plan, products: u.products, subscriptionActive: !!u.subscriptionId, permissions: permissions(u.plan) };
@@ -373,8 +417,17 @@ const gateway = http.createServer(async (req, res) => {
         const created = upsertUser(email, planForProduct(slug), slug, true, true);
         setSession(res, created.user.id);
         if (created.generatedPassword) {
-          return sendAccessEmail(email, created.generatedPassword, PLANS[created.user.plan]?.label || created.user.plan, (sent, emailError, emailStatus) => {
-            json(res, 200, { ok: true, user: publicUser(created.user), generatedPassword: created.generatedPassword, emailSent: !!sent, emailStatus: emailStatus || 0, emailError: sent ? null : (emailError?.message || "Falha no envio do e-mail"), product: PRODUCTS[slug].name });
+          return sendAccessEmail(email, created.generatedPassword, PLANS[created.user.plan]?.label || created.user.plan, PRODUCTS[slug], (sent, emailError, emailStatus, attachmentIncluded) => {
+            json(res, 200, {
+              ok: true,
+              user: publicUser(created.user),
+              generatedPassword: created.generatedPassword,
+              emailSent: !!sent,
+              emailStatus: emailStatus || 0,
+              emailError: sent ? null : (emailError?.message || "Falha no envio do e-mail"),
+              attachmentIncluded: !!attachmentIncluded,
+              product: PRODUCTS[slug].name
+            });
           });
         }
         return json(res, 200, { ok: true, user: publicUser(created.user), generatedPassword: null, emailSent: false, product: PRODUCTS[slug].name });
