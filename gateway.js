@@ -286,7 +286,7 @@ const gateway = http.createServer(async (req, res) => {
       const email = sanitizeEmail(b.email);
       const password = String(b.password || "");
       const u = readUsers().find(x => x.email === email);
-      if (!u || !u.passwordSalt || hashPassword(password, u.passwordSalt) !== u.passwordHash) return json(res, 401, { ok: false, error: "E-mail ou senha inválidos." });
+      if (!u || !u.passwordSalt || hashPassword(password.trim(), u.passwordSalt) !== u.passwordHash) return json(res, 401, { ok: false, error: "E-mail ou senha inválidos." });
       setSession(res, u.id);
       return json(res, 200, { ok: true, user: publicUser(u) });
     }
