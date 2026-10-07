@@ -26,7 +26,8 @@
   if(!id){status.textContent="Checkout session not found. Please contact support.";status.className="status error";return;}
   const url="/api/download-finance?session_id="+encodeURIComponent(id);
   action.innerHTML='<a class="download-btn" href="'+url+'">Download your PRO Excel workbook</a>';
-  status.textContent="Your secure download is available below.";
+  status.textContent="Your PRO Excel download is ready. Starting automatically…";
+  setTimeout(function(){ window.location.href=url; }, 1200);
 })();
 </script>
 </body></html>
