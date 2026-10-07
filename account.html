@@ -9,6 +9,8 @@
 :root{--bg:#080a0d;--panel:#11151b;--panel2:#171c23;--line:#29313b;--text:#f4f7fb;--muted:#9ca6b5;--green:#32d583;--red:#ff6672;--blue:#62a8ff;--gold:#f4c95d;--input:#0c1015}
 body.light{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f9fb;--line:#d9e0e8;--text:#17202b;--muted:#687384;--green:#159a5b;--red:#d63b4b;--blue:#2878d0;--gold:#a97800;--input:#fff}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:14px Arial,sans-serif}
+/* Click safety: keep dashboard controls above any accidental overlay */
+.layout{position:relative;z-index:1}.sidebar{z-index:10000!important;pointer-events:auto!important}.main{position:relative;z-index:1;pointer-events:auto!important}.nav,.nav button,.topbar,.actions,.panel,.toolbar{pointer-events:auto!important}.nav button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 body{background:radial-gradient(circle at top right,rgba(50,213,131,.06),transparent 32%),var(--bg)}
 button,input,select,textarea{font:inherit}button{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:9px;padding:9px 13px;font-weight:700;cursor:pointer}button:hover{filter:brightness(1.08)}button:disabled{opacity:.5;cursor:not-allowed}
 .btn-green{background:var(--green);color:#06140d;border-color:var(--green)}.btn-danger{background:transparent;color:var(--red);border-color:var(--red)}.btn-small{padding:6px 9px;font-size:12px}.icon-btn{padding:8px 10px}
@@ -125,25 +127,34 @@ button,input,select,textarea{font:inherit}button{border:1px solid var(--line);ba
 <div id="toast" class="toast"></div>
 <script>
 (function(){
-  function routeClick(e){
-    var b=e.target&&e.target.closest?e.target.closest(".nav button[data-page]"):null;
-    if(!b)return;
-    e.preventDefault();
-    e.stopPropagation();
-    var p=b.getAttribute("data-page"), page=document.getElementById(p);
-    if(!page)return;
+  function activate(b){
+    if(!b)return false;
+    var p=b.getAttribute("data-page"),page=document.getElementById(p);
+    if(!page)return false;
     document.querySelectorAll(".nav button[data-page]").forEach(function(x){x.classList.toggle("active",x===b)});
     document.querySelectorAll(".page").forEach(function(x){x.classList.remove("active")});
     page.classList.add("active");
     var title=document.getElementById("pageTitle");
     if(title)title.textContent=b.textContent.replace(/^[^A-Za-zÀ-ÿ]+/,"").trim();
-    try{if(typeof DATA!=="undefined"&&DATA&&typeof renderPage==="function")renderPage(p)}catch(err){console.error("[GlobalTools navigation]",err)}
-    try{if(typeof applyLanguage==="function")applyLanguage((DATA&&DATA.settings&&DATA.settings.language)||"English")}catch(err){console.error("[GlobalTools language]",err)}
+    try{if(window.DATA&&typeof window.renderPage==="function")window.renderPage(p)}catch(err){console.error("[GlobalTools navigation]",err)}
+    try{if(typeof window.applyLanguage==="function")window.applyLanguage((window.DATA&&window.DATA.settings&&window.DATA.settings.language)||"English")}catch(err){console.error("[GlobalTools language]",err)}
+    return true;
   }
-  document.addEventListener("click",routeClick,true);
+  window.__gtGo=function(p){
+    var b=document.querySelector('.nav button[data-page="'+p+'"]');
+    return activate(b);
+  };
+  document.querySelectorAll(".nav button[data-page]").forEach(function(b){
+    b.onclick=function(e){e.preventDefault();e.stopPropagation();activate(b);};
+  });
+  /* If an invisible layer sits over a control, recover the control underneath it. */
   document.addEventListener("pointerup",function(e){
-    var b=e.target&&e.target.closest?e.target.closest(".nav button[data-page]"):null;
-    if(b && e.button===0){try{b.focus()}catch(_){}} 
+    if(e.button!==0)return;
+    var t=e.target;
+    if(t&&t.closest&&t.closest("button,input,select,textarea,a"))return;
+    var els=document.elementsFromPoint(e.clientX,e.clientY)||[];
+    var b=els.find(function(x){return x.matches&&x.matches(".nav button[data-page]")});
+    if(b){e.preventDefault();e.stopPropagation();activate(b);}
   },true);
 })();
 </script>
@@ -158,8 +169,7 @@ function toast(s){$("toast").textContent=s;$("toast").classList.add("show");setT
 async function saveData(silent=false){if(!DATA)return false;const x=await api("/api/finance/data",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({data:DATA})});if(!x.r.ok){toast(x.j.error||"Erro ao salvar");return false}if(!silent)toast("Dados salvos com sucesso");return true}
 function applyTheme(theme){document.body.classList.toggle("light",theme==="light");$("themeBtn").textContent=theme==="light"?"☾ Tema escuro":"☀ Tema claro";localStorage.setItem("gt_theme",theme);if(DATA&&DATA.settings)DATA.settings.theme=theme}
 function go(p){const page=$(p);if(!page){toast("Seção indisponível.");return}document.querySelectorAll(".nav button[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===p));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));page.classList.add("active");const b=document.querySelector('.nav button[data-page="'+p+'"]');$("pageTitle").textContent=b?b.textContent.replace(/^[^ ]+ /,""):"Dashboard";if(DATA)renderPage(p);applyLanguage(DATA?.settings?.language||"English")}
-function nav(){document.querySelectorAll(".nav button[data-page]").forEach(b=>{b.onclick=null;b.addEventListener("click",()=>go(b.dataset.page))})}
-document.addEventListener("click",e=>{const b=e.target.closest(".nav button[data-page]");if(!b)return;e.preventDefault();go(b.dataset.page)});
+function nav(){document.querySelectorAll(".nav button[data-page]").forEach(b=>{b.onclick=function(e){e.preventDefault();e.stopPropagation();go(b.dataset.page)}})}
 function modal(title,html,save){$("modalTitle").textContent=title;$("modalBody").innerHTML=html;$("modal").classList.add("show");currentModalSave=save}
 $("modalClose").onclick=()=>$("modal").classList.remove("show");
 function input(n,l,t="text",v="",extra=""){return '<div class="field"><label>'+l+'</label><input id="m_'+n+'" type="'+t+'" value="'+esc(v)+'" '+extra+'></div>'}
