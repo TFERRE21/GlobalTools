@@ -54,7 +54,7 @@
   window.googleTranslateElementInit=function(){
     if(window.google && google.translate && google.translate.TranslateElement){
       new google.translate.TranslateElement({
-        pageLanguage:"pt",
+        pageLanguage:"en",
         includedLanguages:"pt,es,fr",
         autoDisplay:false
       },"google_translate_element");
