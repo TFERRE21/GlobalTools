@@ -5,7 +5,7 @@
   ];
 
   function getLanguage(){
-    return localStorage.getItem(STORAGE_KEY)||"en";
+    return localStorage.getItem(STORAGE_KEY)||"pt";
   }
 
   function setGoogleCookie(lang){
@@ -54,7 +54,7 @@
   window.googleTranslateElementInit=function(){
     if(window.google && google.translate && google.translate.TranslateElement){
       new google.translate.TranslateElement({
-        pageLanguage:"en",
+        pageLanguage:"pt",
         includedLanguages:"pt,es,fr",
         autoDisplay:false
       },"google_translate_element");
