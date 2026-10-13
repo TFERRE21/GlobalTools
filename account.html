@@ -1,6 +1,6 @@
 <!doctype html>
 <!-- GlobalTools runtime refresh: 2026-10-07T13:00Z -->
-<html lang="en-US">
+<html lang="pt-BR">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -65,7 +65,7 @@ button,input,select,textarea{font:inherit}button{border:1px solid var(--line);ba
   <div class="topbar">
     <div><h1 id="pageTitle">Dashboard financeiro</h1><div id="who" class="user">Validando seu acesso...</div></div>
     <div class="actions">
-      <select id="langTop" class="icon-btn" aria-label="Language"><option value="English">🇺🇸 English</option><option value="Português">🇧🇷 Português</option><option value="Español">🇪🇸 Español</option><option value="Français">🇫🇷 Français</option></select><button id="themeBtn" class="icon-btn">☀ Light theme</button>
+      <select id="langTop" class="icon-btn" aria-label="Language"><option value="Português" selected>🇧🇷 Português</option><option value="English">🇺🇸 English</option><option value="Español">🇪🇸 Español</option><option value="Français">🇫🇷 Français</option></select><button id="themeBtn" class="icon-btn">☀ Light theme</button>
       <button id="saveTop">Salvar</button>
       <button id="newTx" class="btn-green">+ Lançamento</button>
       <button id="upgrade" class="btn-green">Plano</button>
@@ -151,7 +151,7 @@ button,input,select,textarea{font:inherit}button{border:1px solid var(--line);ba
   <div class="field"><label>Nova senha</label><input id="newPassword" type="password" autocomplete="new-password" placeholder="Mínimo de 8 caracteres"></div>
   <div class="field"><label>Confirmar nova senha</label><input id="confirmPassword" type="password" autocomplete="new-password" placeholder="Repita a nova senha"></div>
 </div><div class="row" style="margin-top:12px"><button class="btn-green" id="changePassword">Alterar senha</button></div><div id="passwordNotice" class="small-note" style="margin-top:10px"></div></div>
-<div class="panel"><h2>Configurações</h2><div class="form"><div class="field"><label>Moeda principal</label><select id="setCurrency"><option>BRL</option><option>USD</option><option>EUR</option><option>GBP</option></select></div><div class="field"><label>Idioma</label><select id="setLang"><option>English</option><option>Português</option><option>Español</option><option>Français</option></select></div><div class="field"><label>Dia de fechamento</label><input id="setClose" type="number" min="1" max="31"></div><div class="field"><label>Reserva de emergência (meses)</label><input id="setReserve" type="number" min="0" step=".5"></div><div class="field wide"><label>Nome do orçamento</label><input id="setBudgetName"></div></div><div class="row" style="margin-top:12px"><button class="btn-green" id="saveSettings">Salvar configurações</button><button id="resetTheme">Voltar ao tema escuro</button></div></div><div class="panel"><h2>Produtos liberados</h2><div id="products"></div></div></section>
+<div class="panel"><h2>Configurações</h2><div class="form"><div class="field"><label>Moeda principal</label><select id="setCurrency"><option>BRL</option><option>USD</option><option>EUR</option><option>GBP</option></select></div><div class="field"><label>Idioma</label><select id="setLang"><option selected>Português</option><option>English</option><option>Español</option><option>Français</option></select></div><div class="field"><label>Dia de fechamento</label><input id="setClose" type="number" min="1" max="31"></div><div class="field"><label>Reserva de emergência (meses)</label><input id="setReserve" type="number" min="0" step=".5"></div><div class="field wide"><label>Nome do orçamento</label><input id="setBudgetName"></div></div><div class="row" style="margin-top:12px"><button class="btn-green" id="saveSettings">Salvar configurações</button><button id="resetTheme">Voltar ao tema escuro</button></div></div><div class="panel"><h2>Produtos liberados</h2><div id="products"></div></div></section>
 </main>
 </div>
 <div id="modal" class="modal"><div class="modalbox"><div class="modalhead"><h2 id="modalTitle">Novo registro</h2><button id="modalClose">Fechar</button></div><div id="modalBody"></div></div></div>
