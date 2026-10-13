@@ -539,7 +539,7 @@ function applyLanguage(lang){
  if(typeof applyToolLocale==='function')applyToolLocale(lang);
  localStorage.setItem("globaltools-language-v2",lang)
 }
-function setupLanguage(){const select=document.getElementById("languageSelect");if(!select)return;const saved=localStorage.getItem("globaltools-language-v2")||"pt";select.value=saved;applyLanguage(saved);select.addEventListener("change",()=>applyLanguage(select.value))}
+function setupLanguage(){const select=document.getElementById("languageSelect");if(!select)return;const migrationKey="oolivo-pt-default-migrated-v1";if(!localStorage.getItem(migrationKey)){localStorage.setItem("globaltools-language-v2","pt");localStorage.setItem(migrationKey,"1")}const saved=localStorage.getItem("globaltools-language-v2")||"pt";select.value=saved;applyLanguage(saved);select.addEventListener("change",()=>applyLanguage(select.value))}
 setupLanguage();
 
 
