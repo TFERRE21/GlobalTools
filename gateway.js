@@ -46,8 +46,8 @@ const PLANS = {
 };
 
 const UPGRADE_PRICES = {
-  business: "price_1UNwSHCCSBhBJictvfVQpWMz",
-  unlimited: "price_1UNwSPCCSBhBJictPWOPluRi"
+  business: "price_1UPtjjCCSBhBJictdI4R0KaE",
+  unlimited: "price_1UPtjlCCSBhBJictZCoqMQVv"
 };
 
 function setDataDir(dir) {
