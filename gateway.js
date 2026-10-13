@@ -554,6 +554,7 @@ const gateway = http.createServer(async (req, res) => {
       const site = PUBLIC_SITE_URL || "http://" + (req.headers.host || "localhost");
       const form = [
         ["mode", "subscription"],
+        ["locale", "pt-BR"],
         ["line_items[0][price]", UPGRADE_PRICES[requested]],
         ["line_items[0][quantity]", "1"],
         ["success_url", site + "/account.html?upgrade=success&session_id={CHECKOUT_SESSION_ID}"],
