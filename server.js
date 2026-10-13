@@ -30,19 +30,19 @@ const server = http.createServer((req, res) => {
   const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
   const PRODUCT_CATALOG = {
     "small-business-finance-dashboard": {
-      priceId: "price_1UNtd1CCSBhBJictrnKiKQto",
+      priceId: process.env.STRIPE_PRICE_DASHBOARD_BRL || "",
       file: "GlobalTools-Small-Business-Finance-Dashboard-PRO.xlsx",
       success: "small-business-finance-dashboard-success.html",
       name: "Small Business Finance Dashboard"
     },
     "cash-flow-planner": {
-      priceId: "price_1UNukZCCSBhBJictAsKlFS7p",
+      priceId: process.env.STRIPE_PRICE_CASHFLOW_BRL || "",
       file: "GlobalTools-Cash-Flow-Planner-PRO.xlsx",
       success: "cash-flow-planner-success.html",
       name: "Cash Flow Planner"
     },
     "freelancer-business-kit": {
-      priceId: "price_1UNukfCCSBhBJictKaTTlJtq",
+      priceId: process.env.STRIPE_PRICE_FREELANCER_BRL || "",
       file: "GlobalTools-Freelancer-Business-Kit-PRO.xlsx",
       success: "freelancer-business-kit-success.html",
       name: "Freelancer Business Kit"
@@ -191,6 +191,10 @@ const server = http.createServer((req, res) => {
       if (!product) {
         res.writeHead(400, {"Content-Type":"application/json; charset=utf-8"});
         return res.end(JSON.stringify({error:"Unknown product."}));
+      }
+      if (!product.priceId) {
+        res.writeHead(503, {"Content-Type":"application/json; charset=utf-8"});
+        return res.end(JSON.stringify({error:"Preço em reais ainda não configurado no Stripe. Configure o Price ID BRL para este produto."}));
       }
       const success = siteUrl(req) + "/account-success.html?session_id={CHECKOUT_SESSION_ID}";
       const cancel = siteUrl(req) + "/products/" + slug + ".html?checkout=cancelled";
