@@ -168,7 +168,7 @@ button,input,select,textarea{font:inherit}button{border:1px solid var(--line);ba
     var title=document.getElementById("pageTitle");
     if(title)title.textContent=b.textContent.replace(/^[^A-Za-zÀ-ÿ]+/,"").trim();
     try{if(window.DATA&&typeof window.renderPage==="function")window.renderPage(p)}catch(err){console.error("[GlobalTools navigation]",err)}
-    try{if(typeof window.applyLanguage==="function")window.applyLanguage((window.DATA&&window.DATA.settings&&window.DATA.settings.language)||"English")}catch(err){console.error("[GlobalTools language]",err)}
+    try{if(typeof window.applyLanguage==="function")window.applyLanguage((window.DATA&&window.DATA.settings&&window.DATA.settings.language)||"Português")}catch(err){console.error("[GlobalTools language]",err)}
     return true;
   }
   window.__gtGo=function(p){
@@ -205,7 +205,7 @@ async function saveData(silent=false){
   return true
 }
 function applyTheme(theme){document.body.classList.toggle("light",theme==="light");$("themeBtn").textContent=theme==="light"?"☾ Tema escuro":"☀ Tema claro";localStorage.setItem("gt_theme",theme);if(DATA&&DATA.settings)DATA.settings.theme=theme}
-function go(p){const page=$(p);if(!page){toast("Seção indisponível.");return}document.querySelectorAll(".nav button[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===p));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));page.classList.add("active");const b=document.querySelector('.nav button[data-page="'+p+'"]');$("pageTitle").textContent=b?b.textContent.replace(/^[^ ]+ /,""):"Dashboard";if(DATA)renderPage(p);applyLanguage(DATA?.settings?.language||"English")}
+function go(p){const page=$(p);if(!page){toast("Seção indisponível.");return}document.querySelectorAll(".nav button[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===p));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));page.classList.add("active");const b=document.querySelector('.nav button[data-page="'+p+'"]');$("pageTitle").textContent=b?b.textContent.replace(/^[^ ]+ /,""):"Dashboard";if(DATA)renderPage(p);applyLanguage(DATA?.settings?.language||"Português")}
 function nav(){document.querySelectorAll(".nav button[data-page]").forEach(b=>{b.onclick=function(e){e.preventDefault();e.stopPropagation();go(b.dataset.page)}})}
 function modal(title,html,save){$("modalTitle").textContent=title;$("modalBody").innerHTML=html;$("modal").classList.add("show");currentModalSave=save}
 $("modalClose").onclick=()=>$("modal").classList.remove("show");
@@ -361,7 +361,7 @@ function renderAccountDetails(){
   if($("accountSubscription"))$("accountSubscription").textContent=u.subscriptionActive?"Ativa":"Sem assinatura";
   if($("accountStatus"))$("accountStatus").textContent="Ativa";
 }
-function renderSettings(){const s=DATA.settings||{};$("setCurrency").value=s.currency||"BRL";$("setLang").value=s.language||"English";if($("langTop"))$("langTop").value=s.language||"English";$("setClose").value=s.closeDay||10;$("setReserve").value=s.reserveMonths||6;$("setBudgetName").value=s.budgetName||"Meu orçamento"}
+function renderSettings(){const s=DATA.settings||{};$("setCurrency").value=s.currency||"BRL";$("setLang").value=s.language||"Português";if($("langTop"))$("langTop").value=s.language||"Português";$("setClose").value=s.closeDay||10;$("setReserve").value=s.reserveMonths||6;$("setBudgetName").value=s.budgetName||"Meu orçamento"}
 function makeDict(d){return Object.assign({},I18N.English||{},d||{})}
 const I18N={
 English:{
@@ -449,13 +449,13 @@ function bind(){
     if(x.j.ok){$("currentPassword").value="";$("newPassword").value="";$("confirmPassword").value="";$("passwordNotice").textContent="Senha alterada com sucesso.";toast("Senha alterada com sucesso");}
     else $("passwordNotice").textContent=x.j.error||"Não foi possível alterar a senha.";
   });
-  on("saveSettings","click",async()=>{DATA.settings.currency=$("setCurrency").value;DATA.settings.language=$("setLang").value;DATA.settings.closeDay=Number($("setClose").value)||10;DATA.settings.reserveMonths=Number($("setReserve").value)||0;DATA.settings.budgetName=$("setBudgetName").value||"My budget";await saveData(true);localStorage.setItem("gt_language",DATA.settings.language);renderAll();applyLanguage(DATA.settings.language);toast("Configurações salvas")});
+  on("saveSettings","click",async()=>{DATA.settings.currency=$("setCurrency").value;DATA.settings.language=$("setLang").value;DATA.settings.closeDay=Number($("setClose").value)||10;DATA.settings.reserveMonths=Number($("setReserve").value)||0;DATA.settings.budgetName=$("setBudgetName").value||"Meu orçamento";await saveData(true);localStorage.setItem("gt_language",DATA.settings.language);renderAll();applyLanguage(DATA.settings.language);toast("Configurações salvas")});
   on("logout","click",async()=>{await api("/api/logout",{method:"POST"});location.href="/login.html"});
   on("themeBtn","click",()=>{const t=document.body.classList.contains("light")?"dark":"light";applyTheme(t);if(DATA){DATA.settings.theme=t;saveData(true)};renderAll()});
-  on("resetTheme","click",()=>{applyTheme("dark");if(DATA){DATA.settings.theme="dark";saveData(true)};renderAll();applyLanguage(DATA?.settings?.language||"English")});
+  on("resetTheme","click",()=>{applyTheme("dark");if(DATA){DATA.settings.theme="dark";saveData(true)};renderAll();applyLanguage(DATA?.settings?.language||"Português")});
   on("langTop","change",e=>setLanguage(e.target.value));
   on("setLang","change",e=>setLanguage(e.target.value));
-  document.querySelectorAll("#periodTabs button").forEach(b=>b.addEventListener("click",()=>{DASH_PERIOD=b.dataset.period;if(DATA)renderDashboard();applyLanguage(DATA?.settings?.language||"English")}));
+  document.querySelectorAll("#periodTabs button").forEach(b=>b.addEventListener("click",()=>{DASH_PERIOD=b.dataset.period;if(DATA)renderDashboard();applyLanguage(DATA?.settings?.language||"Português")}));
   on("upgrade","click",()=>{go("subscription");renderSubscription()});on("sidePlanBtn","click",()=>{go("subscription");renderSubscription()});on("billingPortal","click",openBillingPortal);
   on("doImport","click",async()=>{const text=$("importBox").value;const a=text.includes("<OFX")||text.includes("<STMTTRN>")?parseOFX(text):parseCSV(text);if(!a.length)return toast("Nenhum lançamento reconhecido");DATA.transactions.push(...a);await saveData(true);renderAll();toast(a.length+" lançamento(s) importado(s)")});
   on("clearImport","click",()=>{$("importBox").value=""});
@@ -527,7 +527,7 @@ async function init(){
       DATA=remoteData;
       cacheLocalData();
     }
-    const preferred=localStorage.getItem("gt_language")||DATA.settings.language||"English";
+    const preferred=localStorage.getItem("gt_language")||DATA.settings.language||"Português";
     DATA.settings.language=preferred;
     if(DATA.settings.theme)applyTheme(localStorage.getItem("gt_theme")||DATA.settings.theme);
     $("who").textContent=ME.email+" • Plano "+(ME.planLabel||ME.plan);
