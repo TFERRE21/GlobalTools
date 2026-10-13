@@ -460,7 +460,7 @@ const gateway = http.createServer(async (req, res) => {
         if (err) return json(res, 400, { ok: false, error: "Não foi possível validar o pagamento." });
         const slug = session.metadata?.product_slug;
         const email = sanitizeEmail(session.customer_details?.email || session.customer_email);
-        if ((session.payment_status !== "paid" && Number(session.amount_total || 0) !== 0) || !PRODUCTS[slug] || !email) {
+        if ((session.payment_status !== "paid" || session.status !== "complete" || session.mode !== "payment") || !PRODUCTS[slug] || !email) {
           return json(res, 403, { ok: false, error: "Pagamento não confirmado ou produto inválido." });
         }
         const created = upsertUser(email, planForProduct(slug), slug, false, false);
@@ -477,7 +477,7 @@ const gateway = http.createServer(async (req, res) => {
         if (err) return json(res, 400, { ok: false, error: "Não foi possível validar o pagamento." });
         const slug = session.metadata?.product_slug;
         const email = sanitizeEmail(session.customer_details?.email || session.customer_email);
-        if ((session.payment_status !== "paid" && Number(session.amount_total || 0) !== 0) || !PRODUCTS[slug] || !email) return json(res, 403, { ok: false, error: "Pagamento não confirmado ou produto inválido." });
+        if ((session.payment_status !== "paid" || session.status !== "complete" || session.mode !== "payment") || !PRODUCTS[slug] || !email) return json(res, 403, { ok: false, error: "Pagamento não confirmado ou produto inválido." });
         const created = upsertUser(email, planForProduct(slug), slug, false, true);
         setSession(res, created.user.id);
         if (created.generatedPassword) {
@@ -590,8 +590,11 @@ const gateway = http.createServer(async (req, res) => {
         if (event.type === "checkout.session.completed") {
           const slug = obj.metadata?.product_slug;
           const email = sanitizeEmail(obj.customer_details?.email || obj.customer_email);
-          if (email && PRODUCTS[slug] && (obj.payment_status === "paid" || Number(obj.amount_total || 0) === 0)) {
+          if (email && PRODUCTS[slug] && obj.mode === "payment" && obj.status === "complete" && obj.payment_status === "paid") {
             upsertUser(email, planForProduct(slug), slug, false, false);
+            console.log("[stripe] paid product provisioned", event.id, obj.id, slug, email);
+          } else if (obj.mode === "payment") {
+            console.warn("[stripe] checkout not provisioned", event.id, obj.id, obj.status, obj.payment_status, slug || "no-product");
           }
           if (obj.mode === "subscription" && obj.metadata?.account_user_id && obj.metadata?.access_plan) {
             const users = readUsers(); const u = users.find(x => x.id === obj.metadata.account_user_id);
@@ -622,7 +625,7 @@ const gateway = http.createServer(async (req, res) => {
         if (!err) {
           const slug = session.metadata?.product_slug;
           const email = sanitizeEmail(session.customer_details?.email || session.customer_email);
-          const valid = (session.payment_status === "paid" || Number(session.amount_total || 0) === 0) && PRODUCTS[slug] && email;
+          const valid = session.payment_status === "paid" && session.status === "complete" && session.mode === "payment" && PRODUCTS[slug] && email;
           if (valid) {
             const created = upsertUser(email, planForProduct(slug), slug, false, false);
             setSession(res, created.user.id);
