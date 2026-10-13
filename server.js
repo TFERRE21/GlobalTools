@@ -196,6 +196,7 @@ const server = http.createServer((req, res) => {
       const cancel = siteUrl(req) + "/products/" + slug + ".html?checkout=cancelled";
       const body = [
         "mode=payment",
+        "locale=pt-BR",
         "line_items[0][price]=" + formEncode(product.priceId),
         "line_items[0][quantity]=1",
         "success_url=" + formEncode(success),
