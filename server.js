@@ -48,7 +48,7 @@ const server = http.createServer((req, res) => {
       name: "Freelancer Business Kit"
     }
   };
-  const PUBLIC_SITE_URL = (process.env.PUBLIC_SITE_URL || "https://oolivo.com.br").replace(/\/$/, "");
+  const PUBLIC_SITE_URL = "https://oolivo.com.br";
 
   function stripeRequest(method, stripePath, body, callback) {
     if (!STRIPE_SECRET_KEY) return callback(new Error("STRIPE_SECRET_KEY is not configured"));
