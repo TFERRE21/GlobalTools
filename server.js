@@ -304,7 +304,10 @@ const server = http.createServer((req, res) => {
     const app = fs.readFileSync(path.join(root, "app.js"), "utf8");
     const match = app.match(new RegExp('\\{slug:"'+slug+'",name:"([^"]+)",desc:"([^"]+)"'));
     if (match) {
-      const name = match[1], desc = match[2];
+      const rawName = match[1], rawDesc = match[2];
+      const ptMatch = app.match(new RegExp('"' + slug.replace(/[.*+?^${}()|[\]\\]/g, "\\      const name = match[1], desc = match[2];") + '":\\["([^"]+)","([^"]+)"\\]'));
+      const name = ptMatch ? ptMatch[1] : rawName;
+      const desc = ptMatch ? ptMatch[2] : rawDesc;
       const safe = v => String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
       const allTools = [...app.matchAll(/\{slug:"([^"]+)",name:"([^"]+)",desc:"([^"]+)",cat:"([^"]+)"\}/g)].map(m => ({slug:m[1],name:m[2],desc:m[3],cat:m[4]}));
       const current = allTools.find(t => t.slug === slug) || {slug,name,desc,cat:"tools"};
@@ -357,7 +360,7 @@ const server = http.createServer((req, res) => {
         '<script type="application/ld+json">'+appSchema+'</script><script type="application/ld+json">'+faqSchema+'</script>',
         '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472882150880001" crossorigin="anonymous"></script>',
         '<script async src="https://www.googletagmanager.com/gtag/js?id=G-DM7CKZRD30"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-DM7CKZRD30");</script>',
-        '<link rel="stylesheet" href="/styles.css?v=20261012-02"><script defer src="/app.js?v=20261012-02"></script><!-- Google Ads tag --><script async src="https://www.googletagmanager.com/gtag/js?id=AW-17240722145"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","AW-17240722145");</script></head>',
+        '<link rel="stylesheet" href="/styles.css?v=20261016-02"><script defer src="/app.js?v=20261016-02"></script><!-- Google Ads tag --><script async src="https://www.googletagmanager.com/gtag/js?id=AW-17240722145"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","AW-17240722145");</script></head>',
         '<body><header class="site-header"><a class="brand" href="/"><span class="brand-mark">O</span>Oolivo</a><nav class="main-nav"><a href="/">Ferramentas</a><a href="/#categories">Categorias</a><a href="/sobre.html">Sobre</a><a href="/contato.html">Contato</a><a href="/privacy.html">Privacidade</a><label class="language-switcher"><span>🌐</span><select id="languageSelect"><option value="pt">Português</option><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option></select></label></nav></header>',
         '<main class="tool-page"><div class="breadcrumbs"><a href="/">Início</a> / '+safe(name)+'</div><section class="tool-hero"><div class="tool-kicker">OOLIVO • FERRAMENTA ONLINE</div><h1>'+safe(name)+'</h1><p class="intro">'+safe(desc)+'</p></section>',
         '<div class="tool-workspace"><div id="tool" class="tool-box"><div id="dropZone" class="upload-visual file-upload-visual"><div class="upload-icon">↥</div><h2>Escolha os arquivos</h2><p>ou arraste e solte os arquivos aqui</p></div><textarea id="input" aria-label="'+safe(name)+'" placeholder="Digite ou cole seus dados..."></textarea><button id="action" class="btn primary-action">Executar ferramenta</button><div id="result" class="result">Seu resultado aparecerá aqui.</div></div>',
@@ -365,7 +368,7 @@ const server = http.createServer((req, res) => {
         '<section class="info"><h2>Sobre '+safe(name)+'</h2><p>'+safe(purpose)+'</p><h2>Como usar</h2><ol>'+steps+'</ol><h2>Exemplo prático</h2><p>'+safe(example)+'</p><h2>Limitações e cuidados</h2><p>'+safe(notes)+'</p><h2>Perguntas frequentes</h2><div class="faq">'+faqHtml+'</div>',
         related.length?'<h2>Ferramentas relacionadas</h2><div class="related-tools">'+relatedHtml+'</div>':'',
         '<h2>Privacidade e processamento</h2><p>O Oolivo prioriza processamento no navegador quando isso é tecnicamente possível. Para saber mais sobre cookies, publicidade, Analytics e serviços externos, consulte a <a href="/privacy.html">Política de Privacidade</a>. Para dúvidas ou relatos de erros, use a <a href="/contato.html">página de contato</a>.</p></section></main>',
-        '<footer class="site-footer"><div><div class="brand"><span class="brand-mark">O</span>Oolivo</div><p>Ferramentas online gratuitas para todos.</p></div><div class="footer-links"><a href="/sobre.html">Sobre</a><a href="/contato.html">Contato</a><a href="/privacy.html">Privacidade</a><a href="/terms.html">Termos</a></div></footer><script src="/support.js?v=20261007-01"></script></body></html>'
+        '<footer class="site-footer"><div><div class="brand"><span class="brand-mark">O</span>Oolivo</div><p>Ferramentas online gratuitas para todos.</p></div><div class="footer-links"><a href="/sobre.html">Sobre</a><a href="/contato.html">Contato</a><a href="/privacy.html">Privacidade</a><a href="/terms.html">Termos</a></div></footer><script src="/support.js?v=20261016-02"></script></body></html>'
       ].join('');
       res.writeHead(200, {"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-cache, no-store, must-revalidate"});
       return res.end(html);
