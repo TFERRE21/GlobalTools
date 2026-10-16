@@ -305,7 +305,7 @@ const server = http.createServer((req, res) => {
     const match = app.match(new RegExp('\\{slug:"'+slug+'",name:"([^"]+)",desc:"([^"]+)"'));
     if (match) {
       const rawName = match[1], rawDesc = match[2];
-      const ptMatch = app.match(new RegExp('"' + slug.replace(/[.*+?^${}()|[\]\\]/g, "\\      const name = match[1], desc = match[2];") + '":\\["([^"]+)","([^"]+)"\\]'));
+      const ptMatch = app.match(new RegExp('"' + slug + '":\\["([^"]+)","([^"]+)"\\]'));
       const name = ptMatch ? ptMatch[1] : rawName;
       const desc = ptMatch ? ptMatch[2] : rawDesc;
       const safe = v => String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
