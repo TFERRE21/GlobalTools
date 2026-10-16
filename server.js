@@ -48,7 +48,7 @@ const server = http.createServer((req, res) => {
       name: "Freelancer Business Kit"
     }
   };
-  const PUBLIC_SITE_URL = (process.env.PUBLIC_SITE_URL || "").replace(/\/$/, "");
+  const PUBLIC_SITE_URL = (process.env.PUBLIC_SITE_URL || "https://oolivo.com.br").replace(/\/$/, "");
 
   function stripeRequest(method, stripePath, body, callback) {
     if (!STRIPE_SECRET_KEY) return callback(new Error("STRIPE_SECRET_KEY is not configured"));
@@ -91,7 +91,7 @@ const server = http.createServer((req, res) => {
   }
 
   function siteUrl(req) {
-    return PUBLIC_SITE_URL || ("https://" + (req.headers.host || "localhost"));
+    return PUBLIC_SITE_URL || "https://oolivo.com.br";
   }
 
   function formEncode(value) {
