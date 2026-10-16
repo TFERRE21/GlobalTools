@@ -8,7 +8,7 @@ const { spawn } = require("child_process");
 const ROOT = __dirname;
 const PORT = Number(process.env.PORT || 3000);
 const CORE_PORT = Number(process.env.CORE_PORT || (PORT === 3000 ? 3001 : PORT + 1));
-const PUBLIC_SITE_URL = (process.env.PUBLIC_SITE_URL || "").replace(/\/$/, "");
+const PUBLIC_SITE_URL = (process.env.PUBLIC_SITE_URL || "https://oolivo.com.br").replace(/\/$/, "");
 const APP_DATA_DIR = path.join(ROOT, "data");
 let DATA_DIR = process.env.GLOBALTOOLS_DATA_DIR || process.env.DATA_DIR || "/var/lib/globaltools";
 let USERS_FILE = path.join(DATA_DIR, "users.json");
