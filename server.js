@@ -312,7 +312,7 @@ const server = http.createServer((req, res) => {
       const allTools = [...app.matchAll(/\{slug:"([^"]+)",name:"([^"]+)",desc:"([^"]+)",cat:"([^"]+)"\}/g)].map(m => ({slug:m[1],name:m[2],desc:m[3],cat:m[4]}));
       const current = allTools.find(t => t.slug === slug) || {slug,name,desc,cat:"tools"};
       const related = allTools.filter(t => t.slug !== slug && t.cat === current.cat).slice(0,6);
-      const relatedHtml = related.map(t => '<a class="related-tool" href="/tools/'+t.slug+'.html"><strong>'+safe(t.name)+'</strong><span>'+safe(t.desc)+'</span></a>').join('');
+      const relatedHtml = related.map(t => { const localized = app.match(new RegExp('"' + t.slug + '":\\["([^"]+)","([^"]+)"\\]')); const relatedName = localized ? localized[1] : t.name; const relatedDesc = localized ? localized[2] : t.desc; return '<a class="related-tool" href="/tools/'+t.slug+'.html"><strong>'+safe(relatedName)+'</strong><span>'+safe(relatedDesc)+'</span></a>'; }).join('');
 
       const groups = {
         text:["Esta ferramenta ajuda a trabalhar com texto diretamente no navegador.","Insira ou cole o texto no campo indicado.","Revise as opções disponíveis.","Execute a ferramenta e confira o resultado.","Caracteres especiais, espaços e quebras de linha podem influenciar a saída."],
