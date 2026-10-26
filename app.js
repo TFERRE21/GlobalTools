@@ -235,14 +235,14 @@ function setupTool(slug){
  const run=async fn=>{try{const value=await fn();if(value!==undefined&&value!==null)setResult(value)}catch(e){hideProgress();setResult('<div class="tool-error"><b>Erro:</b> '+esc(e.message||e)+'</div>')}};
  const textTools={
  'word-counter':()=>{const v=getText(),words=v.trim()?v.trim().split(/\s+/).length:0,chars=v.length,no=v.replace(/\s/g,'').length,sent=v.trim()?v.split(/[.!?]+/).filter(x=>x.trim()).length:0,para=v.trim()?v.split(/\n\s*\n/).filter(x=>x.trim()).length:0;return 'Words: '+words+'<br>Characters: '+chars+'<br>Characters without spaces: '+no+'<br>Sentences: '+sent+'<br>Paragraphs: '+para},
- 'character-counter':()=>{const v=getText();return 'Characters: '+v.length+'<br>Without spaces: '+v.replace(/\s/g,'').length},
- 'case-converter':()=>{const v=getText();return '<b>UPPERCASE</b><br>'+esc(v.toUpperCase())+'<br><br><b>lowercase</b><br>'+esc(v.toLowerCase())+'<br><br><b>Title Case</b><br>'+esc(v.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()))+'<br><br><b>Sentence case</b><br>'+esc(v.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g,c=>c.toUpperCase()))},
+ 'character-counter':()=>{const v=getText();return 'Caracteres: '+v.length+'<br>Sem espaços: '+v.replace(/\s/g,'').length},
+ 'case-converter':()=>{const v=getText();return '<b>MAIÚSCULAS</b><br>'+esc(v.toUpperCase())+'<br><br><b>minúsculas</b><br>'+esc(v.toLowerCase())+'<br><br><b>Formato de título</b><br>'+esc(v.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()))+'<br><br><b>Formato de frase</b><br>'+esc(v.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g,c=>c.toUpperCase()))},
  'remove-duplicate-lines':()=>[...new Set(getText().split(/\r?\n/))].join('\n'),
  'reverse-text':()=>getText().split('').reverse().join(''),
  'sort-lines':()=>getText().split(/\r?\n/).sort((a,b)=>a.localeCompare(b)).join('\n'),
  'remove-extra-spaces':()=>getText().replace(/[ \t]+/g,' ').replace(/\n\s*\n+/g,'\n').trim(),
  'count-lines':()=>String(getText()?getText().split(/\r?\n/).length:0),
- 'text-statistics':()=>{const v=getText(),words=v.trim()?v.trim().split(/\s+/).length:0;return 'Words: '+words+'<br>Characters: '+v.length+'<br>Lines: '+(v?v.split(/\r?\n/).length:0)+'<br>Letters: '+(v.match(/[A-Za-zÀ-ÿ]/g)||[]).length+'<br>Digits: '+(v.match(/\d/g)||[]).length},
+ 'text-statistics':()=>{const v=getText(),words=v.trim()?v.trim().split(/\s+/).length:0;return 'Palavras: '+words+'<br>Caracteres: '+v.length+'<br>Linhas: '+(v?v.split(/\r?\n/).length:0)+'<br>Letras: '+(v.match(/[A-Za-zÀ-ÿ]/g)||[]).length+'<br>Números: '+(v.match(/\d/g)||[]).length},
  'reading-time-calculator':()=>{const w=getText().trim()?getText().trim().split(/\s+/).length:0;return w+' words<br>Estimated reading time: '+Math.max(1,Math.ceil(w/200))+' minute(s)'},
  'text-to-slug':()=>getText().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''),
  'slug-generator':()=>getText().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''),
@@ -495,14 +495,14 @@ if(slug==='merge-pdf'){const out=await PDFDocument.create();for(const f of files
  if(slug==='password-generator'){handler=()=>randomPassword(20)}
  if(slug==='random-password-batch'){handler=()=>Array.from({length:10},()=>randomPassword(20)).join('\n')}
  if(slug==='url-shortener-helper'){handler=async()=>{const u=getText().trim();if(!/^https?:\/\//i.test(u))throw new Error('Enter a complete URL starting with http:// or https://');const r=await fetch('https://is.gd/create.php?format=simple&url='+encodeURIComponent(u));if(!r.ok)throw new Error('Shortener service unavailable.');return esc((await r.text()).trim())}}
- if(slug==='password-strength-checker'){handler=()=>{const v=getText(),score=(v.length>=12)+(v.length>=16)+(/[a-z]/.test(v))+( /[A-Z]/.test(v))+( /\d/.test(v))+( /[^A-Za-z0-9]/.test(v));return 'Score: '+score+'/6<br>Length: '+v.length+'<br>'+ (score>=5?'Strong characteristics':'Add length, numbers, upper/lowercase and symbols.')}}
+ if(slug==='password-strength-checker'){handler=()=>{const v=getText(),score=(v.length>=12)+(v.length>=16)+(/[a-z]/.test(v))+( /[A-Z]/.test(v))+( /\d/.test(v))+( /[^A-Za-z0-9]/.test(v));return 'Pontuação: '+score+'/6<br>Comprimento: '+v.length+' caracteres<br>'+ (score>=5?'Apresenta vários critérios de força':'Considere aumentar o comprimento e combinar letras maiúsculas, minúsculas, números e símbolos.')}}
  if(slug==='hash-generator')handler=async()=>{const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(getText()));return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}
  if(slug==='lorem-ipsum-generator')handler=()=>('Lorem ipsum dolor sit amet, consectetur adipiscing elit. '.repeat(12)).trim()
  if(slug==='qr-code-generator')handler=()=>{const v=encodeURIComponent(getText().trim());return '<img alt="QR code" style="max-width:280px" src="https://api.qrserver.com/v1/create-qr-code/?size=280x280&data='+v+'"><br><small>QR image is generated by an external QR service.</small>'}
  if(slug==='text-to-pdf'||slug==='markdown-to-pdf')handler=async()=>{const {PDFDocument,rgb,StandardFonts}=await pdfLib();const doc=await PDFDocument.create();let page=doc.addPage([595,842]);const font=await doc.embedFont(StandardFonts.Helvetica);const lines=getText().replace(/\r/g,'').split(/\n/);let y=800;for(const line of lines){if(y<50){page=doc.addPage([595,842]);y=800}page.drawText(line.slice(0,95),{x:40,y,size:11,font,color:rgb(0.1,0.1,0.1)});y-=18}const blob=new Blob([await doc.save()],{type:'application/pdf'});setResult('PDF created successfully.');addDownload(blob,'oolivo-document.pdf');return ''}
  if(slug==='pdf-tools')handler=()=> 'PDF utilities are available as dedicated tools: page counter, metadata, PDF to text, merge, split, rotate and compress.'
  if(!handler)handler=()=>getText()
- input.placeholder='Enter or paste your data...';
+ if(!input.placeholder)input.placeholder=document.documentElement.lang==='pt-BR'?'Digite ou cole seus dados...':'Enter or paste your data...';
  if(['uuid-generator','password-generator','random-password-batch','lorem-ipsum-generator','qr-code-generator','dice-roller','random-number-generator','random-choice-picker','color-palette-generator','ascii-table'].includes(slug))input.placeholder=slug==='random-choice-picker'?'One option per line':slug==='dice-roller'?'Enter: sides count (e.g. 6 2)':'Enter data or parameters...';
  action.textContent='Run Tool';action.onclick=async()=>{await run(handler);addExportButtons()};
  addExportButtons();
