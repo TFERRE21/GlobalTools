@@ -234,7 +234,7 @@ function setupTool(slug){
  if(!out){out=document.createElement('div');out.id='result';out.className='result';box.appendChild(out)}
  const run=async fn=>{try{const value=await fn();if(value!==undefined&&value!==null)setResult(value)}catch(e){hideProgress();setResult('<div class="tool-error"><b>Erro:</b> '+esc(e.message||e)+'</div>')}};
  const textTools={
- 'word-counter':()=>{const v=getText(),words=v.trim()?v.trim().split(/\s+/).length:0,chars=v.length,no=v.replace(/\s/g,'').length,sent=v.trim()?v.split(/[.!?]+/).filter(x=>x.trim()).length:0,para=v.trim()?v.split(/\n\s*\n/).filter(x=>x.trim()).length:0;return 'Words: '+words+'<br>Characters: '+chars+'<br>Characters without spaces: '+no+'<br>Sentences: '+sent+'<br>Paragraphs: '+para},
+ 'word-counter':()=>{const v=getText(),words=v.trim()?v.trim().split(/\s+/).length:0,chars=v.length,no=v.replace(/\s/g,'').length,sent=v.trim()?v.split(/[.!?]+/).filter(x=>x.trim()).length:0,para=v.trim()?v.split(/\n\s*\n/).filter(x=>x.trim()).length:0;return 'Palavras: '+words+'<br>Caracteres: '+chars+'<br>Caracteres sem espaços: '+no+'<br>Frases: '+sent+'<br>Parágrafos: '+para},
  'character-counter':()=>{const v=getText();return 'Caracteres: '+v.length+'<br>Sem espaços: '+v.replace(/\s/g,'').length},
  'case-converter':()=>{const v=getText();return '<b>MAIÚSCULAS</b><br>'+esc(v.toUpperCase())+'<br><br><b>minúsculas</b><br>'+esc(v.toLowerCase())+'<br><br><b>Formato de título</b><br>'+esc(v.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()))+'<br><br><b>Formato de frase</b><br>'+esc(v.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g,c=>c.toUpperCase()))},
  'remove-duplicate-lines':()=>[...new Set(getText().split(/\r?\n/))].join('\n'),
