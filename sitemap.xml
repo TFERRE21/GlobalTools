@@ -20,10 +20,10 @@
   <url><loc>https://oolivo.com.br/tools/url-decoder.html</loc></url>
   <url><loc>https://oolivo.com.br/tools/uuid-generator.html</loc></url>
   <url><loc>https://oolivo.com.br/tools/password-generator.html</loc></url>
-  <url><loc>https://oolivo.com.br/tools/qr-code-generator.html</loc></url>
-  <url><loc>https://oolivo.com.br/tools/lorem-ipsum-generator.html</loc></url>
+  <url><loc>https://oolivo.com.br/tools/qr-code-generator.html</loc><lastmod>2026-10-26</lastmod></url>
+  <url><loc>https://oolivo.com.br/tools/lorem-ipsum-generator.html</loc><lastmod>2026-10-26</lastmod></url>
   <url><loc>https://oolivo.com.br/tools/age-calculator.html</loc><lastmod>2026-10-26</lastmod></url>
-  <url><loc>https://oolivo.com.br/tools/unix-timestamp.html</loc></url>
+  <url><loc>https://oolivo.com.br/tools/unix-timestamp.html</loc><lastmod>2026-10-26</lastmod></url>
   <url><loc>https://oolivo.com.br/tools/color-converter.html</loc><lastmod>2026-10-26</lastmod></url>
   <url><loc>https://oolivo.com.br/tools/image-info.html</loc><lastmod>2026-10-26</lastmod></url>
   <url><loc>https://oolivo.com.br/tools/image-to-data-url.html</loc></url>
@@ -37,7 +37,7 @@
   <url><loc>https://oolivo.com.br/tools/html-escape.html</loc></url>
   <url><loc>https://oolivo.com.br/tools/html-unescape.html</loc></url>
   <url><loc>https://oolivo.com.br/tools/random-number-generator.html</loc></url>
-  <url><loc>https://oolivo.com.br/tools/dice-roller.html</loc></url>
+  <url><loc>https://oolivo.com.br/tools/dice-roller.html</loc><lastmod>2026-10-26</lastmod></url>
   <url><loc>https://oolivo.com.br/tools/binary-to-text.html</loc><lastmod>2026-10-26</lastmod></url>
   <url><loc>https://oolivo.com.br/tools/text-to-binary.html</loc><lastmod>2026-10-26</lastmod></url>
   <url><loc>https://oolivo.com.br/tools/count-lines.html</loc></url>
@@ -57,7 +57,6 @@
   <url><loc>https://oolivo.com.br/tools/jwt-decoder.html</loc><lastmod>2026-10-26</lastmod></url>
   <url><loc>https://oolivo.com.br/tools/hex-to-rgb.html</loc><lastmod>2026-10-26</lastmod></url>
   <url><loc>https://oolivo.com.br/tools/rgb-to-hex.html</loc><lastmod>2026-10-26</lastmod></url>
-  <url><loc>https://oolivo.com.br/tools/timestamp-to-date.html</loc></url>
   <url><loc>https://oolivo.com.br/tools/date-to-timestamp.html</loc></url>
   <url><loc>https://oolivo.com.br/tools/timezone-converter.html</loc><lastmod>2026-10-26</lastmod></url>
   <url><loc>https://oolivo.com.br/tools/days-between-dates.html</loc></url>
