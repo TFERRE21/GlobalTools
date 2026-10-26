@@ -14,8 +14,8 @@
   <url><loc>https://oolivo.com.br/tools/case-converter.html</loc><lastmod>2026-10-26</lastmod></url>
   <url><loc>https://oolivo.com.br/tools/remove-duplicate-lines.html</loc></url>
   <url><loc>https://oolivo.com.br/tools/json-minifier.html</loc></url>
-  <url><loc>https://oolivo.com.br/tools/base64-encoder.html</loc></url>
-  <url><loc>https://oolivo.com.br/tools/base64-decoder.html</loc></url>
+  <url><loc>https://oolivo.com.br/tools/base64-encoder.html</loc><lastmod>2026-10-26</lastmod></url>
+  <url><loc>https://oolivo.com.br/tools/base64-decoder.html</loc><lastmod>2026-10-26</lastmod></url>
   <url><loc>https://oolivo.com.br/tools/url-encoder.html</loc></url>
   <url><loc>https://oolivo.com.br/tools/url-decoder.html</loc></url>
   <url><loc>https://oolivo.com.br/tools/uuid-generator.html</loc></url>
@@ -38,8 +38,8 @@
   <url><loc>https://oolivo.com.br/tools/html-unescape.html</loc></url>
   <url><loc>https://oolivo.com.br/tools/random-number-generator.html</loc></url>
   <url><loc>https://oolivo.com.br/tools/dice-roller.html</loc></url>
-  <url><loc>https://oolivo.com.br/tools/binary-to-text.html</loc></url>
-  <url><loc>https://oolivo.com.br/tools/text-to-binary.html</loc></url>
+  <url><loc>https://oolivo.com.br/tools/binary-to-text.html</loc><lastmod>2026-10-26</lastmod></url>
+  <url><loc>https://oolivo.com.br/tools/text-to-binary.html</loc><lastmod>2026-10-26</lastmod></url>
   <url><loc>https://oolivo.com.br/tools/count-lines.html</loc></url>
   <url><loc>https://oolivo.com.br/tools/csv-to-json.html</loc></url>
   <url><loc>https://oolivo.com.br/tools/json-to-csv.html</loc><lastmod>2026-10-26</lastmod></url>
@@ -112,9 +112,9 @@
   <url><loc>https://oolivo.com.br/tools/password-strength-checker.html</loc><lastmod>2026-10-26</lastmod></url>
   <url><loc>https://oolivo.com.br/tools/random-password-batch.html</loc></url>
   <url><loc>https://oolivo.com.br/tools/color-palette-generator.html</loc><lastmod>2026-10-26</lastmod></url>
-  <url><loc>https://oolivo.com.br/tools/ascii-table.html</loc></url>
+  <url><loc>https://oolivo.com.br/tools/ascii-table.html</loc><lastmod>2026-10-26</lastmod></url>
   <url><loc>https://oolivo.com.br/tools/binary-calculator.html</loc></url>
-  <url><loc>https://oolivo.com.br/tools/octal-decimal-converter.html</loc></url>
+  <url><loc>https://oolivo.com.br/tools/octal-decimal-converter.html</loc><lastmod>2026-10-26</lastmod></url>
   <url><loc>https://oolivo.com.br/products/small-business-finance-dashboard.html</loc></url>
   <url><loc>https://oolivo.com.br/products/cash-flow-planner.html</loc></url>
   <url><loc>https://oolivo.com.br/products/freelancer-business-kit.html</loc></url>
