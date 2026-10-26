@@ -1,4 +1,4 @@
-const CACHE_NAME = "oolivo-v6";
+const CACHE_NAME = "oolivo-v7";
 const STATIC_ASSETS = [
   "/",
   "/index.html",
