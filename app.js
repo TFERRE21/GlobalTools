@@ -571,3 +571,59 @@ setupLanguage();
     return choice && choice.outcome === "accepted";
   };
 })();
+
+
+// Keep legacy tool pages visually consistent with the Oolivo brand and core navigation.
+(function normalizeOolivoChrome(){
+  function normalize(){
+    const links=[["/sobre.html","Sobre"],["/contato.html","Contato"],["/privacy.html","Privacidade"],["/terms.html","Termos de uso"]];
+    document.querySelectorAll("header.site-header").forEach(header=>{
+      const brand=header.querySelector(".brand");
+      if(brand && /global\\s*tools/i.test(brand.textContent)){
+        brand.innerHTML='<span class="brand-mark">O</span><span>Oolivo</span>';
+      }
+      let nav=header.querySelector("nav");
+      if(!nav){nav=document.createElement("nav");nav.className="main-nav";header.appendChild(nav);}
+      nav.classList.add("main-nav");
+      nav.querySelectorAll("a").forEach(a=>{
+        const label=a.textContent.trim().toLowerCase();
+        if(["all tools","home","tools"].includes(label))a.textContent="Início";
+        else if(label==="privacy")a.textContent="Privacidade";
+        else if(label==="terms")a.textContent="Termos de uso";
+        else if(label==="contact")a.textContent="Contato";
+        else if(label==="about")a.textContent="Sobre";
+        else if(label==="store")a.textContent="Loja digital";
+      });
+      for(const [href,label] of links){
+        if(!nav.querySelector('a[href="'+href+'"]')){
+          const a=document.createElement("a");a.href=href;a.textContent=label;nav.appendChild(a);
+        }
+      }
+    });
+    let footer=document.querySelector("footer.site-footer")||document.querySelector("footer");
+    if(!footer){
+      footer=document.createElement("footer");footer.className="site-footer";
+      footer.innerHTML='<div><div class="brand"><span class="brand-mark">O</span><span>Oolivo</span></div><p>Ferramentas online gratuitas e recursos digitais práticos.</p></div><div class="footer-links"></div>';
+      document.body.appendChild(footer);
+    }else{
+      footer.classList.add("site-footer");
+      const brand=footer.querySelector(".brand");
+      if(brand && /global\\s*tools/i.test(brand.textContent))brand.innerHTML='<span class="brand-mark">O</span><span>Oolivo</span>';
+      if(!footer.querySelector(".brand")){
+        const block=document.createElement("div");block.innerHTML='<div class="brand"><span class="brand-mark">O</span><span>Oolivo</span></div><p>Ferramentas online gratuitas e recursos digitais práticos.</p>';footer.prepend(block);
+      }
+      if(!footer.querySelector(".footer-links")){const f=document.createElement("div");f.className="footer-links";footer.appendChild(f);}
+    }
+    const footerLinks=footer.querySelector(".footer-links");
+    if(footerLinks){
+      const items=[["/sobre.html","Sobre"],["/contato.html","Contato"],["/privacy.html","Privacidade"],["/terms.html","Termos de uso"],["/refund.html","Reembolso"]];
+      for(const [href,label] of items){
+        if(!footerLinks.querySelector('a[href="'+href+'"]')){
+          const a=document.createElement("a");a.href=href;a.textContent=label;footerLinks.appendChild(a);
+        }
+      }
+    }
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",normalize,{once:true});
+  else normalize();
+})();
