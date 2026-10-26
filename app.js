@@ -543,7 +543,7 @@ function applyLanguage(lang){
  const s=document.getElementById("search");if(s&&t.search)s.placeholder=t.search;
  const searchQuery=document.getElementById("search")?.value||"";if(document.getElementById("tool-grid"))renderHome(filterTools(searchQuery));
  const input=document.getElementById("input");if(input)input.placeholder=lang==="pt"?"Digite ou cole seus dados...":lang==="es"?"Introduce o pega tus datos...":lang==="fr"?"Saisissez ou collez vos données...":"Enter or paste your data...";
- const action=document.getElementById("action");if(action&&!document.getElementById("fileInput"))action.textContent=tt.runTool||"Run Tool";
+ const action=document.getElementById("action");if(action&&!document.getElementById("fileInput"))action.textContent=lang==="pt"?(action.dataset.ptLabel||"Executar ferramenta"):tt.runTool||"Run Tool";
  if(typeof applyToolLocale==='function')applyToolLocale(lang);
  localStorage.setItem("globaltools-language-v2",lang)
 }
