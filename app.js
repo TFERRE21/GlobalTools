@@ -287,8 +287,7 @@ function setupTool(slug){
  'octal-decimal-converter':()=>{const n=getText().trim();return 'Octal: '+parseInt(n,10).toString(8)+'\\nDecimal: '+parseInt(n,8)},
  'ascii-table':()=>Array.from({length:128},(_,i)=>i+' = '+(i<32?'Control':String.fromCharCode(i))).join('\n'),
  'url-shortener-helper':()=>getText().trim(),
- 'meta-tag-generator':()=>{const [title='',description='',url='']=getText().split(/\n/);return '<title>'+esc(title)+'</title>\\n<meta name="description" content="'+esc(description)+'">\\n<link rel="canonical" href="'+esc(url)+'">'},
- 'utm-builder':()=>{const [url,source,medium,campaign,term,content]=getText().split(/\n/);const u=new URL(url);[['utm_source',source],['utm_medium',medium],['utm_campaign',campaign],['utm_term',term],['utm_content',content]].forEach(([k,v])=>v&&u.searchParams.set(k,v));return u.href}
+ 'meta-tag-generator':()=>{const [title='',description='',url='']=getText().split(/\n/);const code='<title>'+title+'</title>'+String.fromCharCode(10)+'<meta name="description" content="'+description+'">'+String.fromCharCode(10)+'<link rel="canonical" href="'+url+'">';return '<pre><code>'+esc(code)+'</code></pre>'}, 'utm-builder':()=>{const [url,source,medium,campaign,term,content]=getText().split(/\n/);const u=new URL(url);[['utm_source',source],['utm_medium',medium],['utm_campaign',campaign],['utm_term',term],['utm_content',content]].forEach(([k,v])=>v&&u.searchParams.set(k,v));return u.href}
  };
  const calc={
  'percentage-calculator':()=>{const m=getText().match(/([\d.,]+)\s*%\s*(?:of|de)\s*([\d.,]+)/i);if(!m)throw new Error('Use: 15% of 200');return (parseFloat(m[1].replace(',','.'))/100*parseFloat(m[2].replace(',','.')))},
