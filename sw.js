@@ -1,4 +1,4 @@
-const CACHE_NAME = "oolivo-v11";
+const CACHE_NAME = "oolivo-v12";
 const STATIC_ASSETS = [
   "/",
   "/index.html",
@@ -29,7 +29,7 @@ self.addEventListener("fetch", event => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
-  if (event.request.mode === "navigate") {
+  if (url.pathname === "/app.js") {\n    event.respondWith(caches.open(CACHE_NAME).then(cache => cache.match("/app.js").then(cached => cached || fetch(event.request))));\n    return;\n  }\n\n  if (event.request.mode === "navigate") {
     event.respondWith(
       fetch(event.request)
         .then(response => {
