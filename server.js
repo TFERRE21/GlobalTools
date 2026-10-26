@@ -393,7 +393,9 @@ const server = http.createServer((req, res) => {
   const ext = path.extname(finalPath).toLowerCase();
   if (ext === ".html") {
     let html = fs.readFileSync(finalPath, "utf8");
-    const noAdPaths = ["/login.html","/account.html","/account-success.html","/privacy.html","/terms.html","/contato.html","/sobre.html","/refund.html","/suporte.html","/support.html","/store.html"];\n    const noAdSection = urlPath.startsWith("/account/") || urlPath.startsWith("/checkout/") || urlPath.startsWith("/products/");\n    if (!html.includes("ca-pub-6472882150880001") && !noAdPaths.includes(urlPath) && !noAdSection) html = html.replace(new RegExp("</head>", "i"), '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472882150880001" crossorigin="anonymous"></script></head>');
+    const noAdPaths = ["/login.html","/account.html","/account-success.html","/privacy.html","/terms.html","/contato.html","/sobre.html","/refund.html","/suporte.html","/support.html","/store.html"];
+    const noAdSection = urlPath.startsWith("/account/") || urlPath.startsWith("/checkout/") || urlPath.startsWith("/products/");
+    if (!html.includes("ca-pub-6472882150880001") && !noAdPaths.includes(urlPath) && !noAdSection) html = html.replace(new RegExp("</head>", "i"), '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472882150880001" crossorigin="anonymous"></script></head>');
     if (!html.includes("G-DM7CKZRD30")) html = html.replace(/<head>/i, `<head><script async src="https://www.googletagmanager.com/gtag/js?id=G-DM7CKZRD30"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-DM7CKZRD30");</script>`);
     if (!html.includes("/language.js")) html = html.replace(/<\/head>/i, `<script defer src="/language.js?v=20261012-02"></script></head>`);
     if (!html.includes("/support.js")) html = html.replace(/<\/body>/i, `<script defer src="/support.js?v=20261007-01"></script></body>`);
