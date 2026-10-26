@@ -579,7 +579,7 @@ setupLanguage();
     const links=[["/sobre.html","Sobre"],["/contato.html","Contato"],["/privacy.html","Privacidade"],["/terms.html","Termos de uso"]];
     document.querySelectorAll("header.site-header").forEach(header=>{
       const brand=header.querySelector(".brand");
-      if(brand && /global\\s*tools/i.test(brand.textContent)){
+      if(brand && /global\s*tools/i.test(brand.textContent)){
         brand.innerHTML='<span class="brand-mark">O</span><span>Oolivo</span>';
       }
       let nav=header.querySelector("nav");
@@ -608,7 +608,7 @@ setupLanguage();
     }else{
       footer.classList.add("site-footer");
       const brand=footer.querySelector(".brand");
-      if(brand && /global\\s*tools/i.test(brand.textContent))brand.innerHTML='<span class="brand-mark">O</span><span>Oolivo</span>';
+      if(brand && /global\s*tools/i.test(brand.textContent))brand.innerHTML='<span class="brand-mark">O</span><span>Oolivo</span>';
       if(!footer.querySelector(".brand")){
         const block=document.createElement("div");block.innerHTML='<div class="brand"><span class="brand-mark">O</span><span>Oolivo</span></div><p>Ferramentas online gratuitas e recursos digitais práticos.</p>';footer.prepend(block);
       }
