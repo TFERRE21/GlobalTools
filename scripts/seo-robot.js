@@ -187,12 +187,12 @@ function ensureGuidePages() {
     const canonical = SITE + "/" + guide.slug;
     const sections = guide.sections.map(([heading, body, href, label]) =>
       "<section><h2>" + heading + "</h2><p>" + body + "</p><p><a href=\"" + href + "\">" + label + " →</a></p></section>"
-    ).join("\\n");
+    ).join("\n");
     const html = "<!doctype html>\\n<html lang=\"pt-BR\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">" +
       "<title>" + guide.title + " | Oolivo</title><meta name=\"description\" content=\"" + guide.description + "\"><meta name=\"robots\" content=\"index,follow\"><link rel=\"canonical\" href=\"" + canonical + "\">" +
       "<style>body{font:16px/1.7 system-ui,-apple-system,Segoe UI,sans-serif;max-width:900px;margin:0 auto;padding:24px;color:#172033}header,main,footer{margin:0 auto 28px}a{color:#075fc7}h1{line-height:1.2;font-size:clamp(2rem,5vw,3rem)}section{padding:18px 0;border-top:1px solid #e3e8ef}nav a{margin-right:16px}footer{font-size:.9rem;color:#5d6878}</style></head><body>" +
       "<header><nav><a href=\"/\">Oolivo</a><a href=\"/tools/\">Ferramentas</a><a href=\"/store.html\">Loja</a></nav></header><main><h1>" + guide.title + "</h1><p>" + guide.intro + "</p>" + sections +
-      "<section><h2>Sobre estas ferramentas</h2><p>As ferramentas disponíveis no Oolivo têm finalidades específicas. Confira o resultado e evite inserir dados confidenciais em qualquer serviço online.</p></section></main><footer><a href=\"/privacy.html\">Privacidade</a> · <a href=\"/contact.html\">Contato</a> · <a href=\"/sobre.html\">Sobre o Oolivo</a></footer></body></html>\\n";
+      "<section><h2>Sobre estas ferramentas</h2><p>As ferramentas disponíveis no Oolivo têm finalidades específicas. Confira o resultado e evite inserir dados confidenciais em qualquer serviço online.</p></section></main><footer><a href=\"/privacy.html\">Privacidade</a> · <a href=\"/contato.html\">Contato</a> · <a href=\"/sobre.html\">Sobre o Oolivo</a></footer></body></html>\\n";
     fs.mkdirSync(path.dirname(file), { recursive: true });
     atomicWrite(file, html);
     console.log("[seo-robot] guide page created", guide.slug);
