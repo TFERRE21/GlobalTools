@@ -297,16 +297,32 @@ function sendAccessEmail(email, password, plan, product, callback) {
   const safePlan = String(plan).replace(/[<>&"]/g, "");
   const safeProduct = String(productName).replace(/[<>&"]/g, "");
   const text =
-    "Welcome to Oolivo Finance\n\n" +
-    "Your purchase is confirmed and your Oolivo Finance account is ready.\n\n" +
-    "Product: " + safeProduct + "\n" +
-    "Plan: " + safePlan + "\n" +
-    "Email: " + safeEmail + "\n" +
-    "Initial password: " + safePassword + "\n\n" +
-    "Access your dashboard: https://oolivo.com.br/account.html\n\n" +
-    (attachmentIncluded ? "Your purchased spreadsheet is attached to this email.\n\n" : "") +
-    "For security, change your password after your first sign-in.\n\n" +
-    "Oolivo Finance\nFinancial tools for modern businesses.";
+    "Welcome to Oolivo Finance
+
+" +
+    "Your purchase is confirmed and your Oolivo Finance account is ready.
+
+" +
+    "Product: " + safeProduct + "
+" +
+    "Plan: " + safePlan + "
+" +
+    "Email: " + safeEmail + "
+" +
+    "Initial password: " + safePassword + "
+
+" +
+    "Access your dashboard: https://oolivo.com.br/account.html
+
+" +
+    (attachmentIncluded ? "Your purchased spreadsheet is attached to this email.
+
+" : "") +
+    "For security, change your password after your first sign-in.
+
+" +
+    "Oolivo Finance
+Financial tools for modern businesses.";
 
   const html =
     "<!doctype html><html><body style='margin:0;padding:0;background:#f4f7fb;font-family:Arial,Helvetica,sans-serif;color:#182230'>" +
@@ -402,7 +418,7 @@ function sendFile(res, file, downloadName) {
 
 const seoWorker = process.env.SEO_ROBOT_ENABLED === "false" ? null : spawn(process.execPath, [path.join(ROOT, "scripts", "seo-worker.js")], {
   cwd: ROOT,
-  env: process.env,
+  env: { ...process.env, SEO_DATA_DIR: process.env.SEO_DATA_DIR || "/var/lib/globaltools/seo" },
   stdio: ["ignore", "inherit", "inherit"]
 });
 if (seoWorker) {
