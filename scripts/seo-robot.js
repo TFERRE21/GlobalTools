@@ -109,10 +109,8 @@ async function main() {
     keywords: [...merged.values()].sort((a, b) => a.keyword.localeCompare(b.keyword, "pt-BR"))
   };
   const keywordTemp = KEYWORDS_FILE + ".tmp";
-  fs.writeFileSync(keywordTemp, JSON.stringify(payload, null, 2) + "
-");
+  fs.writeFileSync(keywordTemp, JSON.stringify(payload, null, 2) + "\n");
   fs.renameSync(keywordTemp, KEYWORDS_FILE);
-");
   console.log(`SEO robot concluído: ${pages.length} URLs no sitemap; ${found.size} novas sugestões; ${merged.size} sugestões acumuladas.`);
 }
 main().catch(err => { console.error(err); process.exit(1); });
