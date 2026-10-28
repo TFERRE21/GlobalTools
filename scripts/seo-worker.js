@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 "use strict";
 
-// Persistent Oolivo SEO worker: runs once at startup, then repeats every 30 minutes.
+// Persistent Oolivo SEO worker: runs once at startup, then repeats every 5 minutes.
 const { spawn } = require("child_process");
 const path = require("path");
 
 const ROOT = path.resolve(__dirname, "..");
 const SCRIPT = path.join(__dirname, "seo-robot.js");
-const INTERVAL_MS = Math.max(5, Number(process.env.SEO_INTERVAL_MINUTES || 30)) * 60 * 1000;
+const INTERVAL_MS = Math.max(1, Number(process.env.SEO_INTERVAL_MINUTES || 5)) * 60 * 1000;
 let stopping = false;
 let active = null;
 let timer = null;
