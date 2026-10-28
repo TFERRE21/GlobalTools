@@ -25,7 +25,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Validate SEO worker syntax
+      - name: Validate syntax
         run: |
           node --check scripts/seo-robot.js
           node --check scripts/seo-worker.js
