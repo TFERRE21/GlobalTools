@@ -74,16 +74,8 @@ async function main() {
   });
   pages.unshift({ path: "", url: SITE + "/", title: "Oolivo — ferramentas online gratuitas", description: "Ferramentas online gratuitas para texto, PDF, imagens, conversões e cálculos." });
 
-  const urls = pages.map(p => `  <url>
-    <loc>${xmlEscape(p.url)}</loc>
-    <lastmod>${TODAY}</lastmod>
-  </url>`).join("
-");
-  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls}
-</urlset>
-`;
+  const urls = pages.map(p => `  <url><loc>${xmlEscape(p.url)}</loc><lastmod>${TODAY}</lastmod></url>`).join("\n");
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
   const sitemapTemp = SITEMAP_FILE + ".tmp";
   fs.writeFileSync(sitemapTemp, sitemap);
   fs.renameSync(sitemapTemp, SITEMAP_FILE);
