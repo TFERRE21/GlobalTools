@@ -39,6 +39,75 @@ const SEEDS = [
 const PREFIXES = ["free", "online", "best", "simple", "how to use", "for beginners", "for business", "for students", "without download"];
 const SUFFIXES = ["online", "free", "tool", "calculator", "converter", "template", "examples", "without download", "for business"];
 
+const GUIDES = [
+  {
+    slug: "guias/ferramentas-de-texto-online.html",
+    title: "Ferramentas de texto online gratuitas",
+    description: "Conheça ferramentas gratuitas para contar caracteres, organizar linhas, remover espaços e transformar texto diretamente no navegador.",
+    intro: "Tarefas simples com texto podem consumir tempo quando feitas manualmente. As ferramentas de texto do Oolivo ajudam a contar, limpar e organizar conteúdo sem instalar programas.",
+    sections: [
+      ["Contar palavras e caracteres", "Use contadores para revisar limites de formulários, publicações, descrições e documentos antes de enviar o texto.", "/tools/character-counter.html", "Contador de caracteres"],
+      ["Limpar e organizar linhas", "Remova linhas duplicadas ou espaços extras para preparar listas, planilhas copiadas e dados textuais.", "/tools/remove-duplicate-lines.html", "Remover linhas duplicadas"],
+      ["Converter letras maiúsculas e minúsculas", "Padronize títulos, listas e trechos de texto sem precisar reescrever tudo.", "/tools/case-converter.html", "Conversor de maiúsculas e minúsculas"]
+    ]
+  },
+  {
+    slug: "guias/ferramentas-json-para-desenvolvedores.html",
+    title: "Ferramentas JSON online para desenvolvedores",
+    description: "Aprenda a formatar, validar e converter JSON com ferramentas online gratuitas para desenvolvimento e depuração.",
+    intro: "JSON é um formato comum para APIs, configurações e troca de dados. Um arquivo bem formatado facilita encontrar erros e entender a estrutura antes de usar os dados em uma aplicação.",
+    sections: [
+      ["Formatar e validar JSON", "A indentação organiza objetos e arrays; a validação ajuda a localizar problemas como vírgulas extras, aspas ausentes e valores malformados.", "/tools/json-formatter.html", "Formatador JSON"],
+      ["Minificar JSON", "A minificação remove espaços desnecessários e pode ser útil quando um sistema precisa de uma representação compacta dos dados.", "/tools/json-minifier.html", "Minificador JSON"],
+      ["Converter JSON para CSV", "Quando os dados têm uma estrutura tabular compatível, a conversão para CSV facilita a análise em planilhas.", "/tools/json-to-csv.html", "Conversor JSON para CSV"]
+    ]
+  },
+  {
+    slug: "guias/calculadoras-online.html",
+    title: "Calculadoras online gratuitas para o dia a dia",
+    description: "Use calculadoras online para porcentagem, médias, frações, idade e diferenças entre datas, sem instalar aplicativos.",
+    intro: "Uma calculadora online é útil para conferir resultados rapidamente em estudos, tarefas pessoais e rotinas de trabalho. Confira a finalidade de cada ferramenta e revise os dados inseridos antes de usar o resultado.",
+    sections: [
+      ["Calcular porcentagens", "Descubra uma porcentagem de um valor ou compare variações percentuais em preços, metas e resultados.", "/tools/percentage-calculator.html", "Calculadora de porcentagem"],
+      ["Calcular médias", "Organize valores numéricos e calcule a média aritmética para conferências e exercícios.", "/tools/average-calculator.html", "Calculadora de média"],
+      ["Calcular idade e intervalos de datas", "Encontre a idade a partir de uma data de nascimento ou veja quantos dias existem entre duas datas.", "/tools/age-calculator.html", "Calculadora de idade"]
+    ]
+  },
+  {
+    slug: "guias/ferramentas-pdf-online.html",
+    title: "Ferramentas PDF online: organizar e consultar documentos",
+    description: "Veja opções para trabalhar com arquivos PDF online, incluindo compactação, mesclagem, leitura de texto e metadados.",
+    intro: "Antes de compartilhar um PDF, vale conferir o tamanho do arquivo, a ordem das páginas e se o documento contém as informações esperadas. Escolha a ferramenta de acordo com a tarefa e mantenha uma cópia original quando o arquivo for importante.",
+    sections: [
+      ["Reduzir o tamanho de um PDF", "A compactação pode ajudar quando há limites de tamanho para anexos ou formulários. Confira a qualidade do resultado antes de substituir o original.", "/tools/compress-pdf.html", "Compactar PDF"],
+      ["Juntar documentos PDF", "A ferramenta de mesclagem pode reunir documentos relacionados em um único arquivo para facilitar o envio e o arquivamento.", "/tools/merge-pdf.html", "Mesclar PDFs"],
+      ["Consultar metadados do PDF", "Metadados podem revelar informações técnicas do arquivo, como propriedades do documento, dependendo do conteúdo disponível.", "/tools/pdf-metadata.html", "Metadados de PDF"]
+    ]
+  },
+  {
+    slug: "guias/ferramentas-de-imagem-online.html",
+    title: "Ferramentas de imagem online gratuitas",
+    description: "Redimensione imagens, consulte dimensões e converta formatos com ferramentas online práticas.",
+    intro: "Preparar imagens para sites, formulários e compartilhamento geralmente envolve ajustar dimensões ou escolher um formato adequado. Sempre confira o arquivo final antes de publicá-lo.",
+    sections: [
+      ["Redimensionar imagens", "Ajuste largura e altura para adequar imagens a páginas, apresentações e publicações.", "/tools/image-resizer.html", "Redimensionar imagem"],
+      ["Consultar informações da imagem", "Verifique dimensões e informações técnicas para entender melhor um arquivo antes de utilizá-lo.", "/tools/image-info.html", "Informações da imagem"],
+      ["Converter PNG para JPG", "A conversão pode ser útil quando uma plataforma aceita apenas determinados formatos; observe que formatos diferentes podem tratar transparência de maneiras distintas.", "/tools/png-to-jpg.html", "Converter PNG para JPG"]
+    ]
+  },
+  {
+    slug: "guias/planilhas-e-controle-financeiro.html",
+    title: "Planilhas e ferramentas para controle financeiro",
+    description: "Entenda como organizar receitas, despesas, orçamento e fluxo de caixa com ferramentas e modelos de controle financeiro.",
+    intro: "Um controle financeiro útil começa com registros consistentes de entradas, saídas e datas. Separar despesas por categoria e revisar o fluxo de caixa ajuda a visualizar compromissos e planejar os próximos períodos.",
+    sections: [
+      ["Planejar o fluxo de caixa", "Registre entradas e saídas previstas e compare o planejamento com os valores realizados para identificar períodos de maior pressão financeira.", "/products/cash-flow-planner.html", "Cash Flow Planner"],
+      ["Organizar o orçamento de uma pequena empresa", "Uma planilha estruturada pode ajudar a reunir despesas recorrentes, custos variáveis e metas em um único lugar.", "/products/small-business-finance-dashboard.html", "Painel financeiro para pequenas empresas"],
+      ["Preparar um kit financeiro para freelancers", "Profissionais autônomos podem separar despesas pessoais e profissionais, registrar pagamentos e acompanhar custos com mais clareza.", "/products/freelancer-business-kit.html", "Kit financeiro para freelancers"]
+    ]
+  }
+];
+
 function requestJson(url) {
   return new Promise(resolve => {
     const req = https.get(url, {
@@ -110,6 +179,25 @@ async function discover(seed) {
   }
   return found;
 }
+
+function ensureGuidePages() {
+  for (const guide of GUIDES) {
+    const file = path.join(ROOT, guide.slug);
+    if (fs.existsSync(file)) continue; // Never overwrite an existing page or user edits.
+    const canonical = SITE + "/" + guide.slug;
+    const sections = guide.sections.map(([heading, body, href, label]) =>
+      "<section><h2>" + heading + "</h2><p>" + body + "</p><p><a href=\"" + href + "\">" + label + " →</a></p></section>"
+    ).join("\\n");
+    const html = "<!doctype html>\\n<html lang=\"pt-BR\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">" +
+      "<title>" + guide.title + " | Oolivo</title><meta name=\"description\" content=\"" + guide.description + "\"><meta name=\"robots\" content=\"index,follow\"><link rel=\"canonical\" href=\"" + canonical + "\">" +
+      "<style>body{font:16px/1.7 system-ui,-apple-system,Segoe UI,sans-serif;max-width:900px;margin:0 auto;padding:24px;color:#172033}header,main,footer{margin:0 auto 28px}a{color:#075fc7}h1{line-height:1.2;font-size:clamp(2rem,5vw,3rem)}section{padding:18px 0;border-top:1px solid #e3e8ef}nav a{margin-right:16px}footer{font-size:.9rem;color:#5d6878}</style></head><body>" +
+      "<header><nav><a href=\"/\">Oolivo</a><a href=\"/tools/\">Ferramentas</a><a href=\"/store.html\">Loja</a></nav></header><main><h1>" + guide.title + "</h1><p>" + guide.intro + "</p>" + sections +
+      "<section><h2>Sobre estas ferramentas</h2><p>As ferramentas disponíveis no Oolivo têm finalidades específicas. Confira o resultado e evite inserir dados confidenciais em qualquer serviço online.</p></section></main><footer><a href=\"/privacy.html\">Privacidade</a> · <a href=\"/contact.html\">Contato</a> · <a href=\"/sobre.html\">Sobre o Oolivo</a></footer></body></html>\\n";
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    atomicWrite(file, html);
+    console.log("[seo-robot] guide page created", guide.slug);
+  }
+}
 async function main() {
   fs.mkdirSync(SEO_DATA_DIR, { recursive: true });
   const state = readJson(STATE_FILE, { seedIndex: 0, totalRuns: 0 });
@@ -142,12 +230,13 @@ async function main() {
     atomicWrite(KEYWORDS_FILE, JSON.stringify({
       site: SITE,
       updatedAt: new Date().toISOString(),
-      note: "Keyword ideas are research only. Sitemap entries always point to real existing pages; keyword discovery alone does not create or index URLs.",
+      note: "Keyword opportunities are preserved across runs. Curated guide pages are created once, only when missing, and sitemap entries point to real local HTML pages.",
       keywordCount: sorted.length,
       lastSeed: seed,
       keywords: sorted
     }, null, 2) + "\n");
 
+    ensureGuidePages();
     const pages = walkPages(ROOT);
     pages.unshift({ url: SITE + "/", title: "Oolivo — Ferramentas online gratuitas", lastmod: TODAY() });
     const unique = new Map();
