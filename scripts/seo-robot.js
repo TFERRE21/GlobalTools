@@ -14,7 +14,7 @@ const KEYWORDS_FILE = path.join(OUT_DIR, "keyword-opportunities.json");
 const SITEMAP_FILE = path.join(ROOT, "sitemap.xml");
 const TODAY = new Date().toISOString().slice(0, 10);
 const EXCLUDED = new Set([
-  "login.html", "account.html", "account-success.html",
+  "index.html", "login.html", "account.html", "account-success.html",
   "products/cash-flow-planner-success.html",
   "products/freelancer-business-kit-success.html",
   "products/small-business-finance-dashboard-success.html"
