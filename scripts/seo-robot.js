@@ -66,6 +66,7 @@ function xmlEscape(value) {
 async function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
   fs.mkdirSync(SEO_DATA_DIR, { recursive: true });
+  fs.mkdirSync(SEO_DATA_DIR, { recursive: true });
   fs.mkdirSync(SEO_DATA_DIR, { recursive: true });\n  fs.mkdirSync(SEO_DATA_DIR, { recursive: true });
   const pages = walk(ROOT).map(({ full, rel }) => {
     const html = fs.readFileSync(full, "utf8");
