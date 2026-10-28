@@ -6,7 +6,7 @@ ENV CORE_PORT=3001
 ENV PUBLIC_SITE_URL=https://oolivo.com.br
 COPY package.json ./
 COPY . .
-RUN mkdir -p /var/lib/globaltools
+RUN mkdir -p /var/lib/globaltools/seo
 EXPOSE 3000
 VOLUME ["/var/lib/globaltools"]
 CMD ["npm", "start"]
