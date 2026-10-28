@@ -1,4 +1,4 @@
-name: Validate Oolivo SEO robot
+name: Validate Oolivo persistent SEO robot
 
 on:
   push:
