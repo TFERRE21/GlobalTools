@@ -10,7 +10,7 @@ const https = require("https");
 const ROOT = process.cwd();
 const SITE = "https://oolivo.com.br";
 const OUT_DIR = path.join(ROOT, "seo");
-const KEYWORDS_FILE = path.join(OUT_DIR, "keyword-opportunities.json");
+const SEO_DATA_DIR = process.env.SEO_DATA_DIR || OUT_DIR;\nconst KEYWORDS_FILE = path.join(SEO_DATA_DIR, "keyword-opportunities.json");
 const SITEMAP_FILE = path.join(ROOT, "sitemap.xml");
 const TODAY = new Date().toISOString().slice(0, 10);
 const EXCLUDED = new Set([
@@ -64,7 +64,7 @@ function xmlEscape(value) {
 }
 
 async function main() {
-  fs.mkdirSync(OUT_DIR, { recursive: true });
+  fs.mkdirSync(OUT_DIR, { recursive: true });\n  fs.mkdirSync(SEO_DATA_DIR, { recursive: true });
   const pages = walk(ROOT).map(({ full, rel }) => {
     const html = fs.readFileSync(full, "utf8");
     const meta = metadata(html, path.basename(rel, ".html").replace(/[-_]/g, " "));
@@ -74,7 +74,7 @@ async function main() {
 
   const urls = pages.map(p => `  <url>\n    <loc>${xmlEscape(p.url)}</loc>\n    <lastmod>${TODAY}</lastmod>\n  </url>`).join("\n");
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
-  fs.writeFileSync(SITEMAP_FILE, sitemap);
+  const sitemapTemp = SITEMAP_FILE + ".tmp";\n  fs.writeFileSync(sitemapTemp, sitemap);\n  fs.renameSync(sitemapTemp, SITEMAP_FILE);
 
   // Limit queries and deduplicate to keep the daily job respectful and reliable.
   const seeds = [...new Set(pages.map(p => p.title).filter(Boolean))].slice(0, 35);
