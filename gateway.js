@@ -400,7 +400,7 @@ function sendFile(res, file, downloadName) {
   fs.createReadStream(file).pipe(res);
 }
 
-const core = spawn(process.execPath, [path.join(ROOT, "server.js")], {
+const seoWorker = process.env.SEO_ROBOT_ENABLED === "false" ? null : spawn(process.execPath, [path.join(ROOT, "scripts", "seo-worker.js")], {\n  cwd: ROOT,\n  env: process.env,\n  stdio: ["ignore", "inherit", "inherit"]\n});\nif (seoWorker) {\n  seoWorker.on("error", err => console.error("[seo-worker] Failed to launch:", err.message));\n  seoWorker.on("exit", (code, signal) => console.warn("[seo-worker] Process exited", code, signal));\n}\n\nconst core = spawn(process.execPath, [path.join(ROOT, "server.js")], {
   env: { ...process.env, PORT: String(CORE_PORT) },
   stdio: "inherit"
 });
@@ -648,5 +648,5 @@ const gateway = http.createServer(async (req, res) => {
 });
 
 gateway.listen(PORT, "0.0.0.0", () => console.log("GlobalTools gateway running on port " + PORT + " (core " + CORE_PORT + ")"));
-process.on("SIGTERM", () => { core.kill("SIGTERM"); process.exit(0); });
-process.on("SIGINT", () => { core.kill("SIGINT"); process.exit(0); });
+process.on("SIGTERM", () => { core.kill("SIGTERM"); if (seoWorker) seoWorker.kill("SIGTERM"); process.exit(0); });
+process.on("SIGINT", () => { core.kill("SIGINT"); if (seoWorker) seoWorker.kill("SIGINT"); process.exit(0); });
