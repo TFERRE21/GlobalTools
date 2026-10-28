@@ -5,7 +5,7 @@
   "description": "GlobalTools - free online tools",
   "scripts": {
     "start": "node gateway.js",
-    "check": "node --check gateway.js && node --check server.js && node --check app.js",
+    "check": "node --check gateway.js && node --check server.js && node --check app.js && node --check scripts/seo-robot.js && node --check scripts/seo-worker.js",
     "test": "npm run check"
   },
   "engines": {
