@@ -74,8 +74,13 @@ async function main() {
   });
   pages.unshift({ path: "", url: SITE + "/", title: "Oolivo — ferramentas online gratuitas", description: "Ferramentas online gratuitas para texto, PDF, imagens, conversões e cálculos." });
 
-  const urls = pages.map(p => `  <url><loc>${xmlEscape(p.url)}</loc><lastmod>${TODAY}</lastmod></url>`).join("\n");
-  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
+  const urls = pages.map(p => `  <url><loc>${xmlEscape(p.url)}</loc><lastmod>${TODAY}</lastmod></url>`).join("
+");
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls}
+</urlset>
+`;
   const sitemapTemp = SITEMAP_FILE + ".tmp";
   fs.writeFileSync(sitemapTemp, sitemap);
   fs.renameSync(sitemapTemp, SITEMAP_FILE);
@@ -108,7 +113,9 @@ async function main() {
     keywordCount: merged.size,
     keywords: [...merged.values()].sort((a, b) => a.keyword.localeCompare(b.keyword, "pt-BR"))
   };
-  fs.writeFileSync(KEYWORDS_FILE, JSON.stringify(payload, null, 2) + "
+  const keywordTemp = KEYWORDS_FILE + ".tmp";
+  fs.writeFileSync(keywordTemp, JSON.stringify(payload, null, 2) + "\n");
+  fs.renameSync(keywordTemp, KEYWORDS_FILE);
 ");
   console.log(`SEO robot concluído: ${pages.length} URLs no sitemap; ${found.size} novas sugestões; ${merged.size} sugestões acumuladas.`);
 }
